@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "901221900364",
+    "project_id": "ridewithdriver-d271a",
+    "storage_bucket": "ridewithdriver-d271a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901221900364:android:d8fe06fe093e304f9294e9",
+        "android_client_info": {
+          "package_name": "com.example.r_w_r"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpKvhPrM98--1hkBTvbOCW8t5sU3RnJ6s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

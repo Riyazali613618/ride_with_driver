@@ -1,0 +1,78 @@
+plugins {
+    id "com.android.application"
+    // START: FlutterFire Configuration
+    id 'com.google.gms.google-services'
+    // END: FlutterFire Configuration
+    id "kotlin-android"
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.example.r_w_r"
+    compileSdk = 36
+    ndkVersion "27.1.12297006"
+
+    compileOptions {
+        // Enable core library desugaring
+        coreLibraryDesugaringEnabled true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    defaultConfig {
+        applicationId = "com.example.r_w_r"
+        minSdkVersion flutter.minSdkVersion
+        targetSdk = 36
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("../../ridewithdriver-release-key.keystore")
+            storePassword "ridewithdriver"
+            keyAlias "ridewithdriver-key-alias"
+            keyPassword "ridewithdriver"
+        }
+    }
+
+    buildTypes {
+        release {
+           signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    // 🔧 Add resolution strategy to fix duplicate Firebase class issue
+    configurations.all {
+        resolutionStrategy {
+            force 'com.google.firebase:firebase-iid:21.1.0'
+        }
+    }
+}
+
+flutter {
+    source = "../.."
+}
+
+dependencies {
+    // Core library desugaring - REQUIRED for flutter_local_notifications
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
+    // Google Play Core library required for deferred components
+    implementation 'com.google.android.play:core:1.10.3'
+
+    // Kotlin standard library
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+
+    // 🔧 Optional: If you want to explicitly exclude firebase-iid from firebase-messaging
+    implementation('com.google.firebase:firebase-messaging:24.1.1') {
+        exclude group: 'com.google.firebase', module: 'firebase-iid'
+    }
+}

@@ -1,0 +1,921 @@
+// File: lib/api\api_service\chat\chat_conversation_service.dart
+{
+  "Failed to load chat history": "",
+  "Network error: ${e.toString()}": "",
+}
+
+// File: lib/api\api_service\home\home_service.dart
+{
+  "Loaded from cache": "",
+}
+
+// File: lib/api\api_service\login_service.dart
+{
+  "Failed to send OTP. Please try again.": "",
+  "Something went wrong. Please check your connection.": "",
+}
+
+// File: lib/api\api_service\media_service.dart
+{
+  "Upload failed: $e": "",
+  "Uploading media...": "",
+}
+
+// File: lib/components\app_invoice_viewer.dart
+{
+  "Invoice": "",
+  "Error generating PDF: $e": "",
+  "Error printing: $e": "",
+  "Note: This is a simplified version of your invoice. The original formatting could not be preserved in PDF format.": "",
+  "Error rendering content": "",
+}
+
+// File: lib/components\app_loader.dart
+{
+  "Loading...": "",
+  "No Internet Connection": "",
+  "Please check your internet connection and try again.": "",
+  "Retry": "",
+}
+
+// File: lib/components\custom_stepper.dart
+{
+  "${index + 1}": "",
+}
+
+// File: lib/components\custtom_location_widget.dart
+{
+  "Search for a location...": "",
+}
+
+// File: lib/components\eye_blink.dart
+{
+  "Image Captured!": "",
+  "Your photo has been captured successfully!": "",
+  "Capture Again": "",
+  "Use This Photo": "",
+  "Capture Image": "",
+  "Instructions:": "",
+  "1. Position your face in the circle\n2. Wait for the green border\n3. Blink your eyes to capture": "",
+}
+
+// File: lib/components\media_uploader_widget.dart
+{
+  "Replace Media": "",
+  "Are you sure you want to replace": "",
+  "Cancel": "",
+  "Replace": "",
+  "Camera Error": "",
+  "Could not access camera. Please check:": "",
+  "• Camera permissions are granted": "",
+  "• Your device has a working camera": "",
+  "• No other app is using the camera": "",
+  "OK": "",
+  "Select Media Source": "",
+  "Choose how you want to add your media": "",
+  "Gallery": "",
+  "Choose from existing photos": "",
+  "Authentication Required": "",
+  "You need to be logged in to upload media. Please log in and try again.": "",
+  "Media Preview": "",
+  "Open": "",
+  "Failed to load image": "",
+  "*": "",
+  "Update Image": "",
+  "Uploading...": "",
+  "(Max. File size: 25 MB)": "",
+  "Add More": "",
+  "Unable to load PDF": "",
+}
+
+// File: lib/components\video_image_player_widget.dart
+{
+  "Error Loading Media": "",
+  "Retry": "",
+  "Failed to load image": "",
+}
+
+// File: lib/main.dart
+{
+  "App Initialization Failed": "",
+  "Ride with Driver": "",
+}
+
+// File: lib/r15.dart
+{
+  "Step ${_currentStep + 1} of ${_steps.length}": "",
+  "Previous": "",
+  "Company Name": "",
+  "Enter your company name": "",
+  "Registered Address": "",
+  "Enter your registered address": "",
+  "Address Type": "",
+  "Error picking document: ${e.toString()}": "",
+  "GSTIN": "",
+  "Enter your GSTIN": "",
+  "Business Registration Certificate": "",
+  "Upload Certificate of Incorporation (PDF/Image)": "",
+  "Authorized Person Aadhaar": "",
+  "Enter 12-digit Aadhaar number": "",
+  "Displayed as: ${_formatAadhar(_aadharController.text)}": "",
+  "Transportation Permit": "",
+  "Upload valid transportation permit documents": "",
+  "Error picking images: ${e.toString()}": "",
+  "Fleet Information": "",
+  "Total Fleet Size": "",
+  "Small (2-5 vehicles)": "",
+  "Medium (6-15 vehicles)": "",
+  "Large (15+ vehicles)": "",
+  "Vehicle Details": "",
+  "${type.toString().split(": "",
+  "Enter number of ${type.toString().split(": "",
+  "Allow Negotiation": "",
+  "Enable price negotiation through system chat/calls/WhatsApp": "",
+  "Vehicle Photos": "",
+  "Add photos of your vehicles to showcase your fleet": "",
+  "Add Vehicle Photos": "",
+  "Complete now → Get verified in 2 hours!\nIf additional information is required, we will contact you.": "",
+  "Phone number verified successfully": "",
+  "Verification failed: ${e.toString()}": "",
+  "Contact Information": "",
+  "These details will be displayed on our website and app for client communication": "",
+  "Contact Person Name": "",
+  "e.g., John Doe": "",
+  "Mobile Number": "",
+  "Use login number (${widget.currentUserLogin})": "",
+  "New Mobile Number": "",
+  "Enter mobile number": "",
+  "Show mobile number on website/app": "",
+  "WhatsApp Number": "",
+  "New WhatsApp Number": "",
+  "Enter WhatsApp number": "",
+  "Show WhatsApp number on website/app": "",
+  "Enable In-App Chat System": "",
+  "Allow customers to contact you through our app": "",
+  "Review Your Information": "",
+  "Your registration will be verified within 2 hours. We may contact you if additional information is needed.": "",
+}
+
+// File: lib/r16.dart
+{
+  "All Localized Strings:": "",
+  "Strings with placeholders:": "",
+}
+
+// File: lib/screens\auth_screens\first_time_user.dart
+{
+  "Authentication token not found. Please login again.": "",
+  "Server error. Please try again.": "",
+  "Failed to update profile. Please check your internet connection.": "",
+  "Complete Your Profile": "",
+  "Welcome!": "",
+  "Please complete your profile to continue": "",
+  "First Name *": "",
+  "Last Name": "",
+  "Email (Optional)": "",
+}
+
+// File: lib/screens\auth_screens\login_screen.dart
+{
+  "Failed to send OTP. Please try again.": "",
+  "Log in": "",
+  "Mobile Number": "",
+  "Enter mobile number": "",
+  "Please Enter Correct Phone": "",
+}
+
+// File: lib/screens\auth_screens\logout_button.dart
+{
+  "Logout": "",
+  "Are you sure you want to logout?": "",
+  "Cancel": "",
+  "Logged out successfully": "",
+  "Failed to logout. Please try again.": "",
+}
+
+// File: lib/screens\auth_screens\otp_screen.dart
+{
+  "Please enter all 4 digits": "",
+  "Failed to verify OTP. Please try again.": "",
+  "OTP code resent to your WhatsApp number": "",
+  "Failed to resend OTP. Please try again.": "",
+  "Verify your phone number": "",
+  "Did not receive the code?": "",
+  "Resend Code": "",
+}
+
+// File: lib/screens\common_screens\language_screen.dart
+{
+  "${localizations.change_language} ${_selectedLanguage!.name}": "",
+}
+
+// File: lib/screens\common_screens\my_ratings_and_reviews_screen.dart
+{
+  "Your Review": "",
+  "Something went wrong!": "",
+  "Try Again": "",
+  "No Reviews Yet": "",
+  "You haven\": "",
+  "My Ratings & Reviews": "",
+}
+
+// File: lib/screens\common_screens\reviews_screen.dart
+{
+  "Error deleting review: $e": "",
+  "Confirm Delete": "",
+  "Are you sure you want to delete this review?": "",
+  "Cancel": "",
+  "Delete": "",
+  "Review & Rating ($totalReviews)": "",
+  "Error loading reviews: ${snapshot.error}": "",
+  "Retry": "",
+  "No reviews yet": "",
+  "Be the first to share your experience!": "",
+  "Rate Now": "",
+  "${review.rating}.0": "",
+  "Please enter your review": "",
+  "Error updating review: $e": "",
+  "Edit Review": "",
+  "Your review": "",
+  "Update": "",
+}
+
+// File: lib/screens\driver_screens\active_plans.dart
+{
+  "Could not open PDF": "",
+  "Error: ${e.toString()}": "",
+  "Active Subscriptions": "",
+  "Manage your current subscriptions": "",
+  "Error": "",
+  "Retry": "",
+  "No Active Subscriptions": "",
+  "You don\": "",
+  "Active Plan": "",
+  "Transaction History": "",
+  "${activePlan.name}": "",
+  "₹$priceInStandardUnit": "",
+  "₹$amountInStandardUnit": "",
+  "Upgrade Plan": "",
+}
+
+// File: lib/screens\driver_screens\add_card.dart
+{
+  "Add payment methods": "",
+  "This card will only be charged when you\nplace an order.": "",
+  "4343 4343 4343 4343": "",
+  "MM/YY": "",
+  "CVC": "",
+  "Add Card": "",
+  "Upi Payment": "",
+  "Scan Card": "",
+}
+
+// File: lib/screens\driver_screens\dashbord.dart
+{
+  "My Dashboard": "",
+  "Analytics": "",
+  "Vehicles": "",
+  "Quick Actions": "",
+  "Loading dashboard...": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "$reachPercentage": "",
+  "Profile": "",
+  "Reached": "",
+  "My Vehicles": "",
+  "${_vehicles.length}/$_maxLimit vehicles added": "",
+  "Vehicle Limit": "",
+  "${_vehicles.length}/$_maxLimit": "",
+  "Limit reached! Upgrade to add more vehicles.": "",
+  "Loading vehicles...": "",
+  "No Vehicles Added Yet": "",
+  "Add your first vehicle to get started with bookings and manage your fleet effectively.": "",
+  "Add Vehicle": "",
+  "Upgrade Your Plan": "",
+  "You need to upgrade to the TRANSPORTER plan to add more vehicles and unlock premium features.": "",
+  "Maybe Later": "",
+  "Upgrade Now": "",
+}
+
+// File: lib/screens\driver_screens\driver_profile_info.dart
+{
+  "Profile updated successfully!": "",
+  "Error: ${response.message}": "",
+  "Error: $e": "",
+  "No profile data available": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "Profile photo updated successfully!": "",
+  "Error updating photo: ${response.message}": "",
+  "Error updating photo: $e": "",
+  "Verified": "",
+  "Basic Information": "",
+  "Address Information": "",
+  "Fleet Information": "",
+  "Vehicle Types": "",
+  "Service Cities": "",
+  "Languages Spoken": "",
+  "Vehicle Counts": "",
+  "Professional Information": "",
+  "Cancel": "",
+  "Saving...": "",
+  "Save Changes": "",
+  "Select $label": "",
+}
+
+// File: lib/screens\driver_screens\erikshaw_rikshaw_profile_screen.dart
+{
+  "Verified": "",
+  "No profile data available": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "Vehicle Information": "",
+  "Pricing Information": "",
+  "Price Negotiable": "",
+  "Address Information": "",
+  "Service Areas": "",
+  "Vehicle Specifications": "",
+  "About Driver": "",
+  "Vehicle Images": "",
+}
+
+// File: lib/screens\driver_screens\payment_bottom_sheet.dart
+{
+  "Processing payment...": "",
+  "Add Payment": "",
+  "₹ ${_plan.price.toStringAsFixed(0)}": "",
+  "${_plan.discountPercentage.toStringAsFixed(0)}% off": "",
+  "Total": "",
+  "Rs ${_plan.price.toStringAsFixed(2)}": "",
+  "Make Payment": "",
+}
+
+// File: lib/screens\driver_screens\plans.dart
+{
+  "Choose the right Plan": "",
+  "choose a plan and set your accordingly": "",
+  "Loading plans...": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "Payment Successfully Received!": "",
+  "Your payment has been processed successfully. Now you can complete your registration to get started.": "",
+  "Complete Registration": "",
+  "No Plans Available": "",
+  "There are currently no plans available for this type.": "",
+  "Refresh": "",
+  "₹${plan.price.toStringAsFixed(0)}": "",
+  "${plan.discountPercentage.toStringAsFixed(0)}% off": "",
+  "Apply Now": "",
+}
+
+// File: lib/screens\driver_screens\vehicle_details.dart
+{
+  "Delete Vehicle": "",
+  "Are you sure you want to delete this vehicle?": "",
+  "${_vehicle!.vehicleName} (${_vehicle!.vehicleNumber})": "",
+  "This action cannot be undone.": "",
+  "Cancel": "",
+  "Delete": "",
+  "Vehicle Actions": "",
+  "Select an action for this vehicle:": "",
+  "Permanently remove this vehicle": "",
+  "Disable Vehicle": "",
+  "Hide this vehicle from listings": "",
+  "Enable Vehicle": "",
+  "Make this vehicle visible in listings": "",
+  "Vehicle Details": "",
+  "Loading vehicle details...": "",
+  "Error loading vehicle details": "",
+  "Retry": "",
+  "Basic Information": "",
+  "Vehicle Specifications": "",
+  "Pricing & Location": "",
+  "${_vehicle!.currency}": "",
+  "Vehicle Images (${_vehicle!.images.length})": "",
+  "Failed to load": "",
+  "Vehicle Videos (${_vehicle!.videos.length})": "",
+  "${_getMediaTypeText(mediaUrl)} ${index + 1}": "",
+  "Vehicle Documents": "",
+  "No documents uploaded": "",
+  "Save Changes": "",
+  "Edit Vehicle": "",
+}
+
+// File: lib/screens\driver_screens\widgets\home_banner_widget.dart
+{
+  "Error: ${homeDataProvider.error}": "",
+  "Retry": "",
+}
+
+// File: lib/screens\layout.dart
+{
+  "Press back again to exit": "",
+}
+
+// File: lib/screens\notification\notification.dart
+{
+  "Notifications": "",
+  "Notification marked as read": "",
+  "Sharing notification...": "",
+  "No Notifications": "",
+  "You\": "",
+  "Something went wrong": "",
+  "Failed to load notifications. Please check your connection and try again.": "",
+  "Try Again": "",
+  "Details": "",
+  ":": "",
+}
+
+// File: lib/screens\other\category_view.dart
+{
+  "Search error: $e": "",
+  "Error getting location details: $e": "",
+  "Please select a location first": "",
+  "Search location...": "",
+  "No locations found matching": "",
+}
+
+// File: lib/screens\other\faq_screen.dart
+{
+  "Help & Support": "",
+  "Loading FAQ...": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "No FAQ Available": "",
+  "FAQ content will appear here once available": "",
+  "Refresh": "",
+  "Find answers to common questions": "",
+  "${faqResponse.faqs.length} Questions": "",
+  "${index + 1}": "",
+}
+
+// File: lib/screens\other\setting.dart
+{
+  "Settings": "",
+  "Language": "",
+  "change language": "",
+  "Logout": "",
+  "Are you sure you want to logout?": "",
+  "Cancel": "",
+  "Delete Account": "",
+  "This action cannot be undone. All your data will be permanently deleted.": "",
+  "Delete": "",
+  "My Profile": "",
+  "Retry": "",
+  "Load Profile": "",
+  "Name: ${profileProvider.displayName ??": "",
+  "Phone: ${profileProvider.profileData?[": "",
+  "User Type: ${profileProvider.userType ??": "",
+}
+
+// File: lib/screens\other\support_screen.dart
+{
+  "Email copied to clipboard: $email": "",
+  "Unable to open email client. Email: $email": "",
+  "Phone number copied: $cleanPhone": "",
+  "Unable to process phone number: $phone": "",
+  "Address copied to clipboard": "",
+  "Unable to open maps or copy address": "",
+  "Support Center": "",
+  "Loading support information...": "",
+  "Something went wrong": "",
+  "Try Again": "",
+  "How can we help you?": "",
+  "Choose the best way to reach our support team": "",
+  "Contact by Email": "",
+  "Other Ways to Reach Us": "",
+}
+
+// File: lib/screens\other\terms_and_coditions_bottom_sheet.dart
+{
+  "Please accept to continue": "",
+  "Loading data...": "",
+  "Failed to load data": "",
+  "Try Again": "",
+  "No data available": "",
+  "I have read and agree": "",
+  "Accept": "",
+}
+
+// File: lib/screens\other\terms_and_conditions.dart
+{
+  "Terms and Conditions": "",
+  "Effective Date: 15 Apr 2025": "",
+  "Welcome to RideNow Taxi App. By using our services, you agree to the terms and conditions outlined below. Please read them carefully before booking a ride.": "",
+  "Need Help?\nContact Support": "",
+  "24x7 Customer Care": "",
+  "📞": "",
+  "+91-9999999999": "",
+  "📧": "",
+  "support@ridenow.com": "",
+}
+
+// File: lib/screens\registration_screens\auto_rikshaw_registration_screenn.dart
+{
+  "Profile photo is required": "",
+  "Please wait for all documents to be verified before proceeding": "",
+  "All required documents are needed": "",
+  "fuelType": "",
+  "vehicleOwnership": "",
+  "RC Book front photo is required": "",
+  "RC Book back photo is required": "",
+  "At least one vehicle photo is required": "",
+  "serviceCity": "",
+  "language": "",
+  "No document uploaded yet": "",
+  "Please verify all documents before submission": "",
+  "Become an Auto Rickshaw Driver": "",
+  "Previous": "",
+  "+91": "",
+  "Address Information": "",
+  "Document Verification": "",
+  "Allow Fare Negotiation": "",
+  "Service Cities": "",
+  "Personal Information": "",
+  "Documents Verification Status": "",
+  "Uploaded Files :": "",
+  "Vehicle Information": "",
+  "Fare Details": "",
+  "Languages Spoken": "",
+  "Address": "",
+  "By submitting this application, you confirm that all the information provided is accurate and true.": "",
+  "$label:": "",
+}
+
+// File: lib/screens\registration_screens\become_driver_registration_screen.dart
+{
+  "gender": "",
+  "Profile photo is required": "",
+  "Please wait for all documents to be verified before proceeding": "",
+  "All documents are required": "",
+  "vehicleType": "",
+  "servicesCities": "",
+  "languageSpoken": "",
+  "No document uploaded yet": "",
+  "Please verify all documents before submission": "",
+  "Become a Driver": "",
+  "Previous": "",
+  "+91": "",
+  "Address Information": "",
+  "Experience & Charges": "",
+  "Document Verification": "",
+  "Personal Information": "",
+  "Documents Verification Status": "",
+  "Uploaded Files :": "",
+  "Vehicle & Cities": "",
+  "Address": "",
+  "By submitting this application, you confirm that all the information provided is accurate and true.": "",
+  "$label:": "",
+}
+
+// File: lib/screens\registration_screens\doc_verification\adhar_dl_image_verification_widget.dart
+{
+  "Successfully Verified": "",
+  "Verify Images": "",
+}
+
+// File: lib/screens\registration_screens\doc_verification\adhar_dl_number_verification_widget.dart
+{
+  "Enter Your Aadhaar Number": "",
+  "Name as on Aadhaar": "",
+  "Successfully Verified": "",
+  "Verify": "",
+  "Enter Your Driving License Number": "",
+  "Name as on License": "",
+  "Date of Birth": "",
+}
+
+// File: lib/screens\registration_screens\doc_verification\view_image_button.dart
+{
+  "View": "",
+  "Image Preview": "",
+  "${_currentIndex + 1} of ${widget.imageUrls.length}": "",
+  "Loading image...": "",
+  "Failed to load image": "",
+  "Please check your internet connection": "",
+}
+
+// File: lib/screens\registration_screens\e_rikshaw_registration_screen.dart
+{
+  "language": "",
+  "Profile photo is required": "",
+  "Please wait for all documents to be verified before proceeding": "",
+  "All documents are required": "",
+  "vehicleOwnership": "",
+  "At least one vehicle photo is required": "",
+  "serviceCity": "",
+  "No document uploaded yet": "",
+  "Please verify all documents before submission": "",
+  "Application submitted successfully!": "",
+  "An error occurred: ${e.toString()}": "",
+  "E-RICKSHAW Registration": "",
+  "Previous": "",
+  "+91": "",
+  "Address Information": "",
+  "Languages Spoken": "",
+  "Document Verification": "",
+  "Allow Fare Negotiation": "",
+  "Service Cities": "",
+  "Personal Information": "",
+  "Address": "",
+  "Documents Verification Status": "",
+  "Uploaded Files :": "",
+  "Vehicle Information": "",
+  "By submitting this application, you confirm that all the information provided is accurate and complete.": "",
+  "$label:": "",
+}
+
+// File: lib/screens\registration_screens\r_widgets\custom_chips.dart
+{
+  "*": "",
+}
+
+// File: lib/screens\registration_screens\r_widgets\custom_drop_down.dart
+{
+  "*": "",
+}
+
+// File: lib/screens\registration_screens\r_widgets\doc_priview_dialog.dart
+{
+  "No documents to display": "",
+  "PDF Document": "",
+  "Tap to download": "",
+  "Loading image...": "",
+  "Error loading image": "",
+  "Please try again later": "",
+  "${_currentIndex + 1} / ${widget.mediaUrls.length}": "",
+}
+
+// File: lib/screens\registration_screens\r_widgets\select_city_state.dart
+{
+  "Error: ${e.toString()}": "",
+  "State": "",
+  "Loading...": "",
+  "Select State": "",
+  "City": "",
+  "Select State first": "",
+  "No cities available": "",
+  "Select City": "",
+}
+
+// File: lib/screens\registration_screens\transporter_registration_screen.dart
+{
+  "Company photo is required": "",
+  "Please wait for all documents to be verified before proceeding": "",
+  "All documents are required": "",
+  "Please verify all documents before submission": "",
+  "Become a Transporter": "",
+  "Previous": "",
+  "+91": "",
+  "Address Information": "",
+  "Address Type": "",
+  "Document Verification": "",
+  "Fleet Information": "",
+  "Fleet Size": "",
+  "Vehicle Counts": "",
+  "Allow Negotiation": "",
+  "Enable price negotiation via chat/calls": "",
+  "Business Information": "",
+  "Contact Preferences": "",
+  "Documents": "",
+  "By submitting this application, you confirm that all the information provided is accurate and documents are valid.": "",
+  "$label:": "",
+}
+
+// File: lib/screens\user_screens\chat\chat_history_list.dart
+{
+  "Failed to delete chat: $errorMessage": "",
+  "Delete Chat": "",
+  "Are you sure you want to delete this chat with ${chat.name.isNotEmpty ? chat.name :": "",
+  "This action cannot be undone.": "",
+  "Cancel": "",
+  "Delete": "",
+  "Message": "",
+  "Loading chats...": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "No chats yet": "",
+  "Start a conversation to see it here": "",
+  "Deleting...": "",
+}
+
+// File: lib/screens\user_screens\chat\message.dart
+{
+  "Typing...": "",
+  "Type a message...": "",
+  "Upload Media": "",
+  "Document": "",
+  "Failed to load image": "",
+  "Download": "",
+  "Unsupported media type": "",
+  "Loading video...": "",
+  "Retry": "",
+  "Cannot open document": "",
+  "Failed to download document": "",
+}
+
+// File: lib/screens\user_screens\filter_one.dart
+{
+  "Retry": "",
+  "Filter Options": "",
+  "Reset": "",
+  "Apply": "",
+}
+
+// File: lib/screens\user_screens\more\edit_account_screen.dart
+{
+  "Profile updated successfully!": "",
+  "Unsaved Changes": "",
+  "You have unsaved changes. Are you sure you want to leave?": "",
+  "Cancel": "",
+  "Leave": "",
+  "Edit Profile": "",
+  "Loading your profile...": "",
+}
+
+// File: lib/screens\user_screens\more\more_screen.dart
+{
+  "Profile": "",
+  "Error: ${e.toString()}": "",
+  "View and edit profile": "",
+  "Plans": "",
+  "Language": "",
+  "My Ratings": "",
+  "Faq": "",
+  "Support": "",
+  "Rate our app": "",
+  "About Us": "",
+  "Terms & conditions": "",
+  "Privacy Policy": "",
+  "Settings": "",
+}
+
+// File: lib/screens\user_screens\owners.dart
+{
+  "Error searching locations: $e": "",
+  "Search for a new location...": "",
+  "Choose Your Perfect Driver": "",
+  "Retry": "",
+  "No Driver found": "",
+  "Try searching with different criteria": "",
+  "Refresh": "",
+  "${driver.experience} years": "",
+  "Failed to log activity": "",
+  "View More": "",
+}
+
+// File: lib/screens\user_screens\owner_details.dart
+{
+  "Driver Profile": "",
+  "Error loading driver details: ${snapshot.error}": "",
+  "No driver details found": "",
+  "${driverData.experience} Years Experience": "",
+  "More Information": "",
+  ": $value": "",
+  "Driver Bio": "",
+  "Minimum Charges": "",
+  "₹ ${driverData.minimumCharges}": "",
+}
+
+// File: lib/screens\user_screens\rating_and_reviews.dart
+{
+  "Review submitted successfully!": "",
+  "Ratings & Reviews": "",
+  "Rating:": "",
+  "Review": "",
+}
+
+// File: lib/screens\user_screens\succes_screen.dart
+{
+  "Congratulations!": "",
+  "You have successfully registered.": "",
+  "OK": "",
+  "Payment Successful!": "",
+  "Your transaction has been completed": "",
+  "Date": "",
+  "Time": "",
+  "Transaction ID": "",
+  "Amount": "",
+  "Payment Method": "",
+  "Share Receipt": "",
+  "Done": "",
+}
+
+// File: lib/screens\user_screens\transporter_details_screen.dart
+{
+  "Details": "",
+  "Loading transporter details...": "",
+  "Oops! Something went wrong": "",
+  "Try Again": "",
+  "No data available": "",
+  "${transporter.rating.toStringAsFixed(1)} Rating": "",
+  "Total Fleet Size: ${transporter.fleetSize}": "",
+  "Available Vehicles": "",
+  "${vehicles.length} Vehicle${vehicles.length != 1 ?": "",
+  "${currentIndex + 1}/$totalItems": "",
+  "No vehicles available": "",
+  "${vehicle.currency}${vehicle.minimumChargePerHour}/hr": "",
+  "Negotiable": "",
+  "Verified": "",
+  "Image not available": "",
+  "${_currentImageIndex + 1}/${validImages.length}": "",
+  "Loading video...": "",
+  "Video unavailable": "",
+}
+
+// File: lib/screens\user_screens\user_home.dart
+{
+  "Could not access location: $e": "",
+  "Search error: $e": "",
+  "Error getting location details: $e": "",
+  "Please select a location first": "",
+  "Find the perfect vehicles and drivers": "",
+  "Search location...": "",
+  "No locations found matching": "",
+  "Use Current Location": "",
+  "You": "",
+  "Suggestions": "",
+  "Choose Your Vehicle Type": "",
+  "Select the option that best describes your vehicle": "",
+  "Cancel": "",
+  "Become Driver/Transporter": "",
+  "₹170.71": "",
+  "Subscribe Now": "",
+}
+
+// File: lib/screens\user_screens\user_profile_screen.dart
+{
+  "Profile": "",
+  "Error: ${state.message}": "",
+  "Try Again": "",
+}
+
+// File: lib/screens\user_screens\vehicles.dart
+{
+  "Could not access location: $e": "",
+  "Search error: $e": "",
+  "Error getting location details: $e": "",
+  "Failed to load more vehicles: $e": "",
+  "Failed to refresh: ${e.toString()}": "",
+  "Failed to log activity": "",
+  "Could not launch phone app": "",
+  "${currentIndex + 1}/${owner.vehicles.length}": "",
+  "${vehicle?.seatingCapacity ??": "",
+  "₹${vehicle?.minimumCharges ??": "",
+  "min charge": "",
+  "Oops! Something went wrong": "",
+  "Retry": "",
+  "Oops! We couldn": "",
+  "🔍 Try changing the location or exploring other categories.": "",
+  "Refresh": "",
+  "Search for a location...": "",
+  "You": "",
+  "No more vehicles": "",
+}
+
+// File: lib/screens\user_screens\vehicle_details_transporter.dart
+{
+  "View More Vehicles": "",
+  "${widget.vehicle.vehicleName} Details": "",
+  "No Image Available": "",
+  "ID: ${_getShortId(widget.owner.id)}": "",
+  "About": "",
+  "Vehicle Details": "",
+  "Pricing & Availability": "",
+  "Min Charge": "",
+  "₹${widget.vehicle.minimumCharges}": "",
+  "Price Type": "",
+  "${_currentIndex + 1} of ${widget.mediaList.length}": "",
+  "Loading...": "",
+  "Swipe to navigate • Pinch to zoom": "",
+  "Image not available": "",
+}
+
+// File: lib/screens\vehicle\add_vehicle_screen.dart
+{
+  "vehicleOwnership": "",
+  "vehicleType": "",
+  "fuelType": "",
+  "airConditioning": "",
+  "currency": "",
+  "servedLocation": "",
+  "Add Vehicle": "",
+  "Previous": "",
+  "Vehicle Specifications": "",
+  "Service Location": "",
+  "Price is negotiable": "",
+  "Vehicle Images": "",
+  "Vehicle Videos (Optional)": "",
+  "Vehicle Registration Documents": "",
+  "RC Book Front Photo": "",
+  "RC Book Back Photo": "",
+  "Review Your Vehicle Information": "",
+  "Vehicle Videos": "",
+  "${_vehicleModel.videos!.length} video(s) uploaded": "",
+  "Registration Documents": "",
+  "RC Book Front": "",
+  "RC Book Back": "",
+  "Please review all the information carefully before submitting.": "",
+  "$label:": "",
+}
+
