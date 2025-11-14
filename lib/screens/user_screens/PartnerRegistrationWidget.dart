@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:r_w_r/screens/autoRikshawDriverRegistration.dart';
 import 'package:r_w_r/screens/driverRegistrationScreen.dart';
 import 'package:r_w_r/screens/independentCarOwnerRegistration.dart';
@@ -8,9 +9,19 @@ import 'package:r_w_r/utils/color.dart';
 import 'package:r_w_r/utils/images.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../bloc/payment/payment_bloc.dart';
+import '../../bloc/payment_status/payment_status_bloc.dart';
+import '../../bloc/plan_flow/plan_flow_cubit.dart';
 import '../../constants/color_constants.dart';
 import '../../l10n/app_localizations.dart';
+import '../../plan/presentation/bloc/plan_bloc.dart';
+import '../../plan/presentation/bloc/plan_event.dart';
+import '../../plan/presentation/bloc/plan_state.dart';
+import '../../plan/presentation/screens/plan_selection_screen.dart' as planNew;
 import '../../transporterRegistration/presentation/pages/transporter_registration_page.dart';
+import '../PlanSelectionView.dart';
+import '../block/provider/profile_provider.dart';
+import '../driver_screens/driver_registration.dart';
 import '../driver_screens/plans.dart';
 import '../eRickshawRegistration.dart';
 
@@ -95,8 +106,9 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       return allOptions;
     } else {
       return allOptions
-          .where((option) => option['whoRegValue'] == whoReg)
-          .toList();
+          /*.where((option) => option['whoRegValue'] == whoReg)
+          .toList()*/
+          ;
     }
   }
 
@@ -186,73 +198,113 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       );
     }
 
-    return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        iconTheme: IconThemeData(color: Colors.white),
-        backgroundColor: Colors.transparent,
-        surfaceTintColor: Colors.transparent,
-        centerTitle: true,
-        title: Text(
-          "Select your Partnership Type",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-          textAlign: TextAlign.start,
-        ),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.15, 0.30, .90],
-          ),
-        ),
-        child: Column(
-          children: [
-            SizedBox(height: MediaQuery.of(context).size.height * .13),
-            Container(
-              margin: EdgeInsets.only(left: 5, right: 5),
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Column(
-                children: [
-                  SingleChildScrollView(
-                    padding: EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10),
-                        _buildPartnershipList(localizations),
-                        SizedBox(height: 20),
-                      ],
-                    ),
+    return BlocListener<PlanBloc, PlanState>(
+        listener: (context, state) {
+          if (state.loading) {
+            // optional: show loading SnackBar or overlay
+            return;
+          }
+
+          if (state.statusData != null) {
+            final hasRegistrationFee =
+                state.statusData!['hasRegistrationFee'] ?? false;
+            final type = state.statusData!['category'] ?? '';
+
+            if (hasRegistrationFee == false) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider(
+                    create: (context) => PaymentBloc(
+                        profileProvider: context.read<ProfileProvider>()),
+                    child: planNew.PlanSelectionScreen(category: type),
                   ),
-                ],
+                ),
+              );
+            } else {
+              redirectUserToRegistrationFlow(
+                context,
+                type,
+              );
+            }
+          }
+
+          if (state.error != null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error!)),
+            );
+          }
+        },
+        child: Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            iconTheme: IconThemeData(color: Colors.white),
+            backgroundColor: Colors.transparent,
+            surfaceTintColor: Colors.transparent,
+            centerTitle: true,
+            title: Text(
+              "Select your Partnership Type",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
               ),
+              textAlign: TextAlign.start,
             ),
-          ],
-        ),
-      ),
-    );
+          ),
+          body: BlocBuilder<PlanBloc, PlanState>(
+            builder: (context, state) {
+              return Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      gradientFirst,
+                      gradientSecond,
+                      gradientThird,
+                      Colors.white
+                    ],
+                    stops: [0.0, 0.15, 0.30, .90],
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * .13),
+                    Container(
+                      margin: EdgeInsets.only(left: 5, right: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          SingleChildScrollView(
+                            padding: EdgeInsets.all(16),
+                            child: Column(
+                              children: [
+                                SizedBox(height: 10),
+                                _buildPartnershipList(localizations),
+                                SizedBox(height: 20),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ));
   }
 
   Widget _buildPartnershipList(AppLocalizations localizations) {
     final options = filteredOptions;
-
     return GridView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -268,7 +320,11 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
 
         return GestureDetector(
           onTap: () {
-            if(option['displayTitle']=='Transport Driver'){
+            context
+                .read<PlanBloc>()
+                .add(FetchUserStatusEvent(option['key'] ?? ""));
+
+            /* if(option['displayTitle']=='Transport Driver'){
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -276,11 +332,11 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
                      return PlanSelectionScreen(
                         planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
                       );
-                    },/* (context) =>TransporterRegistrationFlow()
+                    },*/ /* (context) =>TransporterRegistrationFlow()
 
                   //     PlanSelectionScreen(
                   //   planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                  // ),*/
+                  // ),*/ /*
                 ),
               );
             }else if(option['displayTitle']=='Independent Taxi Owner'){
@@ -327,8 +383,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
                   // ),
                 ),
               );
-            }
-
+            }*/
           },
           child: Container(
             padding: EdgeInsets.all(16),
@@ -394,5 +449,43 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
         );
       },
     );
+  }
+
+  void redirectUserToRegistrationFlow(BuildContext context, type) {
+    if (type == 'Transport') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) {
+            return PlanSelectionScreen(
+              planType: 'REGISTRATION',
+              planFor: type,
+              countryId: '',
+              stateId: '',
+            );
+          },
+        ),
+      );
+    } else if (type == 'INDEPENDENT_CAR_OWNER') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => IndependentTaxiOwnerFlow()),
+      );
+    } else if (type == 'RICKSHAW') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AutoRickshawDriverFlow()),
+      );
+    } else if (type == 'E_RICKSHAW') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ERickshawDriverFlow()),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => DriverRegistrationFlow()),
+      );
+    }
   }
 }

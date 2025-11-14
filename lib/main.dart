@@ -21,6 +21,8 @@ import 'package:r_w_r/bloc/payment/payment_bloc.dart';
 // Screen and service imports
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/firebase_options.dart';
+import 'package:r_w_r/plan/data/repositories/plan_repository.dart';
+import 'package:r_w_r/plan/presentation/bloc/plan_bloc.dart';
 import 'package:r_w_r/screens/auth_screens/first_time_user.dart';
 import 'package:r_w_r/screens/auth_screens/login_screen.dart';
 import 'package:r_w_r/screens/auth_screens/otp_screen.dart';
@@ -146,92 +148,101 @@ class MyApp extends StatelessWidget {
     // Create a single instance of ApiRepository to be shared across all BLoCs
     final apiRepository = ApiRepository();
 
-    return MultiBlocProvider(
-      providers: [
-        // Provider dependencies first
-        ChangeNotifierProvider(create: (_) => LanguageProvider()),
-        Provider<UserProfileService>(create: (_) => UserProfileService()),
-        ChangeNotifierProvider(create: (_) => ProfileProvider()),
-        ChangeNotifierProvider(create: (_) => HomeDataProvider()),
-        ChangeNotifierProvider(create: (_) => ProfileViewModel()),
-        ChangeNotifierProvider(create: (_)=> VehicleRegistrationProvider()),
-        ChangeNotifierProvider(create: (_)=> LocationProvider()),
-
-        // BLoC Providers that depend on providers
-        BlocProvider<AuthBloc>(
-          create: (context) => AuthBloc(apiRepository: apiRepository),
-        ),
-        BlocProvider<HomeBloc>(
-          create: (context) => HomeBloc(apiRepository: apiRepository),
-        ),
-        BlocProvider<UserProfileBloc>(
-          create: (context) => UserProfileBloc(apiRepository: apiRepository),
-        ),
-        BlocProvider<VehicleBloc>(
-          create: (context) => VehicleBloc(apiRepository: apiRepository),
-        ),
-        BlocProvider<ChatBloc>(
-          create: (context) => ChatBloc(apiRepository: apiRepository),
-        ),
-        BlocProvider<DriverBloc>(
-          create: (context) => DriverBloc(apiRepository: apiRepository),
-        ),
-        BlocProvider<PaymentBloc>(
-          create: (context) => PaymentBloc(
-            profileProvider:
-                Provider.of<ProfileProvider>(context, listen: false),
-          ),
-        ),
-      ],
-      child: Consumer<LanguageProvider>(
-        builder: (context, languageProvider, child) {
-          print(
-              "Rebuilding MaterialApp with locale: ${languageProvider.currentLocale}");
-
-          return MaterialApp(
-            scaffoldMessengerKey: rootScaffoldMessengerKey,
-
-            title: 'Ride with Driver',
-            debugShowCheckedModeBanner: false,
-            navigatorKey: NotificationService.navigatorKey,
-
-            locale: languageProvider.currentLocale,
-
-            // Use the generated localization delegates
-            localizationsDelegates: const [
-              AppLocalizations.delegate, // Generated delegate
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-
-            // Make sure all your supported locales are listed here
-            supportedLocales: AppLocalizations.supportedLocales,
-
-            // Fallback locale
-            localeResolutionCallback: (locale, supportedLocales) {
-              print("Resolving locale: $locale");
-              // Check if the current locale is supported
-              for (var supportedLocale in supportedLocales) {
-                if (supportedLocale.languageCode == locale?.languageCode) {
-                  return supportedLocale;
-                }
-              }
-              // Return English as fallback
-              return const Locale('en', '');
-            },
-            theme: ThemeData(
-              textTheme: GoogleFonts.notoSansTextTheme(),
-              colorScheme: ColorScheme.fromSeed(
-                seedColor: Colors.deepPurple,
-                brightness: Brightness.light,
-              ),
-              useMaterial3: true,
+    return MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider(create: (_) => PlanRepository()),
+        ],
+        child: MultiBlocProvider(
+          providers: [
+            // Provider dependencies first
+            BlocProvider(
+              create: (context) => PlanBloc(context.read<PlanRepository>()),
             ),
-            home: SplashScreen(),
-          );
-        },
-      ),
-    );
+            ChangeNotifierProvider(create: (_) => LanguageProvider()),
+            Provider<UserProfileService>(create: (_) => UserProfileService()),
+            ChangeNotifierProvider(create: (_) => ProfileProvider()),
+            ChangeNotifierProvider(create: (_) => HomeDataProvider()),
+            ChangeNotifierProvider(create: (_) => ProfileViewModel()),
+            ChangeNotifierProvider(
+                create: (_) => VehicleRegistrationProvider()),
+            ChangeNotifierProvider(create: (_) => LocationProvider()),
+
+            // BLoC Providers that depend on providers
+            BlocProvider<AuthBloc>(
+              create: (context) => AuthBloc(apiRepository: apiRepository),
+            ),
+            BlocProvider<HomeBloc>(
+              create: (context) => HomeBloc(apiRepository: apiRepository),
+            ),
+            BlocProvider<UserProfileBloc>(
+              create: (context) =>
+                  UserProfileBloc(apiRepository: apiRepository),
+            ),
+            BlocProvider<VehicleBloc>(
+              create: (context) => VehicleBloc(apiRepository: apiRepository),
+            ),
+            BlocProvider<ChatBloc>(
+              create: (context) => ChatBloc(apiRepository: apiRepository),
+            ),
+            BlocProvider<DriverBloc>(
+              create: (context) => DriverBloc(apiRepository: apiRepository),
+            ),
+            BlocProvider<PaymentBloc>(
+              create: (context) => PaymentBloc(
+                profileProvider:
+                    Provider.of<ProfileProvider>(context, listen: false),
+              ),
+            ),
+          ],
+          child: Consumer<LanguageProvider>(
+            builder: (context, languageProvider, child) {
+              print(
+                  "Rebuilding MaterialApp with locale: ${languageProvider.currentLocale}");
+
+              return MaterialApp(
+                scaffoldMessengerKey: rootScaffoldMessengerKey,
+
+                title: 'Ride with Driver',
+                debugShowCheckedModeBanner: false,
+                navigatorKey: NotificationService.navigatorKey,
+
+                locale: languageProvider.currentLocale,
+
+                // Use the generated localization delegates
+                localizationsDelegates: const [
+                  AppLocalizations.delegate, // Generated delegate
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+
+                // Make sure all your supported locales are listed here
+                supportedLocales: AppLocalizations.supportedLocales,
+
+                // Fallback locale
+                localeResolutionCallback: (locale, supportedLocales) {
+                  print("Resolving locale: $locale");
+                  // Check if the current locale is supported
+                  for (var supportedLocale in supportedLocales) {
+                    if (supportedLocale.languageCode == locale?.languageCode) {
+                      return supportedLocale;
+                    }
+                  }
+                  // Return English as fallback
+                  return const Locale('en', '');
+                },
+                theme: ThemeData(
+                  textTheme: GoogleFonts.notoSansTextTheme(),
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: Colors.deepPurple,
+                    brightness: Brightness.light,
+                  ),
+                  useMaterial3: true,
+                ),
+                home: SplashScreen(),
+              );
+            },
+          ),
+        ));
   }
 }

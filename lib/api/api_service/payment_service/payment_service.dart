@@ -20,17 +20,19 @@ class PaymentService {
   }) async {
     return _createOrder({
       'paymentType': 'SUBSCRIPTION_RENEWAL',
-      'planId': planId,
+      'registrationPlanId': planId,
     });
   }
 
   // Create order for registration only
   static Future<Map<String, dynamic>> createOrderForRegistrationOnly({
     required String category,
+    required String planId,
   }) async {
     return _createOrder({
       'paymentType': 'REGISTRATION_ONLY',
       'category': category,
+      'registrationPlanId': planId,
       'subscriptionType': 'REGISTRATION_ONLY',
     });
   }
@@ -44,7 +46,7 @@ class PaymentService {
     return _createOrder({
       'paymentType': 'REGISTRATION_WITH_SUBSCRIPTION',
       'category': category,
-      'planId': planId,
+      'registrationPlanId': planId,
       'subscriptionType': 'REGISTRATION_WITH_SUBSCRIPTION',
     });
   }
@@ -66,16 +68,16 @@ class PaymentService {
       if (token == null) {
         throw Exception('Authentication token not found');
       }
-
+      print(token);
       final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/user/payment/create-order'),
+        Uri.parse('${ApiConstants.baseUrl}/user/create-order'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode(requestBody),
       );
-
+      print(jsonDecode(response.toString()));
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -112,7 +114,7 @@ class PaymentService {
       'razorpay_payment_id': razorpayPaymentId,
       'razorpay_signature': razorpaySignature,
       'paymentType': 'SUBSCRIPTION_RENEWAL',
-      'planId': planId,
+      'registrationPlanId': planId,
     });
   }
 
@@ -149,7 +151,7 @@ class PaymentService {
       'razorpay_signature': razorpaySignature,
       'paymentType': 'REGISTRATION_WITH_SUBSCRIPTION',
       'category': category,
-      'planId': planId,
+      'registrationPlanId': planId,
       'registrationFeeId': registrationFeeId,
     });
   }

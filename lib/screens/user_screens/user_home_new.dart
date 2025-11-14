@@ -4,6 +4,7 @@ import 'dart:math' show Random;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -24,6 +25,8 @@ import '../../constants/api_constants.dart';
 import '../../constants/assets_constant.dart';
 import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
+import '../../plan/data/repositories/plan_repository.dart';
+import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../block/home/home_provider.dart';
 import '../block/language/language_provider.dart';
 import '../block/provider/profile_provider.dart';
@@ -1700,10 +1703,33 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                     Color(0xff0064E0)),
                                             onPressed: () {
                                               Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          PartnerRegistrationWidget()));
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => BlocProvider(
+                                                    create: (context) =>
+                                                        PlanBloc(
+                                                      RepositoryProvider.of<
+                                                              PlanRepository>(
+                                                          context),
+                                                    ),
+                                                    child:
+                                                        PartnerRegistrationWidget(),
+                                                  ),
+                                                ),
+                                              );
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => BlocProvider(
+                                                    create: (_) => PlanBloc(
+                                                      RepositoryProvider.of<PlanRepository>(context),
+                                                    ),
+                                                    child: PartnerRegistrationWidget(),
+                                                  ),
+                                                ),
+                                              );
+
+
                                             },
                                             child: Row(
                                               mainAxisAlignment:
@@ -1729,7 +1755,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                             )),
                                       ),
                                     ),
-                                  
                                   ],
                                 )
                               : SizedBox.shrink();

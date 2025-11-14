@@ -20,6 +20,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       print('[PaymentBloc] ProfileProvider phone: ${profileProvider?.phoneNumber}');
       print('[PaymentBloc] ProfileProvider email: ${profileProvider?.email}');
     }
+
     _initializeRazorpay();
     on<InitiatePayment>(_onInitiatePayment);
     on<PaymentSuccess>(_onPaymentSuccess);
@@ -67,10 +68,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     // Handle external wallet
   }
 
-  Future<void> _onInitiatePayment(
-      InitiatePayment event,
-      Emitter<PaymentState> emit,
-      ) async {
+  Future<void> _onInitiatePayment(InitiatePayment event, Emitter<PaymentState> emit,) async {
     print('[PaymentBloc] Initiating payment for plan: ${event.plan.name}');
     emit(PaymentLoading());
 
@@ -87,6 +85,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
         case PaymentType.registrationOnly:
           orderResponse = await PaymentService.createOrderForRegistrationOnly(
             category: event.category ?? event.planType,
+            planId: event.plan.id,
           );
           break;
         case PaymentType.registrationWithSubscription:
@@ -100,8 +99,10 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       final createOrderResponse = CreateOrderResponse.fromJson(orderResponse);
 
       if (createOrderResponse.success && createOrderResponse.data != null) {
+        print(createOrderResponse);
         final orderData = createOrderResponse.data!;
         String? regID = orderData.orderMetadata?.registrationFee?.id.toString();
+        emit(PaymentError("Error: ${createOrderResponse.data}"));
 
         if (regID != null) {
           _currentRegistrationFeeId = regID;
