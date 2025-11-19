@@ -41,6 +41,9 @@ import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
 import 'package:r_w_r/viewModel/profileViewModel.dart';
 
 import 'api/api_service/notification_globle_service.dart';
+import 'booking/data/repository/mock_repository.dart';
+import 'booking/presentation/bloc/make_booking_bloc.dart';
+import 'booking/presentation/bloc/manage_booking_bloc.dart';
 import 'firebase_config.dart';
 import 'l10n/app_localizations.dart'; // Generated file
 
@@ -154,6 +157,8 @@ class MyApp extends StatelessWidget {
         ],
         child: MultiBlocProvider(
           providers: [
+            BlocProvider(create: (_) => ManageBookingBloc(MockRepository())..add(LoadBookings())),
+            BlocProvider(create: (_) => MakeBookingBloc(MockRepository())),
             // Provider dependencies first
             BlocProvider(
               create: (context) => PlanBloc(context.read<PlanRepository>()),

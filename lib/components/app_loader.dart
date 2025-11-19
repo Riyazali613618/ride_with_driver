@@ -92,6 +92,7 @@ void showNoInternetDialog(BuildContext context, {VoidCallback? onRetry}) {
 class AppColors {
   static const Color warning = Color(0xFFFFA000); // Orange
   static const Color neutral = Color(0xFF757575); // Gray
+  static const Color blue = Color(0xFF641BB4); // Gray
 }
 
 class AppIcons {

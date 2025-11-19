@@ -11,6 +11,7 @@ import 'package:r_w_r/screens/user_screens/more/more_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:r_w_r/screens/user_screens/user_home_new.dart';
 
+import '../booking/presentation/screens/booking_tabs.dart';
 import '../constants/api_constants.dart';
 import '../constants/color_constants.dart';
 import '../l10n/app_localizations.dart';
@@ -178,6 +179,7 @@ class _LayoutState extends State<Layout> {
       ),*/
       ChatListScreen(controller: _chatListController),
       const MoreScreen(showDriverSubscription: true),
+      const BookingTabs(),
     ];
   }
 
@@ -219,6 +221,12 @@ class _LayoutState extends State<Layout> {
           activeIcon: Icon(CupertinoIcons.profile_circled,
               color: ColorConstants.primaryColor),
         ),
+        BottomNavigationBarItem(
+          icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
+          label: localizations.profile,
+          activeIcon: Icon(CupertinoIcons.car_fill,
+              color: ColorConstants.primaryColor),
+        ),
       ];
     }
     return [
@@ -243,6 +251,12 @@ class _LayoutState extends State<Layout> {
         icon: const Icon(CupertinoIcons.profile_circled, color: Colors.black),
         label: localizations.profile,
         activeIcon: Icon(CupertinoIcons.profile_circled,
+            color: ColorConstants.primaryColor),
+      ),
+      BottomNavigationBarItem(
+        icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
+        label: localizations.profile,
+        activeIcon: Icon(CupertinoIcons.car_fill,
             color: ColorConstants.primaryColor),
       ),
     ];
