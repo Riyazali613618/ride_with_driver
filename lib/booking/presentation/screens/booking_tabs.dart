@@ -1,10 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../screens/widgets/gradient_button.dart';
 import '../../../utils/color.dart';
-import '../bloc/manage_booking_bloc.dart';
-import '../widgets/gradient_header.dart';
 import 'make_booking_full_screen.dart';
 import 'manage_booking_screen.dart';
 
@@ -34,7 +31,7 @@ class _BookingTabsState extends State<BookingTabs>
         },
         child: Scaffold(
           // Use cream background color from design
-          backgroundColor: Color(0xFFFFFBF3),
+          backgroundColor: Color(0xFFFFFFFF),
           body: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -112,6 +109,51 @@ class _BookingTabsState extends State<BookingTabs>
                             ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Container(
+                      margin: EdgeInsets.only(right: 20, top: 20),
+                      width: 100,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        // Apply gradient only when enabled
+                        gradient: LinearGradient(
+                          colors: [gradientFirst, gradientSecond],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        // Fallback to a solid grey color when disabled
+                        color: Colors.white,
+                      ),
+                      // Use Material/InkWell to handle taps and ripple effect over the gradient
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        MakeBookingFullScreen()));
+                          },
+                          borderRadius: BorderRadius.circular(20),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Center(
+                              child: Text(
+                                "+ Make Booking",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),

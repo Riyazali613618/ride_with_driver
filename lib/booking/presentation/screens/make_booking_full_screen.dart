@@ -2,12 +2,16 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../../components/app_loader.dart';
+import '../../../screens/multi_step_progress_bar.dart';
+import '../../../utils/color.dart';
 import '../../domain/model/booking.dart';
 import '../bloc/make_booking_bloc.dart';
 import '../widgets/gradient_header.dart';
 
 class MakeBookingFullScreen extends StatefulWidget {
   final Booking? initialBooking;
+
   const MakeBookingFullScreen({this.initialBooking, super.key});
 
   @override
@@ -18,12 +22,21 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int selectedStep = 0;
+  int? selectedBookingType = 0;
+  final steps = [
+    "Booking Type",
+    "Booking Details",
+    "Quotation & terms",
+    "Preview"
+  ];
   int step = 1;
   final _totalPassengers = TextEditingController(text: '7');
+  final _clientNameController = TextEditingController(text: '');
   final _pickup = TextEditingController();
   final _pickupDate = TextEditingController(
       text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
   final _pickupTime = TextEditingController(text: '10:30 AM');
+  final _destinationCtr = TextEditingController();
   final _destinations = <String>['Chamba', 'Simla'];
   final _returnPoint = TextEditingController();
   final _returnDate = TextEditingController(
@@ -75,86 +88,74 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffF7F7F7),
-      appBar: AppBar(
-        title: const Text("Make a Booking"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new),
-          onPressed: () => Navigator.pop(context),
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              gradientFirst,
+              gradientSecond,
+              gradientThird,
+              Colors.white
+            ],
+            stops: [0.0, 0.15, 0.30, .90],
+          ),
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: Column(
+            children: [
+              const SizedBox(height: 42),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  const Expanded(
+                    child: Text(
+                      "Make Booking",
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+              // ---- Step Indicators ----
+              MultiStepProgressBar(
+                currentStep: selectedStep,
+                stepTitles: steps,
+                gradientColors: [gradientFirst, gradientSecond],
+              ),
+              const SizedBox(height: 12),
+
+              /// ---- Tab Views ----
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    stepMyBookingType(),
+                    stepMyBookingDetails(),
+                    stepMyBookingQuotation(),
+                    stepMyBookingPreview(),
+                  ],
+                ),
+              ),
+
+              /// ---- Navigation Buttons ----
+              _buildBottomButtons(),
+            ],
+          ),
         ),
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 12),
-
-          /// ---- Step Indicators ----
-          _buildStepHeader(),
-
-          const SizedBox(height: 12),
-
-          /// ---- Tab Views ----
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: [
-                step1ServiceSelection(),
-                step2ChooseSlot(),
-                step3EnterDetails(),
-                step4BookingSummary(),
-              ],
-            ),
-          ),
-
-          /// ---- Navigation Buttons ----
-          _buildBottomButtons(),
-        ],
-      ),
     );
   }
 
-  /// --------------------------------------------------------------------------
-  /// STEP HEADER
-  /// --------------------------------------------------------------------------
-  Widget _buildStepHeader() {
-    final steps = ["Services", "Slot", "Details", "Summary"];
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: List.generate(steps.length, (index) {
-          final isActive = index == selectedStep;
-          return Expanded(
-            child: Column(
-              children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor:
-                      isActive ? Colors.blue : Colors.grey.shade400,
-                  child: Text(
-                    "${index + 1}",
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  steps[index],
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
-  }
-
-  /// --------------------------------------------------------------------------
-  /// BOTTOM NAVIGATION BUTTONS
-  /// --------------------------------------------------------------------------
   Widget _buildBottomButtons() {
     return Container(
       color: Colors.white,
@@ -232,165 +233,317 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     );
   }
 
-  Widget step1ServiceSelection() {
+  //TODO STEP1///////////////////////////////////////////////////////////////
+  Widget stepMyBookingType() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Booking Type :',
-          style: TextStyle(fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
       Row(children: [
-        Flexible(
-            child: RadioListTile(
-                value: 'out',
-                groupValue: 'out',
-                onChanged: (_) {},
-                title: const Text('Outstation'))),
-        Flexible(
-            child: RadioListTile(
-                value: 'city',
-                groupValue: null,
-                onChanged: (_) {},
-                title: const Text('City Break')))
+        Row(
+          children: [
+            const Text('Booking Type :',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            const SizedBox(height: 8),
+            Radio<int>(
+              value: 1,
+              groupValue: selectedBookingType,
+              onChanged: (value) {
+                setState(() {
+                  selectedBookingType = value;
+                });
+              },
+            ),
+            Text("Outstation",
+                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12))
+          ],
+        ),
+        Row(
+          children: [
+            Radio<int>(
+              value: 2,
+              groupValue: selectedBookingType,
+              onChanged: (value) {
+                setState(() {
+                  selectedBookingType = value;
+                });
+              },
+            ),
+            Text("City Break",
+                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12))
+          ],
+        ),
       ]),
       const SizedBox(height: 16),
-      const Text('Client Name :',
-          style: TextStyle(fontWeight: FontWeight.bold)),
+      const Text('Client:', style: TextStyle(fontWeight: FontWeight.bold)),
+      const SizedBox(height: 8),
+      _clientTypeWidget(context),
+      const SizedBox(height: 20),
+      const Text('Mobile No:', style: TextStyle(fontWeight: FontWeight.bold)),
       const SizedBox(height: 8),
       TextField(
           decoration: InputDecoration(
-              hintText: 'Select Type',
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
-      const SizedBox(height: 12),
-      TextField(
-          decoration: InputDecoration(
-              hintText: '+91 9999999999',
+              constraints: BoxConstraints(
+                maxHeight: 40,
+              ),
+              contentPadding: EdgeInsets.only(left: 15, right: 10),
+              hintText: '+91',
+              hintStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
     ]);
   }
 
-  Widget step2ChooseSlot() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Booking Detail:',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      const SizedBox(height: 12),
-      Row(children: [
-        Expanded(
-            child: TextField(
-                controller: _totalPassengers,
-                decoration: InputDecoration(
-                    labelText: 'Total Passenger',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8))))),
-        const SizedBox(width: 12),
-        Expanded(
-            child: TextField(
-                controller: _pickup,
-                decoration: InputDecoration(
-                    labelText: 'Pickup point',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)))))
-      ]),
-      const SizedBox(height: 12),
-      Row(
-        children: [
+  Widget _clientTypeWidget(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: Offset(50, 50),
+      constraints: BoxConstraints.expand(height: 180),
+      padding: EdgeInsets.zero,
+      menuPadding: EdgeInsets.zero,
+      onSelected: (val) async {},
+      itemBuilder: (_) => const [
+        PopupMenuItem(
+            value: 'Type 1',
+            child: ListTile(
+                title: Text(
+              'Type 1',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: 'Type 2',
+            child: ListTile(
+                title: Text(
+              'Type 2',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: 'Type 1',
+            child: ListTile(
+                title: Text(
+              'Type 3',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+      ],
+      child: Container(
+          alignment: Alignment.centerLeft,
+          height: 40,
+          width: MediaQuery.of(context).size.width,
+          padding: EdgeInsets.only(left: 10, right: 10),
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: BoxBorder.fromBorderSide(
+                  BorderSide(color: Colors.grey, width: 1))
+              /*suffixIcon: IconButton(
+                icon: const Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.grey,
+                ),
+                onPressed: () {},
+              ),
+              hintStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),*/
+              ),
+          child: Text(
+            "Select Type",
+            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+            /*decoration: InputDecoration(
+                  constraints: BoxConstraints(
+                    maxHeight: 40,
+                  ),
+                  contentPadding: EdgeInsets.only(left: 10, right: 10),
+                  hintText: 'Select Type',
+                  suffixIcon: IconButton(
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.grey,
+                    ),
+                    onPressed: () {},
+                  ),
+                  hintStyle:
+                      TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8)))*/
+          )),
+    );
+  }
+
+  //TODO STEP2///////////////////////////////////////////////////////////////
+  Widget stepMyBookingDetails() {
+    return SingleChildScrollView(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Booking Detail:',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 12),
+        Row(children: [
+          Expanded(
+              child: SizedBox(
+            height: 40,
+            child: _commonTextFields(
+                controller: _pickup, labelText: "Pickup Point"),
+          )),
+          const SizedBox(width: 30),
+          SizedBox(
+            width: 110,
+            height: 40,
+            child: _commonTextFields(
+                controller: _totalPassengers, labelText: 'Passengers'),
+          ),
+        ]),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+                child: SizedBox(
+              height: 40,
+              child: _commonTextFields(
+                  readOnly: true,
+                  callback: () {},
+                  controller: _pickupDate,
+                  labelText: "Pickup Date"),
+            )),
+            const SizedBox(width: 12),
+            SizedBox(
+              height: 40,
+              width: 110,
+              child: _commonTextFields(
+                  callback: () {},
+                  controller: _pickupTime,
+                  labelText: "Pickup Time"),
+            )
+          ],
+        ),
+        const SizedBox(height: 12),
+        const Text('Destinations :'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+                child: SizedBox(
+              height: 40,
+              child: _destinationTypeTextFields(
+                  controller: _destinationCtr, labelText: "Input Type"),
+            )),
+            const SizedBox(width: 10),
+            GestureDetector(
+                onTap: () {
+                  if (_destinationCtr.text.isNotEmpty) {
+                    setState(() {
+                      _destinations.add(_destinationCtr.text);
+                      _destinationCtr.clear();
+                    });
+                  }
+                },
+                child: const Text('+ Add',
+                    style: TextStyle(
+                        color: AppColors.blue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold)))
+          ],
+        ),
+        const SizedBox(height: 15),
+        Column(
+            children: _destinations
+                .asMap()
+                .entries
+                .map((e) => Container(
+                    margin: const EdgeInsets.only(bottom: 6),
+                    padding: const EdgeInsets.all(8),
+                    color: Colors.grey.shade300,
+                    child: Row(children: [
+                      Container(
+                          width: 28,
+                          height: 28,
+                          alignment: Alignment.center,
+                          color: Colors.grey,
+                          child: Text('${e.key + 1}')),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(e.value)),
+                      Text(DateFormat('dd/MM/yyyy').format(DateTime.now()))
+                    ])))
+                .toList()),
+        const SizedBox(height: 12),
+        Row(children: [
           Expanded(
               child: TextField(
-                  controller: _pickupDate,
+                  controller: _returnPoint,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
                   decoration: InputDecoration(
-                      labelText: 'Pickup Date',
+                      labelStyle:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+                      hintStyle:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                      labelText: 'Return point',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8))))),
           const SizedBox(width: 12),
           Expanded(
               child: TextField(
-                  controller: _pickupTime,
+                  controller: _returnDate,
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
                   decoration: InputDecoration(
-                      labelText: 'Pickup Time',
+                      labelStyle:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+                      hintStyle:
+                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                      labelText: 'Return date',
                       border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8)))))
-        ],
-      ),
-      const SizedBox(height: 12),
-      const Text('Destinations :'),
-      const SizedBox(height: 8),
-      Column(
-          children: _destinations
-              .asMap()
-              .entries
-              .map((e) => Container(
-                  margin: const EdgeInsets.only(bottom: 6),
-                  padding: const EdgeInsets.all(8),
-                  color: Colors.grey.shade300,
-                  child: Row(children: [
-                    Container(
-                        width: 28,
-                        height: 28,
-                        alignment: Alignment.center,
-                        color: Colors.grey,
-                        child: Text('${e.key + 1}')),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text(e.value)),
-                    Text(DateFormat('dd/MM/yyyy').format(DateTime.now()))
-                  ])))
-              .toList()),
-      const SizedBox(height: 12),
-      Row(children: [
-        Expanded(
-            child: TextField(
-                controller: _returnPoint,
-                decoration: InputDecoration(
-                    labelText: 'Return point',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8))))),
-        const SizedBox(width: 12),
-        Expanded(
-            child: TextField(
-                controller: _returnDate,
-                decoration: InputDecoration(
-                    labelText: 'Return date',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)))))
+        ]),
+        const SizedBox(height: 12),
+        TextField(
+            controller: _totalDays,
+            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+            decoration: InputDecoration(
+                labelStyle:
+                    TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+                hintStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                labelText: 'Total trip Days',
+                border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8)))),
+        const SizedBox(height: 16),
+        const Text('Vehicle Details :',
+            style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Container(
+            height: 120,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade300)),
+            child: Row(children: [
+              Expanded(
+                  child: Container(
+                      padding: const EdgeInsets.all(8),
+                      child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('Tata SUV',
+                                style: TextStyle(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 6),
+                            Text(
+                                'RE Compact • 7 SeatsVehicle Number - CH 01 HG 5687',
+                                style: TextStyle(fontSize: 12))
+                          ]))),
+              SizedBox(
+                  width: 120,
+                  child: Image.network('https://via.placeholder.com/120',
+                      fit: BoxFit.cover))
+            ])),
       ]),
-      const SizedBox(height: 12),
-      TextField(
-          controller: _totalDays,
-          decoration: InputDecoration(
-              labelText: 'Total trip Days',
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
-      const SizedBox(height: 16),
-      const Text('Vehicle Details :',
-          style: TextStyle(fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      Container(
-          height: 120,
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade300)),
-          child: Row(children: [
-            Expanded(
-                child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text('Tata SUV',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 6),
-                          Text(
-                              'RE Compact • 7 SeatsVehicle Number - CH 01 HG 5687',
-                              style: TextStyle(fontSize: 12))
-                        ]))),
-            SizedBox(
-                width: 120,
-                child: Image.network('https://via.placeholder.com/120',
-                    fit: BoxFit.cover))
-          ])),
-    ]);
+    );
   }
 
-  Widget step3EnterDetails() {
+  Widget stepMyBookingQuotation() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Quotation Amount:',
           style: TextStyle(fontWeight: FontWeight.bold)),
@@ -458,7 +611,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     ]);
   }
 
-  Widget step4BookingSummary() {
+  Widget stepMyBookingPreview() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Preview',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
@@ -477,5 +630,78 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                     Text('Days: \${_totalDays.text}')
                   ])))
     ]);
+  }
+
+  _commonTextFields(
+      {required TextEditingController controller,
+      required String labelText,
+      GestureTapCallback? callback,
+      bool readOnly = false}) {
+    return TextField(
+        readOnly: readOnly,
+        onTap: callback,
+        controller: controller,
+        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+        decoration: InputDecoration(
+            hintStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+            labelText: labelText,
+            labelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(8))));
+  }
+
+  _destinationTypeTextFields(
+      {required TextEditingController controller,
+      required String labelText,
+      GestureTapCallback? callback,
+      bool readOnly = false}) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 10),
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+              child: Container(
+            height: 40,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              textAlign: TextAlign.left,
+              "Enter Destination",
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+            ),
+          )),
+          Container(
+            width: 1,
+            height: 38,
+            color: AppColors.blue,
+          ),
+          SizedBox(
+            width: 100,
+            child: Container(
+              height: 40,
+              width: 100,
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Select Date',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400)),
+                  SizedBox(width: 4),
+                  Icon(Icons.calendar_month, color: AppColors.blue, size: 16),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

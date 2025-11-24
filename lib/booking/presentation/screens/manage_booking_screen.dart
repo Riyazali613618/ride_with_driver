@@ -57,6 +57,7 @@ class _BookingList extends StatefulWidget {
 class _BookingListState extends State<_BookingList>
     with SingleTickerProviderStateMixin {
   late TabController _tc;
+  String currentType = SelectedTab.booking.name;
 
   @override
   void initState() {
@@ -86,46 +87,74 @@ class _BookingListState extends State<_BookingList>
               ),
             )),
             SizedBox(width: 30),
-            Container(
-              margin: EdgeInsets.only(top: 10),
-              alignment: Alignment.center,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
-              color: AppColors.blue,
-              child: Row(
-                children: [
-                  Text(
-                    "All",
-                    style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white),
-                  ),
-                  SizedBox(width: 10),
-                  Icon(
-                    Icons.arrow_drop_down,
-                    color: Colors.white,
-                    size: 20,
-                  )
-                ],
+            /*GestureDetector(
+              onTap: () {
+                _allMenu(
+                    context
+                );
+              },
+              child: Container(
+                margin: EdgeInsets.only(top: 10),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 25.0, vertical: 10.0),
+                color: AppColors.blue,
+                child: Row(
+                  children: [
+                    Text(
+                      "All",
+                      style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
+                    SizedBox(width: 10),
+                    Icon(
+                      Icons.arrow_drop_down,
+                      color: Colors.white,
+                      size: 20,
+                    )
+                  ],
+                ),
               ),
-            )
+            ),*/
+            _allMenu(context),
           ],
         ),
       ),
       Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+        padding: const EdgeInsets.all(5.0),
         child: TabBar(
-          indicatorWeight: 2,
-          indicatorSize: TabBarIndicatorSize.tab,
+          onTap: (value) {
+            switch (value) {
+              case 0:
+                currentType = SelectedTab.booking.name;
+                break;
+              case 1:
+                currentType = SelectedTab.pendingQuotes.name;
+                break;
+              case 2:
+                currentType = SelectedTab.quoteRequest.name;
+                break;
+              case 3:
+                currentType = SelectedTab.history.name;
+                break;
+            }
+            setState(() {});
+          },
+          indicatorWeight: 0.001,
+          isScrollable: true,
+          tabAlignment: TabAlignment.start,
+          indicatorSize: TabBarIndicatorSize.label,
           padding: EdgeInsets.zero,
+          indicatorPadding: EdgeInsets.zero,
           dividerHeight: 0,
+          labelPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+          indicatorColor: AppColors.blue,
           controller: _tc,
           labelColor: Colors.purple.shade800,
           unselectedLabelColor: Colors.grey,
-          indicator: BoxDecoration(
-              color: Color(0x1F641BB4),
-              borderRadius: BorderRadius.circular(12)),
+          labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
           tabs: const [
             Tab(text: 'Booking'),
             Tab(text: 'Pending Quotes'),
@@ -134,21 +163,236 @@ class _BookingListState extends State<_BookingList>
           ],
         ),
       ),
+/*
+      Container(
+        width: MediaQuery.of(context).size.width,
+        color: AppColors.blue,
+        margin: EdgeInsets.symmetric(horizontal: 10),
+        padding: EdgeInsets.only(left: 10, right: 5, top: 10, bottom: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            SizedBox(width: 20),
+            Expanded(
+              flex: 1,
+              child: Text(
+                'Date  ',
+                style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                '    Pickup point',
+                style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                '   Destination',
+                style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Text(
+                'Client Name',
+                style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500),
+              ),
+            ),
+            Text(
+              'Action',
+              style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500),
+            )
+          ],
+        ),
+      ),
+*/
       Expanded(
-          child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         itemCount: widget.bookings.length,
-        separatorBuilder: (_, __) => const Divider(),
         itemBuilder: (context, i) {
           final b = widget.bookings[i];
-          return ListTile(
+          return Column(
+            children: [
+              if (i == 0)
+                Container(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  color: AppColors.blue,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          maxLines: 1,
+                          "Date",
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500),
+                          textAlign: TextAlign.start,
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          maxLines: 1,
+                          "Pickup Point",
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          maxLines: 1,
+                          "Destination",
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          "Client Name",
+                          maxLines: 1,
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "Action",
+                        maxLines: 1,
+                        textAlign: TextAlign.start,
+                        style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                    ],
+                  ),
+                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 20,
+                    child: _statusDot(b.status),
+                  ),
+                  Expanded(
+                    child: Text(
+                      DateFormat('dd/MM/yy').format(b.date),
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.start,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      b.pickupPoint,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: Text(
+                      b.destination,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: Text(
+                      b.clientName,
+                      textAlign: TextAlign.start,
+                      style: TextStyle(
+                          fontSize: 10,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 10,
+                  ),
+                  if (currentType == SelectedTab.quoteRequest.name)
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                      child: Icon(
+                        Icons.visibility,
+                        size: 20,
+                      ),
+                    )
+                  else
+                    _moreMenu(context, b),
+                ],
+              ),
+            ],
+          ) /*ListTile(
             leading: _statusDot(b.status),
             title: Text(DateFormat('dd/MM/yyyy').format(b.date) +
                 ' - ' +
                 b.pickupPoint),
             subtitle: Text('${b.destination} • ${b.clientName}'),
             trailing: _moreMenu(context, b),
-          );
+          )*/
+              ;
         },
       )),
     ]);
@@ -173,11 +417,12 @@ class _BookingListState extends State<_BookingList>
         c = Colors.red;
         break;
     }
-    return CircleAvatar(radius: 6, backgroundColor: c);
+    return CircleAvatar(radius: 4, backgroundColor: c);
   }
 
   Widget _moreMenu(BuildContext context, Booking b) {
     return PopupMenuButton<String>(
+      offset: Offset(-15, 35),
       onSelected: (val) async {
         if (val == 'view') {
           Navigator.of(context).push(MaterialPageRoute(
@@ -209,24 +454,137 @@ class _BookingListState extends State<_BookingList>
               .showSnackBar(const SnackBar(content: Text('Deleted (mock)')));
         }
       },
-      itemBuilder: (_) => const [
+      itemBuilder: (_) => [
         PopupMenuItem(
             value: 'view',
-            child:
-                ListTile(leading: Icon(Icons.visibility), title: Text('View'))),
-        PopupMenuItem(
-            value: 'edit',
-            child: ListTile(leading: Icon(Icons.edit), title: Text('Edit'))),
-        PopupMenuItem(
-            value: 'cancel',
-            child:
-                ListTile(leading: Icon(Icons.cancel), title: Text('Cancel'))),
-        PopupMenuItem(
-            value: 'delete',
             child: ListTile(
-                leading: Icon(Icons.delete, color: Colors.red),
-                title: Text('Delete'))),
+                leading: Icon(
+                  Icons.visibility,
+                  size: 20,
+                ),
+                title: Text(
+                  'Select Date',
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400),
+                ))),
+        if (currentType == SelectedTab.pendingQuotes.name)
+          PopupMenuItem(
+              value: 'edit',
+              child: ListTile(
+                  leading: Icon(
+                    Icons.edit,
+                    size: 20,
+                  ),
+                  title: Text(
+                    'Edit',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400),
+                  ))),
+        if (currentType == SelectedTab.booking.name)
+          PopupMenuItem(
+              value: 'cancel',
+              child: ListTile(
+                  leading: Icon(
+                    Icons.cancel,
+                    size: 20,
+                  ),
+                  title: Text(
+                    'Cancel',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400),
+                  ))),
+        if (currentType == SelectedTab.history.name)
+          PopupMenuItem(
+              value: 'delete',
+              child: ListTile(
+                  leading: Icon(
+                    Icons.delete,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  title: Text(
+                    'Delete',
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w400),
+                  ))),
       ],
     );
   }
+
+  Widget _allMenu(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: Offset(0, 50),
+      onSelected: (val) async {},
+      itemBuilder: (_) => const [
+        PopupMenuItem(
+            value: 'all',
+            child: ListTile(
+                title: Text(
+              'All',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: 'Pending',
+            child: ListTile(
+                title: Text(
+              'Pending',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: 'completed',
+            child: ListTile(
+                title: Text(
+              'Completed',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+      ],
+      child: Container(
+        margin: EdgeInsets.only(top: 10),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 10.0),
+        color: AppColors.blue,
+        child: Row(
+          children: [
+            Text(
+              "All",
+              style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white),
+            ),
+            SizedBox(width: 10),
+            Icon(
+              Icons.arrow_drop_down,
+              color: Colors.white,
+              size: 20,
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+enum SelectedTab {
+  booking,
+  pendingQuotes,
+  quoteRequest,
+  history,
 }
