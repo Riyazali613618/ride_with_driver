@@ -33,7 +33,7 @@ class MultiStepProgressBar extends StatelessWidget {
     final int stepCount = stepTitles.length;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
       child: Column(
         children: [
           // 1. Circles and Lines (using a Stack)
@@ -42,7 +42,7 @@ class MultiStepProgressBar extends StatelessWidget {
             children: [
               // 1a. Background Line (full width inactive)
               Container(
-                height: 4,
+                height: 2,
                 // The margin ensures the line stops at the center of the first/last circles
                 margin: const EdgeInsets.symmetric(horizontal: 18), // 36 / 2
                 color: finalInactiveColor,
@@ -58,11 +58,11 @@ class MultiStepProgressBar extends StatelessWidget {
                       maxWidth * (currentStep / (stepCount - 1));
 
                   return Container(
-                    height: 4,
+                    height: 2,
                     margin: const EdgeInsets.symmetric(horizontal: 18),
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      height: 4,
+                      height: 2,
                       width: progressWidth,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(colors: finalGradientColors),
@@ -81,8 +81,8 @@ class MultiStepProgressBar extends StatelessWidget {
                   final bool isGradientCircle = isActive || isCompleted;
 
                   return Container(
-                    width: 36,
-                    height: 36,
+                    width: 30,
+                    height: 30,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       // Apply gradient if active/completed, else solid inactive color
@@ -98,10 +98,10 @@ class MultiStepProgressBar extends StatelessWidget {
                     child: Center(
                       child: Text(
                         '${index + 1}',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style:  TextStyle(
+                          color: isActive|| isCompleted?Colors.white:Colors.black,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: 12,
                         ),
                       ),
                     ),

@@ -1,13 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 
-import '../../../components/app_loader.dart';
 import '../../../screens/multi_step_progress_bar.dart';
 import '../../../utils/color.dart';
 import '../../domain/model/booking.dart';
-import '../bloc/make_booking_bloc.dart';
-import '../widgets/gradient_header.dart';
+import '../widgets/booking_details_form.dart';
+import '../widgets/quotation_terms_page.dart';
+import 'my_booking_preview_page.dart';
 
 class MakeBookingFullScreen extends StatefulWidget {
   final Booking? initialBooking;
@@ -30,23 +31,8 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     "Preview"
   ];
   int step = 1;
-  final _totalPassengers = TextEditingController(text: '7');
-  final _clientNameController = TextEditingController(text: '');
-  final _pickup = TextEditingController();
-  final _pickupDate = TextEditingController(
-      text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
-  final _pickupTime = TextEditingController(text: '10:30 AM');
-  final _destinationCtr = TextEditingController();
-  final _destinations = <String>['Chamba', 'Simla'];
-  final _returnPoint = TextEditingController();
-  final _returnDate = TextEditingController(
-      text: DateFormat('dd/MM/yyyy').format(DateTime.now()));
-  final _totalDays = TextEditingController(text: '4');
-  final _amount = TextEditingController(text: '20000.00');
-  final _advance = TextEditingController(text: '10000.00');
-  final _onArrival = TextEditingController(text: '20000.00');
-  final _onCompletion = TextEditingController(text: '15000.00');
-  final _note = TextEditingController();
+
+  List<String> selectedVehicle = ['Tata SUV'];
 
   @override
   void initState() {
@@ -89,20 +75,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.15, 0.30, .90],
-          ),
-        ),
+      body: CommonParentContainer(
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Column(
@@ -129,7 +102,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
               MultiStepProgressBar(
                 currentStep: selectedStep,
                 stepTitles: steps,
-                gradientColors: [gradientFirst, gradientSecond],
+                gradientColors: [Colors.green, Colors.green],
               ),
               const SizedBox(height: 12),
 
@@ -141,8 +114,10 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                   children: [
                     stepMyBookingType(),
                     stepMyBookingDetails(),
-                    stepMyBookingQuotation(),
-                    stepMyBookingPreview(),
+                    QuotationTermsPage(),
+                    MyBookingPreviewPage(
+                        parentContext: context,
+                        selectedVehicle: selectedVehicle),
                   ],
                 ),
               ),
@@ -203,28 +178,49 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
         return AlertDialog(
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          contentPadding: const EdgeInsets.all(20),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 40),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle, color: Colors.green, size: 60),
+              SvgPicture.asset(
+                "assets/svg/booking_done.svg",
+                width: 30,
+                height: 30,
+              ),
               const SizedBox(height: 16),
               const Text(
-                "Booking Successful!",
+                "Quotation sent Successfully ",
                 style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
-                "Your booking has been confirmed.",
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("OK"),
+              const SizedBox(height: 40),
+              GestureDetector(
+                onTap: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.of(context).pop();
+                  }
+                  if (Navigator.canPop(context)) {
+                    Navigator.of(context).pop();
+                  }
+                },
+                child: Container(
+                  width: 110,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    gradient:
+                        LinearGradient(colors: [gradientFirst, gradientSecond]),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text("Ok",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400)),
+                ),
               ),
             ],
           ),
@@ -336,10 +332,10 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
           width: MediaQuery.of(context).size.width,
           padding: EdgeInsets.only(left: 10, right: 10),
           decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: BoxBorder.fromBorderSide(
-                  BorderSide(color: Colors.grey, width: 1))
-              /*suffixIcon: IconButton(
+            borderRadius: BorderRadius.circular(8),
+            border: BoxBorder.fromBorderSide(
+                BorderSide(color: Colors.grey, width: 1)),
+            /*suffixIcon: IconButton(
                 icon: const Icon(
                   Icons.arrow_drop_down,
                   color: Colors.grey,
@@ -347,361 +343,98 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                 onPressed: () {},
               ),
               hintStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),*/
-              ),
-          child: Text(
-            "Select Type",
-            style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-            /*decoration: InputDecoration(
-                  constraints: BoxConstraints(
-                    maxHeight: 40,
-                  ),
-                  contentPadding: EdgeInsets.only(left: 10, right: 10),
-                  hintText: 'Select Type',
-                  suffixIcon: IconButton(
-                    icon: const Icon(
-                      Icons.arrow_drop_down,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () {},
-                  ),
-                  hintStyle:
-                      TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8)))*/
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                  child: Text(
+                "Select Type",
+                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+              )),
+              const Icon(
+                Icons.arrow_drop_down,
+                color: Colors.grey,
+              )
+            ],
           )),
     );
   }
 
   //TODO STEP2///////////////////////////////////////////////////////////////
+  List<String> bookingDetails = [];
+  int selectedBookingForm = 0;
+  int day = 1;
+
   Widget stepMyBookingDetails() {
+    if (selectedBookingType == 0) {
+      selectedBookingForm = 0;
+    }
     return SingleChildScrollView(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('Booking Detail:',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
-        Row(children: [
-          Expanded(
-              child: SizedBox(
-            height: 40,
-            child: _commonTextFields(
-                controller: _pickup, labelText: "Pickup Point"),
-          )),
-          const SizedBox(width: 30),
-          SizedBox(
-            width: 110,
-            height: 40,
-            child: _commonTextFields(
-                controller: _totalPassengers, labelText: 'Passengers'),
-          ),
-        ]),
-        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
                 child: SizedBox(
-              height: 40,
-              child: _commonTextFields(
-                  readOnly: true,
-                  callback: () {},
-                  controller: _pickupDate,
-                  labelText: "Pickup Date"),
+              height: 30,
+              child: ListView.builder(
+                shrinkWrap: true,
+                scrollDirection: Axis.horizontal,
+                itemCount: bookingDetails.length,
+                itemBuilder: (context, index) {
+                  return GestureDetector(
+                    onTap: () {
+                      selectedBookingForm = index;
+                      setState(() {});
+                    },
+                    child: Container(
+                      height: 30,
+                      margin: EdgeInsets.only(right: 6),
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: index == selectedBookingForm
+                            ? AppColors.blue
+                            : Colors.grey,
+                        borderRadius: BorderRadius.circular(8),
+                        border: BoxBorder.fromBorderSide(
+                            BorderSide(color: Colors.grey, width: 1)),
+                      ),
+                      child: Text(
+                        bookingDetails[index],
+                        style: TextStyle(
+                            fontWeight: FontWeight.w400,
+                            fontSize: 10,
+                            color: Colors.white),
+                      ),
+                    ),
+                  );
+                },
+              ),
             )),
-            const SizedBox(width: 12),
-            SizedBox(
-              height: 40,
-              width: 110,
-              child: _commonTextFields(
-                  callback: () {},
-                  controller: _pickupTime,
-                  labelText: "Pickup Time"),
+            GestureDetector(
+              onTap: () {
+                bookingDetails.insert(0, "${day++}-11-2025");
+                setState(() {});
+              },
+              child: Text(
+                "+ Add Day",
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.blue),
+              ),
             )
           ],
         ),
-        const SizedBox(height: 12),
-        const Text('Destinations :'),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-                child: SizedBox(
-              height: 40,
-              child: _destinationTypeTextFields(
-                  controller: _destinationCtr, labelText: "Input Type"),
-            )),
-            const SizedBox(width: 10),
-            GestureDetector(
-                onTap: () {
-                  if (_destinationCtr.text.isNotEmpty) {
-                    setState(() {
-                      _destinations.add(_destinationCtr.text);
-                      _destinationCtr.clear();
-                    });
-                  }
-                },
-                child: const Text('+ Add',
-                    style: TextStyle(
-                        color: AppColors.blue,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold)))
-          ],
+        SizedBox(
+          height: 20,
         ),
-        const SizedBox(height: 15),
-        Column(
-            children: _destinations
-                .asMap()
-                .entries
-                .map((e) => Container(
-                    margin: const EdgeInsets.only(bottom: 6),
-                    padding: const EdgeInsets.all(8),
-                    color: Colors.grey.shade300,
-                    child: Row(children: [
-                      Container(
-                          width: 28,
-                          height: 28,
-                          alignment: Alignment.center,
-                          color: Colors.grey,
-                          child: Text('${e.key + 1}')),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(e.value)),
-                      Text(DateFormat('dd/MM/yyyy').format(DateTime.now()))
-                    ])))
-                .toList()),
-        const SizedBox(height: 12),
-        Row(children: [
-          Expanded(
-              child: TextField(
-                  controller: _returnPoint,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                  decoration: InputDecoration(
-                      labelStyle:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                      hintStyle:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                      labelText: 'Return point',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8))))),
-          const SizedBox(width: 12),
-          Expanded(
-              child: TextField(
-                  controller: _returnDate,
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                  decoration: InputDecoration(
-                      labelStyle:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                      hintStyle:
-                          TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                      labelText: 'Return date',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)))))
-        ]),
-        const SizedBox(height: 12),
-        TextField(
-            controller: _totalDays,
-            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-            decoration: InputDecoration(
-                labelStyle:
-                    TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                hintStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                labelText: 'Total trip Days',
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8)))),
-        const SizedBox(height: 16),
-        const Text('Vehicle Details :',
-            style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 8),
-        Container(
-            height: 120,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade300)),
-            child: Row(children: [
-              Expanded(
-                  child: Container(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('Tata SUV',
-                                style: TextStyle(fontWeight: FontWeight.bold)),
-                            SizedBox(height: 6),
-                            Text(
-                                'RE Compact • 7 SeatsVehicle Number - CH 01 HG 5687',
-                                style: TextStyle(fontSize: 12))
-                          ]))),
-              SizedBox(
-                  width: 120,
-                  child: Image.network('https://via.placeholder.com/120',
-                      fit: BoxFit.cover))
-            ])),
+        BookingDetailsForm(
+            index: selectedBookingForm, bookingList: bookingDetails),
       ]),
-    );
-  }
-
-  Widget stepMyBookingQuotation() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Quotation Amount:',
-          style: TextStyle(fontWeight: FontWeight.bold)),
-      const SizedBox(height: 12),
-      Row(
-        children: [
-          Expanded(
-              child: TextField(
-                  controller: _amount,
-                  decoration: InputDecoration(
-                      labelText: 'Amount',
-                      prefixText: 'INR- ',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8))))),
-          const SizedBox(width: 12),
-          Expanded(
-              child: TextField(
-                  controller: _totalDays,
-                  decoration: InputDecoration(
-                      labelText: 'Daily driver working hours',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8)))))
-        ],
-      ),
-      const SizedBox(height: 12),
-      const Divider(),
-      const SizedBox(height: 12),
-      const Text('Payment terms:',
-          style: TextStyle(fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      Row(children: [
-        Expanded(
-            child: TextField(
-                controller: _advance,
-                decoration: InputDecoration(
-                    labelText: 'Advance- INR',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8))))),
-        const SizedBox(width: 8),
-        Expanded(
-            child: TextField(
-                controller: _onArrival,
-                decoration: InputDecoration(
-                    labelText: 'Pay on Arrival- INR',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8))))),
-        const SizedBox(width: 8),
-        Expanded(
-            child: TextField(
-                controller: _onCompletion,
-                decoration: InputDecoration(
-                    labelText: 'Pay on completion- INR',
-                    border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8)))))
-      ]),
-      const SizedBox(height: 12),
-      const Text('Note :', style: TextStyle(fontWeight: FontWeight.bold)),
-      const SizedBox(height: 8),
-      TextField(
-          controller: _note,
-          maxLines: 4,
-          decoration: InputDecoration(
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(8))))
-    ]);
-  }
-
-  Widget stepMyBookingPreview() {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      const Text('Preview',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-      const SizedBox(height: 12),
-      Card(
-          child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Quotation',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 6),
-                    Text('Amount: INR- \${_amount.text}'),
-                    Text('Days: \${_totalDays.text}')
-                  ])))
-    ]);
-  }
-
-  _commonTextFields(
-      {required TextEditingController controller,
-      required String labelText,
-      GestureTapCallback? callback,
-      bool readOnly = false}) {
-    return TextField(
-        readOnly: readOnly,
-        onTap: callback,
-        controller: controller,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-        decoration: InputDecoration(
-            hintStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-            contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-            labelText: labelText,
-            labelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-            border:
-                OutlineInputBorder(borderRadius: BorderRadius.circular(8))));
-  }
-
-  _destinationTypeTextFields(
-      {required TextEditingController controller,
-      required String labelText,
-      GestureTapCallback? callback,
-      bool readOnly = false}) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10),
-      height: 40,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-              child: Container(
-            height: 40,
-            alignment: Alignment.centerLeft,
-            child: Text(
-              textAlign: TextAlign.left,
-              "Enter Destination",
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
-            ),
-          )),
-          Container(
-            width: 1,
-            height: 38,
-            color: AppColors.blue,
-          ),
-          SizedBox(
-            width: 100,
-            child: Container(
-              height: 40,
-              width: 100,
-              alignment: Alignment.centerRight,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Select Date',
-                      style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w400)),
-                  SizedBox(width: 4),
-                  Icon(Icons.calendar_month, color: AppColors.blue, size: 16),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
