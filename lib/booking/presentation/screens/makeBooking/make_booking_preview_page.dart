@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../components/app_loader.dart';
-import '../../../utils/color.dart';
-import '../widgets/vehicle_details_card.dart';
+import '../../../../components/app_loader.dart';
+import '../../../../utils/color.dart';
+import '../../widgets/vehicle_details_card.dart';
 
 class MyBookingPreviewPage extends StatelessWidget {
   final BuildContext parentContext;

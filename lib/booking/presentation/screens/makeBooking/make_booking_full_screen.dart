@@ -3,12 +3,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 
-import '../../../screens/multi_step_progress_bar.dart';
-import '../../../utils/color.dart';
-import '../../domain/model/booking.dart';
-import '../widgets/booking_details_form.dart';
-import '../widgets/quotation_terms_page.dart';
-import 'my_booking_preview_page.dart';
+import '../../../../screens/multi_step_progress_bar.dart';
+import '../../../../utils/color.dart';
+import '../../../domain/model/booking.dart';
+import '../../widgets/booking_details_form.dart';
+import '../../widgets/quotation_terms_page.dart';
+import 'make_booking_preview_page.dart';
 
 class MakeBookingFullScreen extends StatefulWidget {
   final Booking? initialBooking;
@@ -23,7 +23,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int selectedStep = 0;
-  int? selectedBookingType = 0;
+  int? selectedBookingType = 1;
   final steps = [
     "Booking Type",
     "Booking Details",
@@ -87,9 +87,11 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      "Make Booking",
+                      widget.initialBooking == null
+                          ? "Make Booking"
+                          : "Edit Booking",
                       style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -139,20 +141,36 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
         children: [
           /// Back Button
           if (selectedStep > 0)
-            Expanded(
-              child: OutlinedButton(
+            SizedBox(
+              child: ElevatedButton(
+                style: ButtonStyle(
+                  backgroundColor: WidgetStatePropertyAll(
+                    AppColors.blue,
+                  ),
+                  shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(3.0))),
+                ),
                 onPressed: goToPreviousStep,
-                child: const Text("Back"),
+                child: const Text(
+                  "Previous",
+                  style: TextStyle(color: Colors.white),
+                ),
               ),
-            )
-          else
+            ),
             const Spacer(),
 
           const SizedBox(width: 12),
 
           /// Continue / Submit Button
-          Expanded(
+          SizedBox(
             child: ElevatedButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStatePropertyAll(
+                  AppColors.blue,
+                ),
+                shape: WidgetStateProperty.all(RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(3.0))),
+              ),
               onPressed: () {
                 if (selectedStep == 3) {
                   _showSuccessDialog();
@@ -160,7 +178,10 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                   goToNextStep();
                 }
               },
-              child: Text(selectedStep == 3 ? "Submit" : "Continue"),
+              child: Text(
+                selectedStep == 3 ? "Submit" : "Next",
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -366,7 +387,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
   int day = 1;
 
   Widget stepMyBookingDetails() {
-    if (selectedBookingType == 0) {
+    if (selectedBookingType == 1) {
       selectedBookingForm = 0;
     }
     return SingleChildScrollView(
@@ -374,61 +395,62 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
         const Text('Booking Detail:',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
         const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-                child: SizedBox(
-              height: 30,
-              child: ListView.builder(
-                shrinkWrap: true,
-                scrollDirection: Axis.horizontal,
-                itemCount: bookingDetails.length,
-                itemBuilder: (context, index) {
-                  return GestureDetector(
-                    onTap: () {
-                      selectedBookingForm = index;
-                      setState(() {});
-                    },
-                    child: Container(
-                      height: 30,
-                      margin: EdgeInsets.only(right: 6),
-                      padding: EdgeInsets.symmetric(horizontal: 6),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: index == selectedBookingForm
-                            ? AppColors.blue
-                            : Colors.grey,
-                        borderRadius: BorderRadius.circular(8),
-                        border: BoxBorder.fromBorderSide(
-                            BorderSide(color: Colors.grey, width: 1)),
+        if (selectedBookingType == 2)
+          Row(
+            children: [
+              Expanded(
+                  child: SizedBox(
+                height: 30,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  itemCount: bookingDetails.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () {
+                        selectedBookingForm = index;
+                        setState(() {});
+                      },
+                      child: Container(
+                        height: 30,
+                        margin: EdgeInsets.only(right: 6),
+                        padding: EdgeInsets.symmetric(horizontal: 6),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: index == selectedBookingForm
+                              ? AppColors.blue
+                              : Colors.grey,
+                          borderRadius: BorderRadius.circular(8),
+                          border: BoxBorder.fromBorderSide(
+                              BorderSide(color: Colors.grey, width: 1)),
+                        ),
+                        child: Text(
+                          bookingDetails[index],
+                          style: TextStyle(
+                              fontWeight: FontWeight.w400,
+                              fontSize: 10,
+                              color: Colors.white),
+                        ),
                       ),
-                      child: Text(
-                        bookingDetails[index],
-                        style: TextStyle(
-                            fontWeight: FontWeight.w400,
-                            fontSize: 10,
-                            color: Colors.white),
-                      ),
-                    ),
-                  );
+                    );
+                  },
+                ),
+              )),
+              GestureDetector(
+                onTap: () {
+                  bookingDetails.insert(0, "${day++}-11-2025");
+                  setState(() {});
                 },
-              ),
-            )),
-            GestureDetector(
-              onTap: () {
-                bookingDetails.insert(0, "${day++}-11-2025");
-                setState(() {});
-              },
-              child: Text(
-                "+ Add Day",
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.blue),
-              ),
-            )
-          ],
-        ),
+                child: Text(
+                  "+ Add Day",
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.blue),
+                ),
+              )
+            ],
+          ),
         SizedBox(
           height: 20,
         ),

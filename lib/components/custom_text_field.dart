@@ -13,6 +13,7 @@ class CustomTextField extends StatefulWidget {
   final bool enabled;
   final int? maxLines;
   final int? minLines;
+  final FocusNode? focusNode;
   final TextInputType keyboardType;
   final bool obscureText;
   final Widget? suffixIcon;
@@ -42,6 +43,7 @@ class CustomTextField extends StatefulWidget {
     required this.label,
     this.validator,
     this.maxLength,
+    this.focusNode,
     this.textCapitalization = TextCapitalization.none,
     this.enabled = true,
     this.keyboardType = TextInputType.text,
@@ -308,6 +310,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                           enabled: widget.enabled,
                           maxLines: widget.maxLines,
                           minLines: widget.minLines,
+                          focusNode: widget.focusNode,
                           onTap: widget.onTap,
                           onChanged: (value) {
                             _validateInput(value);

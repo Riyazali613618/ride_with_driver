@@ -44,7 +44,8 @@ class MultiStepProgressBar extends StatelessWidget {
               Container(
                 height: 2,
                 // The margin ensures the line stops at the center of the first/last circles
-                margin: const EdgeInsets.symmetric(horizontal: 18), // 36 / 2
+                margin: const EdgeInsets.symmetric(horizontal: 18),
+                // 36 / 2
                 color: finalInactiveColor,
               ),
 
@@ -88,18 +89,20 @@ class MultiStepProgressBar extends StatelessWidget {
                       // Apply gradient if active/completed, else solid inactive color
                       gradient: isGradientCircle
                           ? LinearGradient(
-                        colors: finalGradientColors,
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      )
+                              colors: finalGradientColors,
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            )
                           : null,
                       color: isGradientCircle ? null : finalInactiveColor,
                     ),
                     child: Center(
                       child: Text(
-                        '${index + 1}',
-                        style:  TextStyle(
-                          color: isActive|| isCompleted?Colors.white:Colors.black,
+                        ((isCompleted) && index < 3) ? "✓" : '${index + 1}',
+                        style: TextStyle(
+                          color: isActive || isCompleted
+                              ? Colors.white
+                              : Colors.black,
                           fontWeight: FontWeight.w600,
                           fontSize: 12,
                         ),

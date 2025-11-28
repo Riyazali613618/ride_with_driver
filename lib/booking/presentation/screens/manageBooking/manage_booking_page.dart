@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:r_w_r/components/app_loader.dart';
 
-import '../../../components/custom_text_field.dart';
-import '../../domain/model/booking.dart';
-import '../bloc/manage_booking_bloc.dart';
-import 'make_booking_full_screen.dart';
+import '../../../../components/custom_text_field.dart';
+import '../../../domain/model/booking.dart';
+import '../../bloc/manage_booking_bloc.dart';
+import '../makeBooking/make_booking_full_screen.dart';
+import '../view_booking_details_screen.dart';
 
-class ManageBookingScreen extends StatelessWidget {
-  const ManageBookingScreen({super.key});
+class ManageBookingPage extends StatelessWidget {
+  const ManageBookingPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +227,10 @@ class _BookingListState extends State<_BookingList>
       ),
 */
       Expanded(
-          child: ListView.builder(
+          child: ListView.separated(
+        separatorBuilder: (context, index) => SizedBox(
+          height: 5,
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
         itemCount: widget.bookings.length,
         itemBuilder: (context, i) {
@@ -371,12 +376,21 @@ class _BookingListState extends State<_BookingList>
                     width: 10,
                   ),
                   if (currentType == SelectedTab.quoteRequest.name)
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-                      child: Icon(
-                        Icons.visibility,
-                        size: 20,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (_) => ViewBookingDetailsScreen(
+                                selectedVehicle: ["Tata SUV"],
+                                isQuoteRequest:true,
+                                isMyBooking: false)));
+                      },
+                      child: Container(
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        child: Icon(
+                          Icons.visibility,
+                          size: 20,
+                        ),
                       ),
                     )
                   else
@@ -422,11 +436,14 @@ class _BookingListState extends State<_BookingList>
 
   Widget _moreMenu(BuildContext context, Booking b) {
     return PopupMenuButton<String>(
-      offset: Offset(-15, 35),
+      offset: Offset(-10, 15),
       onSelected: (val) async {
         if (val == 'view') {
           Navigator.of(context).push(MaterialPageRoute(
-              builder: (_) => MakeBookingFullScreen(initialBooking: b)));
+              builder: (_) => ViewBookingDetailsScreen(
+                  selectedVehicle: ["Tata SUV"],
+                  isQuoteRequest:false,
+                  isMyBooking: false)));
         } else if (val == 'cancel') {
           final bloc = context.read<ManageBookingBloc>();
           await showDialog(
@@ -463,7 +480,7 @@ class _BookingListState extends State<_BookingList>
                   size: 20,
                 ),
                 title: Text(
-                  'Select Date',
+                  'View',
                   style: TextStyle(
                       color: Colors.black,
                       fontSize: 11,
@@ -516,6 +533,13 @@ class _BookingListState extends State<_BookingList>
                         fontWeight: FontWeight.w400),
                   ))),
       ],
+      child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+          child: SvgPicture.asset(
+            "assets/svg/more_hori.svg",
+            width: 5,
+            height: 5,
+          )),
     );
   }
 

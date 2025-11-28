@@ -18,7 +18,7 @@ class PlanRepository {
     );
 
     if (response != null && response['success'] == true) {
-      final List<dynamic> planList = response['data']['plans']['SUBSCRIPTION'];
+      final List<dynamic> planList = response['data']['plans'];
       return planList.map((e) => PlanModel.fromJson(e)).toList();
     }
     return [];

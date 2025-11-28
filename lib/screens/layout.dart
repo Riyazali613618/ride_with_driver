@@ -255,7 +255,7 @@ class _LayoutState extends State<Layout> {
       ),
       BottomNavigationBarItem(
         icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
-        label: localizations.profile,
+        label: "Booking",
         activeIcon: Icon(CupertinoIcons.car_fill,
             color: ColorConstants.primaryColor),
       ),

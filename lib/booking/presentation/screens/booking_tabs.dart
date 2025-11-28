@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../screens/widgets/gradient_button.dart';
 import '../../../utils/color.dart';
-import 'make_booking_full_screen.dart';
-import 'manage_booking_screen.dart';
+import 'makeBooking/make_booking_full_screen.dart';
+import 'manageBooking/manage_booking_page.dart';
+import 'myBookings/my_booking_page.dart';
 
 class BookingTabs extends StatefulWidget {
   const BookingTabs({super.key});
@@ -159,8 +160,8 @@ class _BookingTabsState extends State<BookingTabs>
                   ),
                   Expanded(
                     child: TabBarView(controller: _tc, children: const [
-                      ManageBookingScreen(),
-                      MakeBookingFullScreen()
+                      ManageBookingPage(),
+                      MyBookingPage()
                     ]),
                   )
                 ],
