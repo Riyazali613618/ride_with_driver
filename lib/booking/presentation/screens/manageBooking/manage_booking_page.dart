@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../../components/custom_text_field.dart';
 import '../../../domain/model/booking.dart';
@@ -89,37 +90,6 @@ class _BookingListState extends State<_BookingList>
               ),
             )),
             SizedBox(width: 30),
-            /*GestureDetector(
-              onTap: () {
-                _allMenu(
-                    context
-                );
-              },
-              child: Container(
-                margin: EdgeInsets.only(top: 10),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 25.0, vertical: 10.0),
-                color: AppColors.blue,
-                child: Row(
-                  children: [
-                    Text(
-                      "All",
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white),
-                    ),
-                    SizedBox(width: 10),
-                    Icon(
-                      Icons.arrow_drop_down,
-                      color: Colors.white,
-                      size: 20,
-                    )
-                  ],
-                ),
-              ),
-            ),*/
             _allMenu(context),
           ],
         ),
@@ -165,67 +135,6 @@ class _BookingListState extends State<_BookingList>
           ],
         ),
       ),
-/*
-      Container(
-        width: MediaQuery.of(context).size.width,
-        color: AppColors.blue,
-        margin: EdgeInsets.symmetric(horizontal: 10),
-        padding: EdgeInsets.only(left: 10, right: 5, top: 10, bottom: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            SizedBox(width: 20),
-            Expanded(
-              flex: 1,
-              child: Text(
-                'Date  ',
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                '    Pickup point',
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                '   Destination',
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Text(
-                'Client Name',
-                style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500),
-              ),
-            ),
-            Text(
-              'Action',
-              style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500),
-            )
-          ],
-        ),
-      ),
-*/
       Expanded(
           child: ListView.separated(
         separatorBuilder: (context, index) => SizedBox(
@@ -378,11 +287,13 @@ class _BookingListState extends State<_BookingList>
                   if (currentType == SelectedTab.quoteRequest.name)
                     GestureDetector(
                       onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => ViewBookingDetailsScreen(
+                        CommonUtils.goToScreen(
+                            context,
+                            ViewBookingDetailsScreen(
                                 selectedVehicle: ["Tata SUV"],
-                                isQuoteRequest:true,
-                                isMyBooking: false)));
+                                isQuoteRequest: true,
+                                type: getType(i),
+                                isMyBooking: false));
                       },
                       child: Container(
                         padding:
@@ -394,19 +305,11 @@ class _BookingListState extends State<_BookingList>
                       ),
                     )
                   else
-                    _moreMenu(context, b),
+                    _moreMenu(context, b, i),
                 ],
               ),
             ],
-          ) /*ListTile(
-            leading: _statusDot(b.status),
-            title: Text(DateFormat('dd/MM/yyyy').format(b.date) +
-                ' - ' +
-                b.pickupPoint),
-            subtitle: Text('${b.destination} • ${b.clientName}'),
-            trailing: _moreMenu(context, b),
-          )*/
-              ;
+          );
         },
       )),
     ]);
@@ -434,7 +337,7 @@ class _BookingListState extends State<_BookingList>
     return CircleAvatar(radius: 4, backgroundColor: c);
   }
 
-  Widget _moreMenu(BuildContext context, Booking b) {
+  Widget _moreMenu(BuildContext context, Booking b, int index) {
     return PopupMenuButton<String>(
       offset: Offset(-10, 15),
       onSelected: (val) async {
@@ -442,7 +345,8 @@ class _BookingListState extends State<_BookingList>
           Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => ViewBookingDetailsScreen(
                   selectedVehicle: ["Tata SUV"],
-                  isQuoteRequest:false,
+                  type: getType(index),
+                  isQuoteRequest: getType(index) == "Quote Request",
                   isMyBooking: false)));
         } else if (val == 'cancel') {
           final bloc = context.read<ManageBookingBloc>();
@@ -603,6 +507,20 @@ class _BookingListState extends State<_BookingList>
         ),
       ),
     );
+  }
+
+  String getType(int i) {
+    if (currentType == SelectedTab.booking.name) {
+      return "Booking";
+    } else if (currentType == SelectedTab.pendingQuotes.name) {
+      return "Pending Quote";
+    } else if (currentType == SelectedTab.quoteRequest.name) {
+      return "Quote Request";
+    } else if (currentType == SelectedTab.history.name) {
+      return "History";
+    } else {
+      return "";
+    }
   }
 }
 

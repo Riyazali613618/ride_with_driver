@@ -1717,17 +1717,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                   ),
                                                 ),
                                               );
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) => BlocProvider(
-                                                    create: (_) => PlanBloc(
-                                                      RepositoryProvider.of<PlanRepository>(context),
-                                                    ),
-                                                    child: PartnerRegistrationWidget(),
-                                                  ),
-                                                ),
-                                              );
 
 
                                             },

@@ -3,11 +3,12 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../api/api_model/payment/payment_model.dart';
 import '../../api/api_model/user_model/plan_model.dart';
 import '../../api/api_service/payment_service/payment_service.dart';
+import '../../plan/data/models/plan_model.dart';
 
 abstract class PaymentEvent {}
 
 class InitiatePayment extends PaymentEvent {
-  final Plan plan;
+  final PlanModel plan;
   final String planType;
   final PaymentType paymentType;
   final String? category;
@@ -22,7 +23,7 @@ class InitiatePayment extends PaymentEvent {
 
 class PaymentSuccess extends PaymentEvent {
   final PaymentSuccessResponse response;
-  final Plan plan;
+  final PlanModel plan;
   final String planType;
   final PaymentType paymentType;
   final String? category;

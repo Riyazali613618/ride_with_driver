@@ -294,6 +294,7 @@ class _BookingListState extends State<_BookingList>
                         Navigator.of(context).push(MaterialPageRoute(
                             builder: (_) => ViewBookingDetailsScreen(
                                 selectedVehicle: ["Tata SUV"],
+                                type: getType(),
                                 isQuoteRequest: false,
                                 isMyBooking: true)));
                       },
@@ -307,7 +308,7 @@ class _BookingListState extends State<_BookingList>
                       ),
                     )
                   else
-                    _moreMenu(context, b),
+                    _moreMenu(context, b,i),
                 ],
               ),
             ],
@@ -347,7 +348,7 @@ class _BookingListState extends State<_BookingList>
     return CircleAvatar(radius: 4, backgroundColor: c);
   }
 
-  Widget _moreMenu(BuildContext context, Booking b) {
+  Widget _moreMenu(BuildContext context, Booking b,int index) {
     focusNode.unfocus();
     return PopupMenuButton<String>(
       offset: Offset(-10, 15),
@@ -356,6 +357,7 @@ class _BookingListState extends State<_BookingList>
           Navigator.of(context).push(MaterialPageRoute(
               builder: (_) => ViewBookingDetailsScreen(
                   isQuoteRequest: false,
+                  type: getType(),
                   selectedVehicle: ["Tata SUV"],
                   isMyBooking: true)));
         } else if (val == 'cancel') {
@@ -518,6 +520,21 @@ class _BookingListState extends State<_BookingList>
         ),
       ),
     );
+  }
+
+
+  String getType() {
+    if (currentType == SelectedTab.booking.name) {
+      return "My Booking";
+    } else if (currentType == SelectedTab.pendingQuotes.name) {
+      return "Pending Quotes";
+    } else if (currentType == SelectedTab.quoteRequest.name) {
+      return "Sent Quote Request";
+    } else if (currentType == SelectedTab.history.name) {
+      return "History";
+    } else {
+      return "";
+    }
   }
 }
 

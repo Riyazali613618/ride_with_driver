@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:r_w_r/booking/presentation/screens/makeBooking/make_booking_full_screen.dart';
 import 'package:r_w_r/booking/presentation/widgets/add_value_popup.dart';
@@ -7,6 +8,7 @@ import 'package:r_w_r/components/common_parent_container.dart';
 
 import '../../../../components/app_loader.dart';
 import '../../../../utils/color.dart';
+import '../../../utils/common_utils.dart';
 import '../widgets/add_payment_dialog.dart';
 import '../widgets/refund_form_popup.dart';
 import '../widgets/vehicle_details_card.dart';
@@ -15,11 +17,13 @@ class ViewBookingDetailsScreen extends StatefulWidget {
   final List<String> selectedVehicle;
   final bool isMyBooking;
   final bool isQuoteRequest;
+  final String type;
 
   const ViewBookingDetailsScreen(
       {required this.isMyBooking,
       required this.isQuoteRequest,
       required this.selectedVehicle,
+      required this.type,
       super.key});
 
   @override
@@ -34,6 +38,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print(widget.type);
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CommonParentContainer(
@@ -64,7 +69,14 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                 ),
                 if (widget.isQuoteRequest) const SizedBox(height: 10),
 
-                if (widget.isQuoteRequest)
+                if (!widget.isMyBooking && !widget.isQuoteRequest && widget.type != "History")
+                  showEditCancelView(context),
+                if((widget.isMyBooking && widget.type!="Pending Quotes" ))
+                  showEditCancelView(context),
+                const SizedBox(height: 10),
+                if (!widget.isQuoteRequest &&
+                    widget.type != "History" &&
+                    (widget.isMyBooking && widget.type != "Pending Quotes"))
                   Row(
                     children: [
                       Expanded(
@@ -223,86 +235,109 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                         ],
                       )),
                       const SizedBox(width: 10),
-                      Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (_) => AddPaymentRecordPopup(
-                                  listener: (type) {
-                                    setState(() {
-                                      bookingJourneyStatus = "Upcoming";
-                                      bookingStartStatus = "Start Journey";
-                                    });
-                                  },
+                      if (widget.isMyBooking)
+                        Container(
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.blue,
+                              borderRadius: BorderRadius.circular(6),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x40641BB4),
+                                  blurRadius: 4,
+                                  offset: Offset(0, 4),
                                 ),
-                              );
-                            },
-                            child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: AppColors.blue,
-                                  borderRadius: BorderRadius.circular(6),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x40641BB4),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                child: Text("+ Add Payment",
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white))),
-                          ),
-                          const SizedBox(height: 10),
-                          GestureDetector(
-                            onTap: () {
-                              showDialog(
-                                context: context,
-                                barrierDismissible: false,
-                                builder: (_) => AddValuePopup(
-                                  listener: (type) {
-                                    setState(() {
-                                      bookingJourneyStatus = "Upcoming";
-                                      bookingStartStatus = "Start Journey";
-                                    });
-                                  },
-                                ),
-                              );
-                            },
-                            child: Container(
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: Color(0xFFB16449),
-                                  borderRadius: BorderRadius.circular(6),
-                                  boxShadow: const [
-                                    BoxShadow(
-                                      color: Color(0x40641BB4),
-                                      blurRadius: 4,
-                                      offset: Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 4),
-                                child: Text("  + Add Value  ",
-                                    style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white))),
-                          ),
-                        ],
-                      ),
+                              ],
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            child: Text("Code\n9999",
+                                style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w400,
+                                    color: Colors.white)))
+                      else
+                        Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => AddPaymentRecordPopup(
+                                    listener: (type) {
+                                      setState(() {
+                                        bookingJourneyStatus = "Upcoming";
+                                        bookingStartStatus = "Start Journey";
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.blue,
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x40641BB4),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  child: Text("+ Add Payment",
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.white))),
+                            ),
+                            const SizedBox(height: 10),
+                            GestureDetector(
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (_) => AddValuePopup(
+                                    listener: (type) {
+                                      setState(() {
+                                        bookingJourneyStatus = "Upcoming";
+                                        bookingStartStatus = "Start Journey";
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFB16449),
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x40641BB4),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  child: Text("  + Add Value  ",
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.white))),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
-                const SizedBox(height: 20),
+                if (!widget.isQuoteRequest && widget.type != "History")
+                  const SizedBox(height: 20),
                 if (bookingJourneyStatus.isNotEmpty)
                   Row(
                     children: [
@@ -377,6 +412,56 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                 if (bookingJourneyStatus.isNotEmpty) const SizedBox(height: 20),
 // ---- Step
                 _profileAndQuotationCard(),
+                const SizedBox(height: 5),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 5, vertical: 10),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(6)),
+                      border: BoxBorder.fromBorderSide(
+                          BorderSide(color: AppColors.blue, width: 0.5))),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          const Text("Mr Narendra Pratap Singh:",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Color(0xFF595959))),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          const Text("Mobile: +918787878787",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400, fontSize: 11)),
+                        ],
+                      )),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Expanded(
+                          child: Column(
+                        children: [
+                          const Text("Vehicle Booking For:",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  color: Color(0xFF595959))),
+                          SizedBox(
+                            height: 4,
+                          ),
+                          const Text("{Pickup Point}",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w400, fontSize: 11)),
+                        ],
+                      )),
+                    ],
+                  ),
+                ),
+
                 const SizedBox(height: 24),
 
                 // ---------------- Booking Details ----------------
@@ -451,8 +536,15 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                 _bigNoteBox(),
                 const SizedBox(height: 36),
 
-                _sendQuotationBtn(),
-                const SizedBox(height: 40),
+                if (widget.type != "Booking" && (!widget.isMyBooking)) ...[
+                  _sendQuotationBtn(),
+                  const SizedBox(height: 40),
+                ],
+                if(widget.isMyBooking && widget.type=="Pending Quotes" )...[
+                  _acceptDeclineBtn(),
+                  const SizedBox(height: 40),
+                ]
+
               ],
             ),
           ),
@@ -619,7 +711,20 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                         ),
                       ],
                     ),
-                  )
+                  ),
+                  Row(
+                    children: [
+                      Radio<int>(
+                        value: 1,
+                        groupValue: 1,
+                        onChanged: (value) {},
+                        activeColor: Color(0xFF1FAF38),
+                      ),
+                      Text("Outstation",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w400, fontSize: 15))
+                    ],
+                  ),
                 ],
               ),
             )
@@ -931,6 +1036,98 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                     fontWeight: FontWeight.w400)),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _acceptDeclineBtn() {
+    return Row(
+      children: [
+          Center(
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.red,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              alignment: Alignment.center,
+              child: const Text("Decline",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w400)),
+            ),
+          ),
+        Spacer(),
+        GestureDetector(
+          onTap: () {
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => MakeBookingFullScreen()));
+          },
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+            decoration: BoxDecoration(
+             color: Colors.green,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            alignment: Alignment.center,
+            child: Text("Accept",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  showEditCancelView(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (widget.type != "Pending Quote")
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            color: Colors.red,
+            child: Text(
+              "Cancel Booking",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400),
+            ),
+          ),
+        Spacer(),
+        if (!widget.isMyBooking)
+          GestureDetector(
+            onTap: () {
+              CommonUtils.goToScreen(context, MakeBookingFullScreen());
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              color: AppColors.blue,
+              child: Row(
+                children: [
+                  SvgPicture.asset(
+                    "assets/svg/edit.svg",
+                    width: 15,
+                    height: 15,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Edit",
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.white),
+                  )
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }

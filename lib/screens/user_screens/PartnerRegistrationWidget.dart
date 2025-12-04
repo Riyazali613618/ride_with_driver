@@ -1,16 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/screens/autoRikshawDriverRegistration.dart';
-import 'package:r_w_r/screens/driverRegistrationScreen.dart';
-import 'package:r_w_r/screens/independentCarOwnerRegistration.dart';
-import 'package:r_w_r/screens/transporterRegistration.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:r_w_r/utils/images.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../bloc/payment/payment_bloc.dart';
-import '../../bloc/payment_status/payment_status_bloc.dart';
 import '../../bloc/plan_flow/plan_flow_cubit.dart';
 import '../../constants/color_constants.dart';
 import '../../l10n/app_localizations.dart';
@@ -18,474 +14,257 @@ import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../../plan/presentation/bloc/plan_event.dart';
 import '../../plan/presentation/bloc/plan_state.dart';
 import '../../plan/presentation/screens/plan_selection_screen.dart' as planNew;
-import '../../transporterRegistration/presentation/pages/transporter_registration_page.dart';
-import '../PlanSelectionView.dart';
-import '../block/provider/profile_provider.dart';
+
+import '../driverRegistrationScreen.dart';
 import '../driver_screens/driver_registration.dart';
 import '../driver_screens/plans.dart';
+import '../../screens/autoRikshawDriverRegistration.dart';
+import '../../screens/transporterRegistration.dart';
+import '../../screens/independentCarOwnerRegistration.dart';
 import '../eRickshawRegistration.dart';
+import '../block/provider/profile_provider.dart';
 
 enum ApplicationStatus { notStarted, inProgress, completed, rejected }
 
 class PartnerRegistrationWidget extends StatefulWidget {
+  const PartnerRegistrationWidget({Key? key}) : super(key: key);
+
   @override
-  _PartnerRegistrationWidgetState createState() =>
+  State<PartnerRegistrationWidget> createState() =>
       _PartnerRegistrationWidgetState();
 }
 
 class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
-  final bool _currentSubscriptionVisibility = true;
   String? whoReg;
-  ApplicationStatus applicationStatus = ApplicationStatus.notStarted;
   bool isLoading = true;
+  ApplicationStatus applicationStatus = ApplicationStatus.notStarted;
 
-  final List<Map<String, dynamic>> allOptions = [
+  // ---------------------------------------------------------------------
+  // DATA MODEL FOR OPTIONS
+  // ---------------------------------------------------------------------
+  final List<Map<String, dynamic>> options = [
     {
-      'titleKey': 'transporterOwner',
-      'displayTitle': 'Transport Driver',
+      'title': 'Transport Driver',
       'icon': transporter,
       'key': "TRANSPORTER",
-      'whoRegValue': 'Transporter',
+      'route': TransporterRegistrationFlow(),
       'colors': [Color(0xFFE8F5E8), Color(0xFFB8E6B8)]
     },
     {
-      'titleKey': 'independentCarOwner',
-      'displayTitle': 'Independent Taxi Owner',
+      'title': 'Independent Taxi Owner',
       'icon': aloneDriver,
       'key': "INDEPENDENT_CAR_OWNER",
-      'whoRegValue': 'Indi',
+      'route': IndependentTaxiOwnerFlow(),
       'colors': [Color(0xFFE3F2FD), Color(0xFF90CAF9)]
     },
     {
-      'titleKey': 'autoRickshawOwner',
-      'displayTitle': 'Auto Rickshaw Driver',
+      'title': 'Auto Rickshaw Driver',
       'icon': auto,
       'key': "RICKSHAW",
-      'whoRegValue': 'Auto',
+      'route': AutoRickshawDriverFlow(),
       'colors': [Color(0xFFF3E5F5), Color(0xFFCE93D8)]
     },
     {
-      'titleKey': 'eRickshawOwner',
-      'displayTitle': 'E Rickshaw Driver',
+      'title': 'E Rickshaw Driver',
       'icon': erickshaw,
       'key': "E_RICKSHAW",
-      'whoRegValue': 'ER',
+      'route': ERickshawDriverFlow(),
       'colors': [Color(0xFFFFEBEE), Color(0xFFFFAB91)]
     },
     {
-      'titleKey': 'standAloneDriver',
-      'displayTitle': 'Stand Alone Driver',
+      'title': 'Stand Alone Driver',
       'icon': taxiDriver,
       'key': 'DRIVER',
-      'whoRegValue': 'Driver',
+      'route': DriverRegistrationFlow(),
       'colors': [Color(0xFFFFF8E1), Color(0xFFFFE082)]
     },
   ];
 
-  final List<Map<String, String>> benefits = [
-    {'icon': '💰', 'titleKey': 'earnMore', 'descriptionKey': 'earnMoreDesc'},
-    {
-      'icon': '📱',
-      'titleKey': 'easyManagement',
-      'descriptionKey': 'easyManagementDesc'
-    },
-    {
-      'icon': '🤝',
-      'titleKey': 'trustedPlatform',
-      'descriptionKey': 'trustedPlatformDesc'
-    },
-    {
-      'icon': '🎯',
-      'titleKey': 'flexibleWork',
-      'descriptionKey': 'flexibleWorkDesc'
-    },
-  ];
-
-  List<Map<String, dynamic>> get filteredOptions {
-    if (whoReg == null || whoReg!.isEmpty) {
-      return allOptions;
-    } else {
-      return allOptions
-          /*.where((option) => option['whoRegValue'] == whoReg)
-          .toList()*/
-          ;
-    }
-  }
-
+  // ---------------------------------------------------------------------
+  // INIT LOGIC
+  // ---------------------------------------------------------------------
   @override
   void initState() {
     super.initState();
-    _loadWhoRegAndStatus();
+    _loadStatus();
   }
 
-  Future<ApplicationStatus> _loadWhoRegAndStatus() async {
+  Future<void> _loadStatus() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       whoReg = prefs.getString('who_reg');
+    } catch (_) {}
 
-      ApplicationStatus status = ApplicationStatus.notStarted;
-
-      if (whoReg == "Auto") {
-        status = await _loadApplicationStatus('auto_rickshaw_status');
-      } else if (whoReg == "Driver") {
-        status = await _loadApplicationStatus('driver_status');
-      } else if (whoReg == "ER") {
-        status = await _loadApplicationStatus('er_status');
-      } else if (whoReg == "Transporter") {
-        status = await _loadApplicationStatus('transporter_status');
-      } else if (whoReg == "Indi") {
-        status = await _loadApplicationStatus('indi_status');
-      }
-
-      setState(() {
-        applicationStatus = status;
-        isLoading = false;
-      });
-
-      return status;
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
-      return ApplicationStatus.notStarted;
-    }
+    setState(() => isLoading = false);
   }
 
-  Future<ApplicationStatus> _loadApplicationStatus(String key) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final statusString = prefs.getString(key);
-
-      switch (statusString) {
-        case 'in_progress':
-          return ApplicationStatus.inProgress;
-        case 'completed':
-          return ApplicationStatus.completed;
-        case 'rejected':
-          return ApplicationStatus.rejected;
-        default:
-          return ApplicationStatus.notStarted;
-      }
-    } catch (e) {
-      return ApplicationStatus.notStarted;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-
-    if (isLoading) {
-      return Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                gradientFirst,
-                gradientSecond,
-                gradientThird,
-                Colors.white
-              ],
-              stops: [0.0, 0.5, 1.0],
-            ),
-          ),
-          child: Center(
-            child: CircularProgressIndicator(color: Colors.white),
+  // ---------------------------------------------------------------------
+  // NAVIGATION HANDLER
+  // ---------------------------------------------------------------------
+  void _navigateAfterPlanCheck({
+    required BuildContext context,
+    required bool hasSubscription,
+    required String category,
+  }) {
+    if (!hasSubscription) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) =>
+                PaymentBloc(profileProvider: context.read<ProfileProvider>()),
+            child: planNew.PlanSelectionScreen(category: category),
           ),
         ),
       );
+    } else {
+      _launchRegistrationFlow(category);
     }
+  }
 
-    return BlocListener<PlanBloc, PlanState>(
+  void _launchRegistrationFlow(String type) {
+    Widget target = DriverRegistrationFlow();
+
+    final map = {
+      "TRANSPORTER": TransporterRegistrationFlow(),
+      "INDEPENDENT_CAR_OWNER": IndependentTaxiOwnerFlow(),
+      "RICKSHAW": AutoRickshawDriverFlow(),
+      "E_RICKSHAW": ERickshawDriverFlow(),
+      "DRIVER": DriverRegistrationFlow(),
+    };
+
+    if (map.containsKey(type)) target = map[type]!;
+
+    Navigator.push(context, MaterialPageRoute(builder: (_) => target));
+  }
+
+  // ---------------------------------------------------------------------
+  // MAIN BUILD
+  // ---------------------------------------------------------------------
+  @override
+  Widget build(BuildContext context) {
+    final local = AppLocalizations.of(context);
+
+    if (isLoading) return _loadingScreen();
+
+    return CommonParentContainer(
+      child: BlocListener<PlanBloc, PlanState>(
         listener: (context, state) {
-          if (state.loading) {
-            // optional: show loading SnackBar or overlay
-            return;
-          }
-
           if (state.statusData != null) {
-            final hasRegistrationFee =
-                state.statusData!['hasRegistrationFee'] ?? false;
+            final hasSub =
+                state.statusData!['hasActiveSubscription'] ?? false;
             final type = state.statusData!['category'] ?? '';
 
-            if (hasRegistrationFee == false) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BlocProvider(
-                    create: (context) => PaymentBloc(
-                        profileProvider: context.read<ProfileProvider>()),
-                    child: planNew.PlanSelectionScreen(category: type),
-                  ),
-                ),
-              );
-            } else {
-              redirectUserToRegistrationFlow(
-                context,
-                type,
-              );
-            }
-          }
-
-          if (state.error != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.error!)),
+            _navigateAfterPlanCheck(
+              context: context,
+              hasSubscription: hasSub,
+              category: type,
             );
           }
         },
         child: Scaffold(
+          backgroundColor: Colors.transparent,
           extendBodyBehindAppBar: true,
           appBar: AppBar(
-            iconTheme: IconThemeData(color: Colors.white),
             backgroundColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
-            centerTitle: true,
-            title: Text(
+            elevation: 0,
+            actionsPadding: EdgeInsets.zero,
+            iconTheme: const IconThemeData(color: Colors.white),
+            centerTitle: false,
+            titleSpacing: 0,
+            title: const Text(
               "Select your Partnership Type",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.start,
+              style: TextStyle(fontSize: 18,color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
-          body: BlocBuilder<PlanBloc, PlanState>(
-            builder: (context, state) {
-              return Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      gradientFirst,
-                      gradientSecond,
-                      gradientThird,
-                      Colors.white
-                    ],
-                    stops: [0.0, 0.15, 0.30, .90],
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * .13),
-                    Container(
-                      margin: EdgeInsets.only(left: 5, right: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(20),
-                          topRight: Radius.circular(20),
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          SingleChildScrollView(
-                            padding: EdgeInsets.all(16),
-                            child: Column(
-                              children: [
-                                SizedBox(height: 10),
-                                _buildPartnershipList(localizations),
-                                SizedBox(height: 20),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ));
-  }
-
-  Widget _buildPartnershipList(AppLocalizations localizations) {
-    final options = filteredOptions;
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        mainAxisSpacing: 18,
-        crossAxisSpacing: 10,
-        childAspectRatio: 1.2,
+          body: _buildScrollableContent(),
+        ),
       ),
-      itemCount: options.length,
-      itemBuilder: (context, index) {
-        final option = options[index];
-
-        return GestureDetector(
-          onTap: () {
-            context
-                .read<PlanBloc>()
-                .add(FetchUserStatusEvent(option['key'] ?? ""));
-
-            /* if(option['displayTitle']=='Transport Driver'){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder:(context) {
-                     return PlanSelectionScreen(
-                        planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                      );
-                    },*/ /* (context) =>TransporterRegistrationFlow()
-
-                  //     PlanSelectionScreen(
-                  //   planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                  // ),*/ /*
-                ),
-              );
-            }else if(option['displayTitle']=='Independent Taxi Owner'){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>IndependentTaxiOwnerFlow()
-
-                  //     PlanSelectionScreen(
-                  //   planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                  // ),
-                ),
-              );
-            }else if(option['displayTitle']=='Auto Rickshaw Driver'){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>AutoRickshawDriverFlow()
-
-                  //     PlanSelectionScreen(
-                  //   planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                  // ),
-                ),
-              );
-            }else if(option['displayTitle']=='E Rickshaw Driver'){
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>ERickshawDriverFlow()
-
-                  //     PlanSelectionScreen(
-                  //   planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                  // ),
-                ),
-              );
-            }else{
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) =>DriverRegistrationFlow()
-
-                  //     PlanSelectionScreen(
-                  //   planType: 'REGISTRATION', planFor: option['key']!, countryId: '', stateId: '',
-                  // ),
-                ),
-              );
-            }*/
-          },
-          child: Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: option['colors'],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
-                  blurRadius: 8,
-                  offset: Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned(
-                  top: 0,
-                  right: 0,
-                  child: Container(
-                    width: 24,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      CupertinoIcons.exclamationmark,
-                      size: 14,
-                      color: Colors.black54,
-                    ),
-                  ),
-                ),
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        option['icon']!,
-                        height: 56,
-                        width: 62,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        option['displayTitle'],
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
-  void redirectUserToRegistrationFlow(BuildContext context, type) {
-    if (type == 'Transport') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) {
-            return PlanSelectionScreen(
-              planType: 'REGISTRATION',
-              planFor: type,
-              countryId: '',
-              stateId: '',
-            );
-          },
+  // ---------------------------------------------------------------------
+  // SEPARATED UI WIDGETS
+  // ---------------------------------------------------------------------
+  Widget _loadingScreen() {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [gradientFirst, gradientSecond, gradientThird, Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
         ),
-      );
-    } else if (type == 'INDEPENDENT_CAR_OWNER') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => IndependentTaxiOwnerFlow()),
-      );
-    } else if (type == 'RICKSHAW') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => AutoRickshawDriverFlow()),
-      );
-    } else if (type == 'E_RICKSHAW') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => ERickshawDriverFlow()),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => DriverRegistrationFlow()),
-      );
-    }
+        child: const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScrollableContent() {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.only(top: 130, left: 16, right: 16),
+          sliver: SliverGrid(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 16,
+              childAspectRatio: 1,
+            ),
+            delegate: SliverChildBuilderDelegate(
+              childCount: options.length,
+                  (context, index) => _buildOptionCard(options[index]),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOptionCard(Map<String, dynamic> option) {
+    return GestureDetector(
+      onTap: () {
+        context.read<PlanBloc>().add(FetchUserStatusEvent(option['key']));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: option['colors'],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(.08),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(option['icon'], height: 60),
+            const SizedBox(height: 10),
+            Text(
+              option['title'],
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

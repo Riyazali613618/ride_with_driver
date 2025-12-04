@@ -14,19 +14,25 @@ class TransporterDriverProfileService {
     try {
       final token = await TokenManager.getToken();
       final response = await http.get(
-        Uri.parse('$baseUrl/user/register/profile?TYPE=$type'),
+        Uri.parse('$baseUrl/user/profile?TYPE=$type'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       );
-
+      print("=======================================");
+      print(response.request);
+      print("=======================================");
+      print(response);
+      print("=======================================");
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
         if (kDebugMode) {
           print("Resposne Profile ${jsonData}");
         }
-        return TransporterDriverProfileModel.fromJson(jsonData,);
+        return TransporterDriverProfileModel.fromJson(
+          jsonData,
+        );
       } else {
         throw Exception('Failed to load profile: ${response.statusCode}');
       }
@@ -40,7 +46,7 @@ class TransporterDriverProfileService {
     try {
       final token = await TokenManager.getToken();
       final response = await http.put(
-        Uri.parse('$baseUrl/user/register/profile?TYPE=$type'),
+        Uri.parse('$baseUrl/user/profile?TYPE=$type'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -50,7 +56,9 @@ class TransporterDriverProfileService {
 
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        return TransporterDriverProfileModel.fromJson(jsonData,);
+        return TransporterDriverProfileModel.fromJson(
+          jsonData,
+        );
       } else {
         throw Exception('Failed to update profile: ${response.statusCode}');
       }

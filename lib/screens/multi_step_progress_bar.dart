@@ -29,7 +29,7 @@ class MultiStepProgressBar extends StatelessWidget {
     // Define default colors
     final List<Color> finalGradientColors =
         gradientColors ?? [Colors.blue, Colors.purple];
-    final Color finalInactiveColor = inactiveColor ?? Colors.grey[300]!;
+    final Color finalInactiveColor = inactiveColor ?? Colors.grey;
     final int stepCount = stepTitles.length;
 
     return Container(

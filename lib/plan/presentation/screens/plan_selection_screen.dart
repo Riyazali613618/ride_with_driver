@@ -1,10 +1,16 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/plan/presentation/widgets/plan_card.dart';
+import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
+
+import '../../../api/api_service/payment_service/payment_service.dart';
+import '../../../bloc/payment/payment_bloc.dart';
+import '../../../screens/driver_screens/payment_bottom_sheet.dart';
+import '../../data/models/plan_model.dart';
 import '../bloc/plan_bloc.dart';
-import '../bloc/plan_state.dart';
 import '../bloc/plan_event.dart';
+import '../bloc/plan_state.dart';
 
 class PlanSelectionScreen extends StatefulWidget {
   final String category;
@@ -18,47 +24,7 @@ class PlanSelectionScreen extends StatefulWidget {
 class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   final pageController = PageController(viewportFraction: 0.80, initialPage: 1);
   int currentIndex = 0;
-  final List<Map<String, dynamic>> plans = [
-    {
-      "title": "Starter Plan",
-      "validity": "Validity 1 Month",
-      "price": "₹ 100",
-      "offer": "60% Off",
-      "benefits": [
-        "Unlimited client calls",
-        "Unlimited chats",
-        "Unlimited Quotation Request",
-        "Booking Dashboard",
-        "Add and edit vehicles"
-      ]
-    },
-    {
-      "title": "Popular Plan",
-      "validity": "Validity 3 Months",
-      "price": "₹ 100",
-      "offer": "75% Off",
-      "benefits": [
-        "Unlimited client calls",
-        "Unlimited chats",
-        "Unlimited Quotation Request",
-        "Booking Dashboard",
-        "Add and edit vehicles"
-      ]
-    },
-    {
-      "title": "Best Value Plan",
-      "validity": "Validity 12 Months",
-      "price": "₹ 100",
-      "offer": "85% Off",
-      "benefits": [
-        "Unlimited client calls",
-        "Unlimited chats",
-        "Unlimited Quotation Request",
-        "Booking Dashboard",
-        "Add and edit vehicles"
-      ]
-    },
-  ];
+
   @override
   void initState() {
     super.initState();
@@ -72,66 +38,145 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Choose Your Subscription Plan")),
-      body: BlocBuilder<PlanBloc, PlanState>(
-        builder: (context, state) {
-          if (state.loading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        top: false,
+        bottom: true,
+        child: CommonParentContainer(
+          child: BlocBuilder<PlanBloc, PlanState>(
+            builder: (context, state) {
+              if (state.loading) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (state.error != null) {
-            return Center(child: Text(state.error!));
-          }
+              if (state.error != null) {
+                return Center(child: Text(state.error!));
+              }
 
-          if (state.plans == null) {
-            return const Center(child: Text("No plans available"));
-          }
-
-          return Center(
-            child: CarouselSlider.builder(
-              itemCount: plans.length,
-              itemBuilder: (context, index, realIdx) {
-                final plan = state.plans![index];
-                return _planCard(plans[index], index == currentIndex);
-            
-              },
-              options: CarouselOptions(
-                height: 380,
-                enlargeCenterPage: false,
-                viewportFraction: 0.60,
-
-                onPageChanged: (index, reason) {
-                  setState(() => currentIndex = index);
+              if (state.plans == null) {
+                return const Center(child: Text("No plans available"));
+              }
+              final plans = state.plans ?? [];
+              return Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      height: 40,
+                    ),
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Icon(
+                              Icons.arrow_back,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            "Choose Your Subscription Plan",
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white),
+                          ),
+                        )
+                      ],
+                    ),
+                    SizedBox(
+                      height: 40,
+                    ),
+                    Center(
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        "Choose Your Subscription Plan",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.blue),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 10,
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 20),
+                      child: Text(
+                        textAlign: TextAlign.center,
+                        "Select the best plan for your business type and enjoy full access to our platform features",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 40,
+                    ),
+                    CarouselSlider.builder(
+                      itemCount: plans.length,
+                      itemBuilder: (context, index, realIdx) {
+                        final plan = state.plans![index];
+                        return _planCard(plan, index == currentIndex, context,
+                            widget.category);
+                      },
+                      options: CarouselOptions(
+                        height: 400,
+                        enableInfiniteScroll: false,
+                        enlargeFactor: 0.1,
+                        enlargeCenterPage: true,
+                        viewportFraction: 0.60,
+                        onPageChanged: (index, reason) {
+                          setState(() => currentIndex = index);
+                        },
+                      ),
+                    ),
+                  ]);
+              /*PageView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: state.plans!.length,
+                pageSnapping: true,
+                clipBehavior: Clip.none,
+                controller: pageController,
+                itemBuilder: (context, index) {
+                  final plan = state.plans![index];
+                  return Center(
+                    child: PlanCard(plan: plan,category:widget.category),
+                  );
                 },
-              ),
-            ),
-          );
-          /*PageView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: state.plans!.length,
-            pageSnapping: true,
-            clipBehavior: Clip.none,
-            controller: pageController,
-            itemBuilder: (context, index) {
-              final plan = state.plans![index];
-              return Center(
-                child: PlanCard(plan: plan,category:widget.category),
-              );
+              )*/
+              ;
             },
-          )*/
-          ;
-        },
+          ),
+        ),
       ),
     );
   }
 }
 
-
-Widget _planCard(Map<String, dynamic> data, bool isActive) {
+Widget _planCard(
+    PlanModel data, bool isActive, BuildContext context, String category) {
+  final features = data.features;
+  final discount = data.earlyBirdDiscountPercentage;
+  final price = data.finalPrice;
+  final duration = data.durationInMonths;
   return AnimatedContainer(
     duration: const Duration(milliseconds: 300),
-    margin: const EdgeInsets.all( 6),
-    padding: const EdgeInsets.all(16),
+    margin: const EdgeInsets.all(6),
+    padding: const EdgeInsets.all(10),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(18),
       border: Border.all(
@@ -139,46 +184,44 @@ Widget _planCard(Map<String, dynamic> data, bool isActive) {
       ),
       boxShadow: isActive
           ? [
-        BoxShadow(
-            color: Colors.purple.withOpacity(0.15),
-            blurRadius: 15,
-            spreadRadius: 3)
-      ]
+              BoxShadow(
+                  color: Colors.purple.withOpacity(0.15),
+                  blurRadius: 15,
+                  spreadRadius: 3)
+            ]
           : [],
       gradient: isActive
           ? LinearGradient(
-        colors: [Colors.purple.shade50, Colors.white],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      )
+              colors: [Colors.purple.shade50, Colors.white],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            )
           : null,
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(data["title"],
-            style:
-            const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+        Text(data.name,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
         const SizedBox(height: 4),
-        Text(data["validity"],
-            style: const TextStyle(fontSize: 12, color: Colors.black87)),
+        Text("Validity $duration Month",
+            style: const TextStyle(fontSize: 11, color: Colors.black87)),
         const SizedBox(height: 16),
         Row(
           children: [
-            Text(data["price"],
+            Text("₹ ${price.toStringAsFixed(0)}",
                 style:
-                const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.purple.shade50,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.purple),
               ),
               child: Text(
-                data["offer"],
+                "${discount.toStringAsFixed(0)} % Off",
                 style: const TextStyle(
                     fontSize: 11,
                     color: Colors.purple,
@@ -189,21 +232,21 @@ Widget _planCard(Map<String, dynamic> data, bool isActive) {
         ),
         const SizedBox(height: 10),
         const Text("Benefits:",
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
         ...List.generate(
-          data["benefits"].length,
-              (i) => Padding(
+          features.length > 5 ? 5 : features.length,
+          (i) => Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Row(
               children: [
-                const Icon(Icons.check_circle,
-                    color: Colors.green, size: 18),
+                const Icon(Icons.check_circle, color: Colors.green, size: 18),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    data["benefits"][i],
-                    style: const TextStyle(fontSize: 13),
+                    features[i],
+                    maxLines: 2,
+                    style: const TextStyle(fontSize: 11),
                   ),
                 ),
               ],
@@ -212,19 +255,37 @@ Widget _planCard(Map<String, dynamic> data, bool isActive) {
         ),
         const Spacer(),
         Center(
-          child: Container(
-            width: 160,
-            height: 38,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
-              gradient: const LinearGradient(
-                colors: [Colors.purple, Colors.orange],
+          child: GestureDetector(
+            onTap: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => BlocProvider.value(
+                  value: context.read<PaymentBloc>(),
+                  child: PaymentBottomSheetBlocView(
+                    plan: data,
+                    planType: category,
+                    paymentType: PaymentType.registrationWithSubscription,
+                    category: category,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              width: 160,
+              height: 38,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25),
+                gradient: const LinearGradient(
+                  colors: [Colors.purple, Colors.orange],
+                ),
               ),
-            ),
-            alignment: Alignment.center,
-            child: const Text(
-              "Continue",
-              style: TextStyle(color: Colors.white, fontSize: 14),
+              alignment: Alignment.center,
+              child: const Text(
+                "Continue",
+                style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
             ),
           ),
         ),
@@ -233,4 +294,3 @@ Widget _planCard(Map<String, dynamic> data, bool isActive) {
     ),
   );
 }
-

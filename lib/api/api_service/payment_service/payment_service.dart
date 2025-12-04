@@ -17,6 +17,7 @@ class PaymentService {
   // Create order for subscription renewal
   static Future<Map<String, dynamic>> createOrderForSubscriptionRenewal({
     required String planId,
+
   }) async {
     return _createOrder({
       'paymentType': 'SUBSCRIPTION_RENEWAL',
@@ -30,10 +31,10 @@ class PaymentService {
     required String planId,
   }) async {
     return _createOrder({
-      'paymentType': 'REGISTRATION_ONLY',
+      'paymentType': 'SUBSCRIPTION',
       'category': category,
-      'registrationPlanId': planId,
-      'subscriptionType': 'REGISTRATION_ONLY',
+      'subscriptionPlanId': planId,
+      'paymentGatewayType': 'razorpay',
     });
   }
 

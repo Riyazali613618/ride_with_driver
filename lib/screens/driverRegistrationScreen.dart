@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
 import 'dart:io';
@@ -12,14 +13,14 @@ import '../utils/color.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 
+import 'multi_step_progress_bar.dart';
+
 class DriverRegistrationFlow extends StatefulWidget {
   @override
-  _DriverRegistrationFlowState createState() =>
-      _DriverRegistrationFlowState();
+  _DriverRegistrationFlowState createState() => _DriverRegistrationFlowState();
 }
 
-class _DriverRegistrationFlowState
-    extends State<DriverRegistrationFlow> {
+class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
   int currentStep = 0;
   PageController _pageController = PageController();
   File? _selectedImage;
@@ -41,11 +42,11 @@ class _DriverRegistrationFlowState
   DateTime? _selectedDate;
   String? _selectedGender;
   String? _selectedLanguage;
-  List<String> _selectedLangs=[];
+  List<String> _selectedLangs = [];
   String? _selectedVehicleType;
-  List<String> vehicleType=[];
+  List<String> vehicleType = [];
   String? _selectedServiceLocation;
-  List<String> _serviceCities=[];
+  List<String> _serviceCities = [];
   bool _isNegotiable = false;
   String? _selectedCity;
   String? _selectedState;
@@ -54,14 +55,35 @@ class _DriverRegistrationFlowState
 
   final List<String> _genders = ['Male', 'Female', 'Other'];
   final List<String> _languages = [
-    'Hindi', 'English', 'Bengali', 'Telugu', 'Marathi', 'Tamil',
-    'Gujarati', 'Urdu', 'Malayalam', 'Kannada', 'Odia', 'Punjabi', 'Assamese'
+    'Hindi',
+    'English',
+    'Bengali',
+    'Telugu',
+    'Marathi',
+    'Tamil',
+    'Gujarati',
+    'Urdu',
+    'Malayalam',
+    'Kannada',
+    'Odia',
+    'Punjabi',
+    'Assamese'
   ];
   final List<String> _vehicleTypes = [
-    'Car', 'SUV', 'Mini Van', 'Bus', 'Auto Rickshaw', 'E-Rickshaw', 'Bike', 'Tempo'
+    'Car',
+    'SUV',
+    'Mini Van',
+    'Bus',
+    'Auto Rickshaw',
+    'E-Rickshaw',
+    'Bike',
+    'Tempo'
   ];
   final List<String> _serviceLocations = [
-    'Delhi', 'Gurgaon', 'Mumbai', 'Kolkata'
+    'Delhi',
+    'Gurgaon',
+    'Mumbai',
+    'Kolkata'
   ];
 
   final List<String> stepTitles = [
@@ -192,8 +214,10 @@ class _DriverRegistrationFlowState
       ),
     );
   }
-List<XFile> adhaar=[];
-  List<XFile> drivingLicense=[];
+
+  List<XFile> adhaar = [];
+  List<XFile> drivingLicense = [];
+
   Future<void> _pickDocumentFromCamera(String from) async {
     try {
       XFile? image = await _picker.pickImage(
@@ -202,12 +226,12 @@ List<XFile> adhaar=[];
       );
 
       if (image != null) {
-        if(from=='ADHAAR'){
+        if (from == 'ADHAAR') {
           adhaar.add(image);
-          image=null;
-        }else{
+          image = null;
+        } else {
           drivingLicense.add(image);
-          image=null;
+          image = null;
         }
         setState(() {});
         _showSuccessSnackBar('Document captured successfully');
@@ -225,14 +249,14 @@ List<XFile> adhaar=[];
       );
 
       if (image != null) {
-          if(from=='ADHAAR'){
-            adhaar.add(image);
-            image=null;
-          }else{
-            drivingLicense.add(image);
-            image=null;
-          }
-          setState(() {});
+        if (from == 'ADHAAR') {
+          adhaar.add(image);
+          image = null;
+        } else {
+          drivingLicense.add(image);
+          image = null;
+        }
+        setState(() {});
         _showSuccessSnackBar('Document selected from gallery');
       }
     } catch (e) {
@@ -242,7 +266,8 @@ List<XFile> adhaar=[];
 
   Future<void> _pickDocumentFromFiles() async {
     try {
-      _showSuccessSnackBar('File picker functionality - requires file_picker package');
+      _showSuccessSnackBar(
+          'File picker functionality - requires file_picker package');
     } catch (e) {
       _showErrorSnackBar('Failed to access files');
     }
@@ -440,7 +465,8 @@ List<XFile> adhaar=[];
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? DateTime.now().subtract(Duration(days: 6570)), // 18 years ago
+      initialDate: _selectedDate ??
+          DateTime.now().subtract(Duration(days: 6570)), // 18 years ago
       firstDate: DateTime(1950),
       lastDate: DateTime.now(),
     );
@@ -474,59 +500,60 @@ List<XFile> adhaar=[];
       );
     }
   }
+
   String? currentCountry;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSelectedLanguage();
-      _initializeLocation();
+      final langProvider =
+          Provider.of<LocationProvider>(context, listen: false);
+      currentCountry =
+          langProvider.selectedCountry ?? '68dabd590b3041213387d616';
+
+      final locProvider = Provider.of<LocationProvider>(context, listen: false);
+      locProvider.fetchStates(currentCountry!).then(
+        (value) {
+          if (mounted) {
+            setState(() {
+              _stateList = langProvider.states;
+              _selectedCity = null;
+            });
+            fetchCityList(locProvider);
+          }
+        },
+      );
     });
   }
-    List<lm.Data> langData=[];
-    Future<void> _initializeSelectedLanguage() async {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+
+  List<lm.Data> langData = [];
+
+  Future<void> _initializeSelectedLanguage() async {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
     languageProvider.fetchLanguagesFromApi();
     if (mounted) {
-    setState((){});
+      setState(() {});
     }
-    }
-  void _initializeLocation() {
-    final langProvider = Provider.of<LocationProvider>(context, listen: false);
-    currentCountry = langProvider.selectedCountry ?? '68dabd590b3041213387d616';
-
-    langProvider.fetchStates(currentCountry!).then((_) {
-      if (mounted) {
-        setState(() {
-          _stateList = langProvider.states;
-        });
-      }
-    });
   }
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors:[
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.15, 0.30, .90],
-          ),
-        ),
+      body: CommonParentContainer(
         child: SafeArea(
           child: Column(
             children: [
               _buildHeader(),
-              _buildProgressBar(),
+              MultiStepProgressBar(
+                currentStep: currentStep,
+                stepTitles: stepTitles,
+                gradientColors: [Colors.green, Colors.green],
+              ),
               Expanded(
                 child: Container(
                   margin: EdgeInsets.only(top: 20),
@@ -604,12 +631,13 @@ List<XFile> adhaar=[];
                 alignment: Alignment.centerLeft,
                 child: Container(
                   height: 8,
-                  width: 30 + (MediaQuery.of(context).size.width * 0.25 * currentStep),
+                  width: 30 +
+                      (MediaQuery.of(context).size.width * 0.25 * currentStep),
                   decoration: BoxDecoration(
-                    gradient:  LinearGradient(
+                    gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors:[
+                      colors: [
                         gradientFirst,
                         gradientSecond,
                       ],
@@ -631,13 +659,12 @@ List<XFile> adhaar=[];
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors:[
+                            colors: [
                               gradientFirst,
                               gradientSecond,
                             ],
                           ),
-                          color: Color(0xFF8B5CF6)
-                      ),
+                          color: Color(0xFF8B5CF6)),
                       child: Center(
                         child: Text(
                           '${index + 1}',
@@ -713,18 +740,18 @@ List<XFile> adhaar=[];
                       ),
                       child: _selectedImage != null
                           ? ClipOval(
-                        child: Image.file(
-                          _selectedImage!,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      )
+                              child: Image.file(
+                                _selectedImage!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            )
                           : Icon(
-                        Icons.camera_alt,
-                        size: 32,
-                        color: Colors.grey[600],
-                      ),
+                              Icons.camera_alt,
+                              size: 32,
+                              color: Colors.grey[600],
+                            ),
                     ),
                   ),
                   SizedBox(height: 12),
@@ -793,32 +820,37 @@ List<XFile> adhaar=[];
           _buildDropdown(
             'City',
             _selectedCity,
-            _cityList.map((city) => DropdownMenuItem(
-              value: city.sId,
-              child: Text(city.name.toString()),
-            )).toList(),
-                (newValue) {
+            _cityList
+                .map((city) => DropdownMenuItem(
+                      value: city.sId,
+                      child: Text(city.name.toString()),
+                    ))
+                .toList(),
+            (newValue) {
               setState(() {
                 _selectedCity = newValue;
                 _cityController.text = newValue ?? '';
               });
             },
-            validator: (value) => value == null ? 'Please select a city' : null,
+            validator: (value) => value == null ? 'Please select a city first' : null,
           ),
           SizedBox(height: 20),
           _buildDropdown(
             'State',
             _selectedState,
-            _stateList.map((state) => DropdownMenuItem(
-              value: state.sId,
-              child: Text(state.name.toString()),
-            )).toList(),
-                (newValue) {
+            _stateList
+                .map((state) => DropdownMenuItem(
+                      value: state.sId,
+                      child: Text(state.name.toString()),
+                    ))
+                .toList(),
+            (newValue) {
               setState(() {
                 _selectedState = newValue;
                 _stateController.text = newValue ?? '';
                 if (newValue != null) {
-                  final locProvider = Provider.of<LocationProvider>(context, listen: false);
+                  final locProvider =
+                      Provider.of<LocationProvider>(context, listen: false);
                   locProvider.fetchCity(newValue).then((_) {
                     setState(() {
                       _cityList = locProvider.cities;
@@ -828,7 +860,8 @@ List<XFile> adhaar=[];
                 }
               });
             },
-            validator: (value) => value == null ? 'Please select a state' : null,
+            validator: (value) =>
+                value == null ? 'Please select a state' : null,
           ),
           Spacer(),
           _buildContinueButton(),
@@ -836,14 +869,14 @@ List<XFile> adhaar=[];
       ),
     );
   }
-  Widget _buildDropdown<T>(
-      String label,
-      T? value,
-      List<DropdownMenuItem<T>> items,
-      void Function(T?) onChanged, {
-        String? Function(T?)? validator,
-      }) {
 
+  Widget _buildDropdown<T>(
+    String label,
+    T? value,
+    List<DropdownMenuItem<T>> items,
+    void Function(T?) onChanged, {
+    String? Function(T?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -876,6 +909,7 @@ List<XFile> adhaar=[];
       ],
     );
   }
+
   Widget _buildDocumentStep() {
     return Padding(
       padding: EdgeInsets.all(24),
@@ -895,7 +929,6 @@ List<XFile> adhaar=[];
             // Aadhar Card Container with both field and verify button
             Container(
               width: double.infinity,
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -910,7 +943,9 @@ List<XFile> adhaar=[];
                       ),
                     ),
                   ),
-                  SizedBox(height: 10,),
+                  SizedBox(
+                    height: 10,
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -930,7 +965,7 @@ List<XFile> adhaar=[];
                                 fontSize: 16,
                               ),
                             ),
-                            onChanged: (value){
+                            onChanged: (value) {
                               if (value.length == 12) {
                                 _verifyAadhaar(value);
                               }
@@ -949,17 +984,18 @@ List<XFile> adhaar=[];
                         child: Center(
                           child: _isAadhaarVerifying
                               ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
                               : Text(
-                            _isAadhaarVerified ? 'Verified' : 'Verify',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                                  _isAadhaarVerified ? 'Verified' : 'Verify',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -970,17 +1006,20 @@ List<XFile> adhaar=[];
             SizedBox(height: 24),
             Container(
               width: double.infinity,
-              child: _buildFileUploadSection('Upload Aadhar Card (Front & Back)',"ADHAAR"),
+              child: _buildFileUploadSection(
+                  'Upload Aadhar Card (Front & Back)', "ADHAAR"),
             ),
             SizedBox(height: 24),
             Container(
               width: double.infinity,
-              child: _buildTextField('Driving License Number', _drivingLicenseController),
+              child: _buildTextField(
+                  'Driving License Number', _drivingLicenseController),
             ),
             SizedBox(height: 24),
             Container(
               width: double.infinity,
-              child: _buildFileUploadSection('Upload Driving License',"DRIVING LICENSE"),
+              child: _buildFileUploadSection(
+                  'Upload Driving License', "DRIVING LICENSE"),
             ),
             SizedBox(height: 40),
             _buildContinueButton(),
@@ -999,8 +1038,10 @@ List<XFile> adhaar=[];
     }
     return null;
   }
+
   bool _isAadhaarVerifying = false;
   bool _isAadhaarVerified = false;
+
   Future<void> _verifyAadhaar(String aadhaarNumber) async {
     if (aadhaarNumber.trim().isEmpty) return;
 
@@ -1042,13 +1083,16 @@ List<XFile> adhaar=[];
               ),
             ),
             SizedBox(height: 40),
-            _buildTextField('Experience', _experienceController, placeholder: 'Years of experience'),
+            _buildTextField('Experience', _experienceController,
+                placeholder: 'Years of experience'),
             SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   flex: 2,
-                  child: _buildTextField('Minimum Charge', _minimumChargeController, placeholder: '₹100'),
+                  child: _buildTextField(
+                      'Minimum Charge', _minimumChargeController,
+                      placeholder: '₹100'),
                 ),
                 SizedBox(width: 16),
                 Expanded(
@@ -1078,23 +1122,27 @@ List<XFile> adhaar=[];
               ],
             ),
             SizedBox(height: 20),
-            _buildDropdownField('Vehicle Drive Type', _selectedVehicleType, _vehicleTypes, (value) {
+            _buildDropdownField(
+                'Vehicle Drive Type', _selectedVehicleType, _vehicleTypes,
+                (value) {
               setState(() {
                 _selectedVehicleType = value;
                 vehicleType.add(_selectedVehicleType!);
               });
             }),
             SizedBox(height: 20),
-            _buildDropdownField('Service Location', _selectedServiceLocation, _serviceLocations, (value) {
+            _buildDropdownField(
+                'Service Location', _selectedServiceLocation, _serviceLocations,
+                (value) {
               setState(() {
                 _selectedServiceLocation = value;
-               _serviceCities.add(_selectedServiceLocation!);
-                
+                _serviceCities.add(_selectedServiceLocation!);
               });
             }),
             SizedBox(height: 20),
-            _buildDropdownFieldForLanguage('Spoken Languages',_selectedLanguage,langData,(value) {
-              setState((){
+            _buildDropdownFieldForLanguage(
+                'Spoken Languages', _selectedLanguage, langData, (value) {
+              setState(() {
                 _selectedLanguage = value;
                 _selectedLangs.add(_selectedLanguage!);
               });
@@ -1167,18 +1215,18 @@ List<XFile> adhaar=[];
                   ),
                   child: _selectedImage != null
                       ? ClipOval(
-                    child: Image.file(
-                      _selectedImage!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                          child: Image.file(
+                            _selectedImage!,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                       : Icon(
-                    Icons.person,
-                    size: 30,
-                    color: Colors.grey[600],
-                  ),
+                          Icons.person,
+                          size: 30,
+                          color: Colors.grey[600],
+                        ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -1199,84 +1247,64 @@ List<XFile> adhaar=[];
                     'Name',
                     _nameController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _nameController.text
-                ),
+                        : _nameController.text),
                 _buildPreviewItem(
                     'Phone Number',
                     _phoneNumberController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _phoneNumberController.text
-                ),
+                        : _phoneNumberController.text),
                 _buildPreviewItem(
                     'Date of Birth',
                     _selectedDate != null
                         ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
-                        : 'Lorem Ipsum'
-                ),
-                _buildPreviewItem(
-                    'Gender',
-                    _selectedGender ?? 'Lorem Ipsum'
-                ),
+                        : 'Lorem Ipsum'),
+                _buildPreviewItem('Gender', _selectedGender ?? 'Lorem Ipsum'),
                 _buildPreviewItem(
                     'Address Line',
                     _addressController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _addressController.text
-                ),
+                        : _addressController.text),
                 _buildPreviewItem(
                     'Pin Code',
                     _pinCodeController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _pinCodeController.text
-                ),
+                        : _pinCodeController.text),
                 _buildPreviewItem(
                     'City',
                     _cityController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _cityController.text
-                ),
+                        : _cityController.text),
                 _buildPreviewItem(
                     'State',
                     _stateController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _stateController.text
-                ),
+                        : _stateController.text),
                 _buildPreviewItem(
                     'Aadhar Card No.',
                     _aadharCardController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _aadharCardController.text
-                ),
+                        : _aadharCardController.text),
                 _buildPreviewItem(
                     'Driving License Number',
                     _drivingLicenseController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _drivingLicenseController.text
-                ),
+                        : _drivingLicenseController.text),
                 _buildPreviewItem(
                     'Experience',
                     _experienceController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _experienceController.text
-                ),
+                        : _experienceController.text),
                 _buildPreviewItem(
                     'Minimum Charge',
                     _minimumChargeController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : '${_minimumChargeController.text}${_isNegotiable ? ' (Negotiable)' : ''}'
-                ),
+                        : '${_minimumChargeController.text}${_isNegotiable ? ' (Negotiable)' : ''}'),
+                _buildPreviewItem('Vehicle Drive Type',
+                    _selectedVehicleType ?? 'Lorem Ipsum'),
+                _buildPreviewItem('Service Location',
+                    _selectedServiceLocation ?? 'Lorem Ipsum'),
                 _buildPreviewItem(
-                    'Vehicle Drive Type',
-                    _selectedVehicleType ?? 'Lorem Ipsum'
-                ),
-                _buildPreviewItem(
-                    'Service Location',
-                    _selectedServiceLocation ?? 'Lorem Ipsum'
-                ),
-                _buildPreviewItem(
-                    'Spoken Languages',
-                    _selectedLanguage ?? 'Lorem Ipsum'
-                ),
+                    'Spoken Languages', _selectedLanguage ?? 'Lorem Ipsum'),
                 SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1311,9 +1339,6 @@ List<XFile> adhaar=[];
       ),
     );
   }
-
-
-
 
   Widget _buildSubmitButton() {
     return Container(
@@ -1396,10 +1421,10 @@ List<XFile> adhaar=[];
                               child: SingleChildScrollView(
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black87,
@@ -1421,19 +1446,23 @@ List<XFile> adhaar=[];
                                     width: 24,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: isAgreed ? Color(0xFF8B5CF6) : Colors.transparent,
+                                      color: isAgreed
+                                          ? Color(0xFF8B5CF6)
+                                          : Colors.transparent,
                                       border: Border.all(
-                                        color: isAgreed ? Color(0xFF8B5CF6) : Colors.grey[400]!,
+                                        color: isAgreed
+                                            ? Color(0xFF8B5CF6)
+                                            : Colors.grey[400]!,
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: isAgreed
                                         ? Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 16,
-                                    )
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          )
                                         : null,
                                   ),
                                 ),
@@ -1442,23 +1471,29 @@ List<XFile> adhaar=[];
                                   child: Container(
                                     height: 48,
                                     child: ElevatedButton(
-                                      onPressed: isAgreed ? () {
-                                        _proceedToFinalStep();
-                                      } : null,
+                                      onPressed: isAgreed
+                                          ? () {
+                                              _proceedToFinalStep();
+                                            }
+                                          : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isAgreed
                                             ? Color(0xFF8B5CF6)
                                             : Colors.grey[300],
-                                        padding: EdgeInsets.symmetric(vertical: 12),
+                                        padding:
+                                            EdgeInsets.symmetric(vertical: 12),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(25),
+                                          borderRadius:
+                                              BorderRadius.circular(25),
                                         ),
                                         elevation: 0,
                                       ),
                                       child: Text(
                                         'I Agree',
                                         style: TextStyle(
-                                          color: isAgreed ? Colors.white : Colors.grey[600],
+                                          color: isAgreed
+                                              ? Colors.white
+                                              : Colors.grey[600],
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -1482,59 +1517,65 @@ List<XFile> adhaar=[];
       },
     );
   }
-  BecomeDriverModel _becomeDriverModel=BecomeDriverModel();
+
+  BecomeDriverModel _becomeDriverModel = BecomeDriverModel();
+
   Future<void> _proceedToFinalStep() async {
     Navigator.pop(context);
     _showSuccessSnackBar('Agreement accepted! Submitting registration...');
-_becomeDriverModel=_becomeDriverModel.copyWith(
-  drivingLicenceNumber:_drivingLicenseController.text??'' ,
-  drivingLicencePhoto:drivingLicense.isNotEmpty?drivingLicense[0].path:'',
-  firstName: _nameController.text??'',
-  lastName:_nameController.text??'' ,
-  aadharCardNumber: _aadharCardController.text,
-  aadharCardPhotoFront: (adhaar!=null && adhaar.isNotEmpty)?adhaar[0].path:'',
-  aadharCardPhotoBack: (adhaar!=null && adhaar.isNotEmpty && adhaar.length>=2)?adhaar[1].path:'',
-  businessMobileNumber: _phoneNumberController.text,
-  profilePhoto: _selectedImage?.path??'',
-  languageSpoken:_selectedLangs??[] ,
-  vehicleType: vehicleType??[],
-  servicesCities:_serviceCities ,
-  bio: _aboutController.text,
-  experience:int.parse(_experienceController.text) ,
-  address: _becomeDriverModel.address?.copyWith(
-    addressLine: _addressController.text,
-    pincode:int.parse( _pinCodeController.text),
-    state: _selectedState,
-      city: _selectedCity
-  ),
-  minimumCharges:double.parse(_minimumChargeController.text)??0.0,
-  dob: _selectedDate?.timeZoneName,
-  gender:_selectedGender ,
-  negotiable: _isNegotiable,
-  serviceLocation: ServiceLocation(lat: 28.6139,lng: 77.2090),
-);
-
+    _becomeDriverModel = _becomeDriverModel.copyWith(
+      drivingLicenceNumber: _drivingLicenseController.text ?? '',
+      drivingLicencePhoto:
+          drivingLicense.isNotEmpty ? drivingLicense[0].path : '',
+      firstName: _nameController.text ?? '',
+      lastName: _nameController.text ?? '',
+      aadharCardNumber: _aadharCardController.text,
+      aadharCardPhotoFront:
+          (adhaar != null && adhaar.isNotEmpty) ? adhaar[0].path : '',
+      aadharCardPhotoBack:
+          (adhaar != null && adhaar.isNotEmpty && adhaar.length >= 2)
+              ? adhaar[1].path
+              : '',
+      businessMobileNumber: _phoneNumberController.text,
+      profilePhoto: _selectedImage?.path ?? '',
+      languageSpoken: _selectedLangs ?? [],
+      vehicleType: vehicleType ?? [],
+      servicesCities: _serviceCities,
+      bio: _aboutController.text,
+      experience: int.parse(_experienceController.text),
+      address: _becomeDriverModel.address?.copyWith(
+          addressLine: _addressController.text,
+          pincode: int.parse(_pinCodeController.text),
+          state: _selectedState,
+          city: _selectedCity),
+      minimumCharges: double.parse(_minimumChargeController.text) ?? 0.0,
+      dob: _selectedDate?.timeZoneName,
+      gender: _selectedGender,
+      negotiable: _isNegotiable,
+      serviceLocation: ServiceLocation(lat: 28.6139, lng: 77.2090),
+    );
 
     final response =
-          await BecomeDriverService().submitDriverApplication(_becomeDriverModel);
-      if (response is bool && response['success'] == true) {
-        if (!mounted) return;
-        BecomeDriverService.showSuccessSnackBar(
-            context, 'Application submitted successfully!');
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const RegistrationSuccessfulScreen(userType: 'DRIVER',)),
-        );
-      } else {
-        if (!mounted) return;
-        BecomeDriverService.showApiErrorSnackBar(
-          context,
-          response['message'] ?? 'Submission failed',
-        );
-      }
-
-
+        await BecomeDriverService().submitDriverApplication(_becomeDriverModel);
+    if (response is bool && response['success'] == true) {
+      if (!mounted) return;
+      BecomeDriverService.showSuccessSnackBar(
+          context, 'Application submitted successfully!');
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const RegistrationSuccessfulScreen(
+                  userType: 'DRIVER',
+                )),
+      );
+    } else {
+      if (!mounted) return;
+      BecomeDriverService.showApiErrorSnackBar(
+        context,
+        response['message'] ?? 'Submission failed',
+      );
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -1542,7 +1583,12 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
         backgroundColor: Colors.green,
       ),
     );
-    Navigator.push(context, MaterialPageRoute(builder: (context) => RegistrationSuccessfulScreen(userType: 'Driver',)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => RegistrationSuccessfulScreen(
+                  userType: 'Driver',
+                )));
   }
 
   @override
@@ -1659,7 +1705,8 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
                       ? '${_selectedDate!.day}/${_selectedDate!.month}/${_selectedDate!.year}'
                       : 'Select Date',
                   style: TextStyle(
-                    color: _selectedDate != null ? Colors.black : Colors.grey[400],
+                    color:
+                        _selectedDate != null ? Colors.black : Colors.grey[400],
                     fontSize: 16,
                   ),
                 ),
@@ -1676,7 +1723,8 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
     );
   }
 
-  Widget _buildDropdownField(String label, String? value, List<String> items, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownField(String label, String? value, List<String> items,
+      ValueChanged<String?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1719,7 +1767,9 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
       ],
     );
   }
-  Widget _buildDropdownFieldForLanguage(String label, String? value, List<lm.Data> items, ValueChanged<String?> onChanged) {
+
+  Widget _buildDropdownFieldForLanguage(String label, String? value,
+      List<lm.Data> items, ValueChanged<String?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1752,7 +1802,7 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
               items: items.map((lm.Data item) {
                 return DropdownMenuItem<String>(
                   value: item.name,
-                  child: Text(item!.name??''),
+                  child: Text(item!.name ?? ''),
                 );
               }).toList(),
               onChanged: onChanged,
@@ -1762,7 +1812,8 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
       ],
     );
   }
-  Widget _buildFileUploadSection(String title,String from) {
+
+  Widget _buildFileUploadSection(String title, String from) {
     return Column(
       children: [
         Text(
@@ -1863,5 +1914,12 @@ _becomeDriverModel=_becomeDriverModel.copyWith(
     );
   }
 
-
+  void fetchCityList(LocationProvider locProvider) {
+    locProvider.fetchCity(_selectedState ?? "").then((_) {
+      setState(() {
+        _cityList = locProvider.cities;
+        _selectedCity = null; // Reset city when state changes
+      });
+    });
+  }
 }
