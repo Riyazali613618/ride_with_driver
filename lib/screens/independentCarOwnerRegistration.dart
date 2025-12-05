@@ -10,8 +10,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
 import '../api/api_model/language/language_model.dart';
 import '../api/api_model/registrations/become_driver_registration_model.dart';
-import '../api/api_model/registrations/transporter_model.dart';
+import '../api/api_model/registrations/transporter_model.dart' hide Address;
 import '../api/api_service/countryStateProviderService.dart';
+import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/indi_car_service.dart';
 import '../api/api_service/registration_services/transporter_service.dart';
 import '../utils/color.dart';
@@ -24,6 +25,8 @@ import 'block/provider/profile_provider.dart';
 import 'block/language/language_provider.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
+
+import 'multi_step_progress_bar.dart';
 
 class IndependentTaxiOwnerFlow extends StatefulWidget {
   @override
@@ -105,7 +108,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   void _prefillData() {
     // Prefill with user data if available
-    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    final profileProvider =
+        Provider.of<ProfileProvider>(context, listen: false);
     if (profileProvider.fullName != null) {
       _selfNameController.text = profileProvider.fullName!;
     }
@@ -177,7 +181,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     if (pincode.length != 6) return;
 
     try {
-      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+      final profileProvider =
+          Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
@@ -229,7 +234,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     _showSuccessSnackBar('Aadhaar verified successfully!');
   }
 
-  int get totalVehicles => vehicleCounts.values.fold(0, (sum, count) => sum + count);
+  int get totalVehicles =>
+      vehicleCounts.values.fold(0, (sum, count) => sum + count);
 
   void _updateVehicleCount(String vehicleType, int change) {
     setState(() {
@@ -378,9 +384,11 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       ),
     );
   }
-List<XFile?> adhaar=[];
- List<XFile?> drivingLicense=[];
- List< XFile?> permit=[];
+
+  List<XFile?> adhaar = [];
+  List<XFile?> drivingLicense = [];
+  List<XFile?> permit = [];
+
   Future<void> _pickDocumentFromCamera(String from) async {
     try {
       XFile? image = await _picker.pickImage(
@@ -388,18 +396,17 @@ List<XFile?> adhaar=[];
         imageQuality: 80,
       );
       if (image != null) {
-        if(from=="ADHAAR"){
+        if (from == "ADHAAR") {
           adhaar.add(image);
-          image=null;
-        }else if(from=="PERMIT"){
+          image = null;
+        } else if (from == "PERMIT") {
           permit.add(image);
-          image=null;
-        }else{
+          image = null;
+        } else {
           drivingLicense.add(image);
-          image=null;
+          image = null;
         }
-        setState(() {
-        });
+        setState(() {});
         _showSuccessSnackBar('Document captured successfully');
       }
     } catch (e) {
@@ -414,18 +421,17 @@ List<XFile?> adhaar=[];
         imageQuality: 80,
       );
       if (image != null) {
-        if(from=="ADHAAR"){
+        if (from == "ADHAAR") {
           adhaar.add(image);
-          image=null;
-        }else if(from=="PERMIT"){
+          image = null;
+        } else if (from == "PERMIT") {
           permit.add(image);
-          image=null;
-        }else{
+          image = null;
+        } else {
           drivingLicense.add(image);
-          image=null;
+          image = null;
         }
-        setState(() {
-        });
+        setState(() {});
         _showSuccessSnackBar('Document selected from gallery');
       }
     } catch (e) {
@@ -434,7 +440,8 @@ List<XFile?> adhaar=[];
   }
 
   Future<void> _pickDocumentFromFiles() async {
-    _showSuccessSnackBar('File picker functionality - requires file_picker package');
+    _showSuccessSnackBar(
+        'File picker functionality - requires file_picker package');
   }
 
   // Image picker methods
@@ -735,10 +742,10 @@ List<XFile?> adhaar=[];
                               child: SingleChildScrollView(
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black87,
@@ -760,19 +767,23 @@ List<XFile?> adhaar=[];
                                     width: 24,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: isAgreed ? Color(0xFF8B5CF6) : Colors.transparent,
+                                      color: isAgreed
+                                          ? Color(0xFF8B5CF6)
+                                          : Colors.transparent,
                                       border: Border.all(
-                                        color: isAgreed ? Color(0xFF8B5CF6) : Colors.grey[400]!,
+                                        color: isAgreed
+                                            ? Color(0xFF8B5CF6)
+                                            : Colors.grey[400]!,
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: isAgreed
                                         ? Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 16,
-                                    )
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          )
                                         : null,
                                   ),
                                 ),
@@ -781,23 +792,29 @@ List<XFile?> adhaar=[];
                                   child: Container(
                                     height: 48,
                                     child: ElevatedButton(
-                                      onPressed: isAgreed ? () {
-                                        _proceedToFinalStep();
-                                      } : null,
+                                      onPressed: isAgreed
+                                          ? () {
+                                              _proceedToFinalStep();
+                                            }
+                                          : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isAgreed
                                             ? Color(0xFF8B5CF6)
                                             : Colors.grey[300],
-                                        padding: EdgeInsets.symmetric(vertical: 12),
+                                        padding:
+                                            EdgeInsets.symmetric(vertical: 12),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(25),
+                                          borderRadius:
+                                              BorderRadius.circular(25),
                                         ),
                                         elevation: 0,
                                       ),
                                       child: Text(
                                         'I Agree',
                                         style: TextStyle(
-                                          color: isAgreed ? Colors.white : Colors.grey[600],
+                                          color: isAgreed
+                                              ? Colors.white
+                                              : Colors.grey[600],
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -821,43 +838,83 @@ List<XFile?> adhaar=[];
       },
     );
   }
+
   Future<void> _saveApplicationStatus(ApplicationStatus status) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('taxiowner_status', status.toString());
   }
+
   BecomeDriverModel _driverModel = BecomeDriverModel();
+
   Future<void> _proceedToFinalStep() async {
     Navigator.pop(context); // Close bottom sheet
 
     // TODO: Replace with actual API submission
     _showSuccessSnackBar('Agreement accepted! Submitting registration...');
-    _driverModel=_driverModel.copyWith(
-      profilePhoto: _selectedImage?.path??'',
+    final XFile xFile = XFile(_selectedImage!.path);
+    final result = await MediaService()
+        .uploadMedia(xFile, kind: "profilePhoto", type: "profilePhoto");
+    String aadhaarFrontUrl = "";
+    String aadhaarBackUrl = "";
+    String drivingLicencePhoto = "";
+    String transportationPermitPhoto = "";
+    if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
+      final XFile xFileAadhaarFront = XFile(adhaar[0]!.path);
+      final aadharCardPhotoFront = await MediaService()
+          .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+      aadhaarFrontUrl = aadharCardPhotoFront.url!;
+    }
+    if (adhaar.isNotEmpty && adhaar.length > 1 && adhaar[1]!.path.isNotEmpty) {
+      final XFile xFileAadhaarBack = XFile(adhaar[1]!.path);
+      final aadharCardPhotoBack = await MediaService()
+          .uploadMedia(xFileAadhaarBack, kind: "document", type: "document");
+      aadhaarBackUrl = aadharCardPhotoBack.url!;
+    }
+    if (drivingLicense.isNotEmpty &&
+        drivingLicense.length > 1 &&
+        drivingLicense[1]!.path.isNotEmpty) {
+      final XFile drivingLicenseFile = XFile(drivingLicense[1]!.path);
+      final drivingLicencePhotoUrl = await MediaService()
+          .uploadMedia(drivingLicenseFile, kind: "document", type: "document");
+      drivingLicencePhoto = drivingLicencePhotoUrl.url!;
+    }
+    if (permit.isNotEmpty && permit[0]!.path.isNotEmpty) {
+      final XFile drivingLicenseFile = XFile(permit[0]!.path);
+      final transportationPermitPhotoUrl = await MediaService()
+          .uploadMedia(drivingLicenseFile, kind: "document", type: "document");
+      transportationPermitPhoto = transportationPermitPhotoUrl.url!;
+    }
+
+    _driverModel = _driverModel.copyWith(
+      profilePhoto: result.url ?? '',
       firstName: _selfNameController.text,
       lastName: _selfNameController.text,
-      businessMobileNumber:_phoneNumberController.text ,
-      bio:_aboutController.text,
-      address:_driverModel.address?.copyWith(
-        addressLine: _addressController.text.trim(),
-        state: _stateController.text.trim(),
-        city: _cityController.text.trim(),
-        pincode: int.tryParse(_pinCodeController.text.trim()),
-      ),
+      businessMobileNumber: _phoneNumberController.text,
+      bio: _aboutController.text,
+      address: Address(
+          addressLine: _addressController.text.trim(),
+          state: _stateController.text.trim(),
+          city: _cityController.text.trim(),
+          pincode: int.tryParse(_pinCodeController.text.trim())),
       aadharCardNumber: _aadharCardController.text,
-      aadharCardPhotoFront: (adhaar!=null && adhaar.isNotEmpty && adhaar.length>=1)?adhaar[0]!.path:'',
-      aadharCardPhotoBack: (adhaar!=null && adhaar.isNotEmpty && adhaar.length>=2)?adhaar[1]!.path:'',
-      drivingLicenceNumber:(drivingLicense!=null && drivingLicense.isNotEmpty && drivingLicense.length>=1)?drivingLicense[0]!.path:'',
-      drivingLicencePhoto: (drivingLicense!=null && drivingLicense.isNotEmpty && drivingLicense.length>=2)?drivingLicense[1]!.path:'',
-      transportationPermitPhoto:(permit!=null && permit.isNotEmpty && permit.length>=2)?permit[0]!.path:'' ,
-      independentCarOwnerFleetSize:FleetSize(
-        cars: vehicleCounts['Car'] ?? 0,
-        minivans: vehicleCounts['Mini Van'] ?? 0,
-        buses: vehicleCounts['Bus'] ?? 0,
-        suvs: vehicleCounts['Suv']??0
-      ),
+      aadharCardPhotoFront: aadhaarFrontUrl ?? '',
+      aadharCardPhotoBack: aadhaarBackUrl ?? '',
+      drivingLicenceNumber: (drivingLicense != null &&
+              drivingLicense.isNotEmpty &&
+              drivingLicense.length >= 1)
+          ? drivingLicense[0]!.path
+          : '',
+      drivingLicencePhoto: drivingLicencePhoto,
+      transportationPermitPhoto: transportationPermitPhoto,
+      independentCarOwnerFleetSize: FleetSize(
+          cars: vehicleCounts['Car'] ?? 0,
+          minivans: vehicleCounts['Mini Van'] ?? 0,
+          buses: vehicleCounts['Bus'] ?? 0,
+          suvs: vehicleCounts['Suv'] ?? 0),
     );
     try {
-      final response = await BecomeDriverServiceIndi().submitDriverApplicationIndi(_driverModel);
+      final response = await BecomeDriverServiceIndi()
+          .submitDriverApplicationIndi(_driverModel);
 
       if (response['success'] == true) {
         if (!mounted) return;
@@ -870,7 +927,10 @@ List<XFile?> adhaar=[];
           _clearSavedStep();
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => RegistrationSuccessfulScreen(userType: 'Taxi Owner',)),
+            MaterialPageRoute(
+                builder: (context) => RegistrationSuccessfulScreen(
+                      userType: 'Taxi Owner',
+                    )),
           );
         });
       } else {
@@ -888,7 +948,6 @@ List<XFile?> adhaar=[];
       );
     } finally {}
     // Simulate API call
-
   }
 
   @override
@@ -903,56 +962,70 @@ List<XFile?> adhaar=[];
     _aadharCardController.dispose();
     _drivingLicenseController.dispose();
     _aboutController.dispose();
-    currentStep=0;
+    currentStep = 0;
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors:[
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.15, 0.30, .90],
+    return PopScope(
+      onPopInvokedWithResult: (didPop, result) {
+        if (currentStep == 0 &&Navigator.canPop(context)) {
+          Navigator.of(context).pop();
+        } else {
+          previousStep();
+        }
+      },
+      canPop: false,
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                gradientFirst,
+                gradientSecond,
+                gradientThird,
+                Colors.white
+              ],
+              stops: [0.0, 0.15, 0.30, .90],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildProgressBar(),
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(top: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(),
+                MultiStepProgressBar(
+                  currentStep: currentStep,
+                  stepTitles: stepTitles,
+                  gradientColors: [Colors.green, Colors.green],
+                ),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(top: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: PageView(
+                      controller: _pageController,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildSelfDetailStep(),
+                        _buildAddressStep(),
+                        _buildDocumentStep(),
+                        _buildAboutStep(),
+                        _buildPreviewStep(),
+                      ],
                     ),
                   ),
-                  child: PageView(
-                    controller: _pageController,
-                    physics: NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildSelfDetailStep(),
-                      _buildAddressStep(),
-                      _buildDocumentStep(),
-                      _buildAboutStep(),
-                      _buildPreviewStep(),
-                    ],
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -965,7 +1038,13 @@ List<XFile?> adhaar=[];
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              if (currentStep == 0) {
+                Navigator.of(context).pop();
+              } else {
+                previousStep();
+              }
+            },
             child: Icon(
               Icons.arrow_back,
               color: Colors.white,
@@ -1006,12 +1085,13 @@ List<XFile?> adhaar=[];
                 alignment: Alignment.centerLeft,
                 child: Container(
                   height: 8,
-                  width: 30 + (MediaQuery.of(context).size.width * 0.25 * currentStep),
+                  width: 30 +
+                      (MediaQuery.of(context).size.width * 0.25 * currentStep),
                   decoration: BoxDecoration(
-                    gradient:  LinearGradient(
+                    gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors:[
+                      colors: [
                         gradientFirst,
                         gradientSecond,
                       ],
@@ -1033,13 +1113,12 @@ List<XFile?> adhaar=[];
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors:[
+                            colors: [
                               gradientFirst,
                               gradientSecond,
                             ],
                           ),
-                          color: Color(0xFF8B5CF6)
-                      ),
+                          color: Color(0xFF8B5CF6)),
                       child: Center(
                         child: Text(
                           '${index + 1}',
@@ -1116,18 +1195,18 @@ List<XFile?> adhaar=[];
                       ),
                       child: _selectedImage != null
                           ? ClipOval(
-                        child: Image.file(
-                          _selectedImage!,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      )
+                              child: Image.file(
+                                _selectedImage!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            )
                           : Icon(
-                        Icons.camera_alt,
-                        size: 32,
-                        color: Colors.grey[600],
-                      ),
+                              Icons.camera_alt,
+                              size: 32,
+                              color: Colors.grey[600],
+                            ),
                     ),
                   ),
                   SizedBox(height: 12),
@@ -1213,16 +1292,19 @@ List<XFile?> adhaar=[];
             _buildDropdown(
               'State',
               _selectedState,
-              _stateList.map((state) => DropdownMenuItem(
-                value: state.sId,
-                child: Text(state.name.toString()),
-              )).toList(),
-                  (newValue) {
+              _stateList
+                  .map((state) => DropdownMenuItem(
+                        value: state.sId,
+                        child: Text(state.name.toString()),
+                      ))
+                  .toList(),
+              (newValue) {
                 setState(() {
                   _selectedState = newValue;
                   _stateController.text = newValue ?? '';
                   if (newValue != null) {
-                    final locProvider = Provider.of<LocationProvider>(context, listen: false);
+                    final locProvider =
+                        Provider.of<LocationProvider>(context, listen: false);
                     locProvider.fetchCity(newValue).then((_) {
                       setState(() {
                         _cityList = locProvider.cities;
@@ -1232,23 +1314,27 @@ List<XFile?> adhaar=[];
                   }
                 });
               },
-              validator: (value) => value == null ? 'Please select a state' : null,
+              validator: (value) =>
+                  value == null ? 'Please select a state' : null,
             ),
             SizedBox(height: 20),
             _buildDropdown(
               'City',
               _selectedCity,
-              _cityList.map((city) => DropdownMenuItem(
-                value: city.sId,
-                child: Text(city.name.toString()),
-              )).toList(),
-                  (newValue) {
+              _cityList
+                  .map((city) => DropdownMenuItem(
+                        value: city.sId,
+                        child: Text(city.name.toString()),
+                      ))
+                  .toList(),
+              (newValue) {
                 setState(() {
                   _selectedCity = newValue;
                   _cityController.text = newValue ?? '';
                 });
               },
-              validator: (value) => value == null ? 'Please select a city' : null,
+              validator: (value) =>
+                  value == null ? 'Please select a city' : null,
             ),
             Spacer(),
             _buildContinueButton(),
@@ -1329,25 +1415,28 @@ List<XFile?> adhaar=[];
                           padding: EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: Colors.green ,
+                              color: Colors.green,
                             ),
                             borderRadius: BorderRadius.circular(24),
-                            color: _isAadhaarVerified ? Colors.green.withOpacity(0.1) : null,
+                            color: _isAadhaarVerified
+                                ? Colors.green.withOpacity(0.1)
+                                : null,
                           ),
                           child: Center(
                             child: _isAadhaarVerifying
                                 ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
                                 : Text(
-                              _isAadhaarVerified ? 'Verified' : 'Verify',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                                    _isAadhaarVerified ? 'Verified' : 'Verify',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
@@ -1369,7 +1458,8 @@ List<XFile?> adhaar=[];
               SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                child: _buildFileUploadSection('Upload Aadhar Card (Front & Back)','ADHAAR'),
+                child: _buildFileUploadSection(
+                    'Upload Aadhar Card (Front & Back)', 'ADHAAR'),
               ),
               SizedBox(height: 24),
               Container(
@@ -1382,12 +1472,13 @@ List<XFile?> adhaar=[];
               SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                child: _buildFileUploadSection('Upload Driving License','DRIVING LICENSE'),
+                child: _buildFileUploadSection(
+                    'Upload Driving License', 'DRIVING LICENSE'),
               ),
               SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                child: _buildFileUploadSection('Upload Permit','PERMIT'),
+                child: _buildFileUploadSection('Upload Permit', 'PERMIT'),
               ),
               SizedBox(height: 40),
               _buildContinueButton(),
@@ -1518,7 +1609,8 @@ List<XFile?> adhaar=[];
                         ),
                         SizedBox(height: 8),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 12),
                           decoration: BoxDecoration(
                             border: Border.all(color: Colors.grey[300]!),
                             borderRadius: BorderRadius.circular(8),
@@ -1601,18 +1693,18 @@ List<XFile?> adhaar=[];
                   ),
                   child: _selectedImage != null
                       ? ClipOval(
-                    child: Image.file(
-                      _selectedImage!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                          child: Image.file(
+                            _selectedImage!,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                       : Icon(
-                    Icons.person,
-                    size: 30,
-                    color: Colors.grey[600],
-                  ),
+                          Icons.person,
+                          size: 30,
+                          color: Colors.grey[600],
+                        ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -1633,54 +1725,44 @@ List<XFile?> adhaar=[];
                     'Self Name',
                     _selfNameController.text.isEmpty
                         ? 'Not specified'
-                        : _selfNameController.text
-                ),
+                        : _selfNameController.text),
                 _buildPreviewItem(
                     'Phone Number',
                     _phoneNumberController.text.isEmpty
                         ? 'Not specified'
-                        : '+91 ${_phoneNumberController.text}'
-                ),
+                        : '+91 ${_phoneNumberController.text}'),
                 _buildPreviewItem(
                     'Address Line',
                     _addressController.text.isEmpty
                         ? 'Not specified'
-                        : _addressController.text
-                ),
+                        : _addressController.text),
                 _buildPreviewItem(
                     'Pin Code',
                     _pinCodeController.text.isEmpty
                         ? 'Not specified'
-                        : _pinCodeController.text
-                ),
+                        : _pinCodeController.text),
                 _buildPreviewItem(
                     'City',
                     _cityController.text.isEmpty
                         ? 'Not specified'
-                        : _cityController.text
-                ),
+                        : _cityController.text),
                 _buildPreviewItem(
                     'State',
                     _stateController.text.isEmpty
                         ? 'Not specified'
-                        : _stateController.text
-                ),
+                        : _stateController.text),
                 _buildPreviewItem(
                     'Aadhar Card No.',
                     _aadharCardController.text.isEmpty
                         ? 'Not provided'
-                        : _aadharCardController.text
-                ),
+                        : _aadharCardController.text),
                 _buildPreviewItem(
                     'Driving License Number',
                     _drivingLicenseController.text.isEmpty
                         ? 'Not provided'
-                        : _drivingLicenseController.text
-                ),
+                        : _drivingLicenseController.text),
                 _buildPreviewItem(
-                    'Total Number of Vehicles',
-                    totalVehicles.toString()
-                ),
+                    'Total Number of Vehicles', totalVehicles.toString()),
                 SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1774,14 +1856,14 @@ List<XFile?> adhaar=[];
   }
 
   Widget _buildTextField(
-      String label,
-      TextEditingController controller, {
-        String? placeholder,
-        String? Function(String?)? validator,
-        TextInputType? keyboardType,
-        int? maxLength,
-        Function(String)? onChanged,
-      }) {
+    String label,
+    TextEditingController controller, {
+    String? placeholder,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int? maxLength,
+    Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1820,12 +1902,12 @@ List<XFile?> adhaar=[];
   }
 
   Widget _buildDropdown<T>(
-      String label,
-      T? value,
-      List<DropdownMenuItem<T>> items,
-      void Function(T?) onChanged, {
-        String? Function(T?)? validator,
-      }) {
+    String label,
+    T? value,
+    List<DropdownMenuItem<T>> items,
+    void Function(T?) onChanged, {
+    String? Function(T?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1859,7 +1941,7 @@ List<XFile?> adhaar=[];
     );
   }
 
-  Widget _buildFileUploadSection(String title,String from) {
+  Widget _buildFileUploadSection(String title, String from) {
     return Column(
       children: [
         Text(
@@ -1959,6 +2041,4 @@ List<XFile?> adhaar=[];
       ),
     );
   }
-
-
 }

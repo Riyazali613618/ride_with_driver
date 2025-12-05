@@ -24,7 +24,7 @@ class BecomeDriverServiceIndi {
           'message': 'No authentication token available'
         };
       }
-
+      model.copyWith(drivingLicenceNumber: "DL-202100012345");
       final url = Uri.parse(
           '${ApiConstants.baseUrl}/user/become-independent-car-owner');
       developer.log('Submitting driver application to: $url', name: _logTag);

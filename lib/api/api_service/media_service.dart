@@ -265,14 +265,14 @@ class MediaService {
       );
 
       // Handle response
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        if (responseData['status'] == true && responseData['url'] != null) {
+        if (responseData['data'] != null && responseData['data']['url']!=null) {
           developer.log('Upload successful: ${responseData['url']}',
               name: _logTag);
           return MediaUploadResponse(
             success: true,
-            url: responseData['url'],
+            url: responseData['data']['url'],
           );
         } else {
           // FIXED: Handle status: false case with backend message

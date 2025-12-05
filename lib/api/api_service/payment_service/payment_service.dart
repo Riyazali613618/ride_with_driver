@@ -17,11 +17,10 @@ class PaymentService {
   // Create order for subscription renewal
   static Future<Map<String, dynamic>> createOrderForSubscriptionRenewal({
     required String planId,
-
   }) async {
     return _createOrder({
-      'paymentType': 'SUBSCRIPTION_RENEWAL',
-      'registrationPlanId': planId,
+      'paymentType': 'SUBSCRIPTION',
+      'subscriptionPlanId': planId,
     });
   }
 
@@ -30,6 +29,7 @@ class PaymentService {
     required String category,
     required String planId,
   }) async {
+
     return _createOrder({
       'paymentType': 'SUBSCRIPTION',
       'category': category,
@@ -44,11 +44,15 @@ class PaymentService {
     required String category,
     required String planId,
   }) async {
+    print("==================================================");
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+    print("==================================================");
+
     return _createOrder({
-      'paymentType': 'REGISTRATION_WITH_SUBSCRIPTION',
+      'paymentType': 'SUBSCRIPTION',
       'category': category,
-      'registrationPlanId': planId,
-      'subscriptionType': 'REGISTRATION_WITH_SUBSCRIPTION',
+      'subscriptionPlanId': planId,
+      'paymentGatewayType': 'razorpay',
     });
   }
 
@@ -78,7 +82,10 @@ class PaymentService {
         },
         body: jsonEncode(requestBody),
       );
-      print(jsonDecode(response.toString()));
+      print("==================================================");
+      print(response.body);
+      print("==================================================");
+
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -114,8 +121,9 @@ class PaymentService {
       'razorpay_order_id': razorpayOrderId,
       'razorpay_payment_id': razorpayPaymentId,
       'razorpay_signature': razorpaySignature,
-      'paymentType': 'SUBSCRIPTION_RENEWAL',
-      'registrationPlanId': planId,
+      'paymentType': 'SUBSCRIPTION',
+      'subscriptionPlanId': planId,
+      'paymentGatewayType': "razorpay",
     });
   }
 
@@ -131,9 +139,10 @@ class PaymentService {
       'razorpay_order_id': razorpayOrderId,
       'razorpay_payment_id': razorpayPaymentId,
       'razorpay_signature': razorpaySignature,
-      'paymentType': 'REGISTRATION_ONLY',
+      'paymentType': 'SUBSCRIPTION',
       'category': category,
-      'registrationFeeId': registrationFeeId,
+      'subscriptionPlanId': registrationFeeId,
+      'paymentGatewayType': "razorpay",
     });
   }
 
@@ -150,10 +159,10 @@ class PaymentService {
       'razorpay_order_id': razorpayOrderId,
       'razorpay_payment_id': razorpayPaymentId,
       'razorpay_signature': razorpaySignature,
-      'paymentType': 'REGISTRATION_WITH_SUBSCRIPTION',
+      'paymentType': 'SUBSCRIPTION',
       'category': category,
-      'registrationPlanId': planId,
-      'registrationFeeId': registrationFeeId,
+      'subscriptionPlanId': planId,
+      'paymentGatewayType': "razorpay",
     });
   }
 
@@ -217,13 +226,17 @@ class PaymentService {
       }
 
       final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/user/payment/save-order'),
+        Uri.parse('${ApiConstants.baseUrl}/user/save-order'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode(requestBody),
       );
+
+      print("==================================================");
+      print(response);
+      print("==================================================");
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
