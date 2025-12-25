@@ -114,7 +114,7 @@ class MediaService {
 
       if (result.success) {
         developer.log('Direct file upload completed successfully',
-            name: _logTag);
+            name: result.url ?? "");
         return result.url;
       } else {
         developer.log(
@@ -191,7 +191,8 @@ class MediaService {
           errorCode: 'AUTH_REQUIRED',
         );
       }
-
+      print(token.substring(0,100));
+      print(token.substring(99));
       // File validation
       final int fileSize = await file.length();
       const int maxSize = 10 * 1024 * 1024; // 10MB limit
@@ -208,7 +209,7 @@ class MediaService {
 
       // Create upload request
       String baseUrl = '${ApiConstants.baseUrl}/user/upload?type=$kind';
-
+      print(baseUrl);
       final Uri url = Uri.parse(baseUrl);
       final request = http.MultipartRequest('POST', url);
       request.headers['Authorization'] = 'Bearer $token';
@@ -234,8 +235,9 @@ class MediaService {
       );
 
       request.files.add(multipartFile);
-      request.fields['type'] = type?? (kind=="transporter"?"document":_getFileType(fileExt));
-      request.fields['kind'] = type??kind;
+      request.fields['type'] =
+          type ?? (kind == "transporter" ? "document" : _getFileType(fileExt));
+      request.fields['kind'] = type ?? kind;
 
       developer.log(
           'Sending upload request:\n'
@@ -267,7 +269,8 @@ class MediaService {
       // Handle response
       if (response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        if (responseData['data'] != null && responseData['data']['url']!=null) {
+        if (responseData['data'] != null &&
+            responseData['data']['url'] != null) {
           developer.log('Upload successful: ${responseData['url']}',
               name: _logTag);
           return MediaUploadResponse(

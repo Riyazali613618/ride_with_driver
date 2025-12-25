@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
 import 'dart:io';
 import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_model/rating_and_reviews_model/indicar_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
+import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/become_driver_registration_service.dart';
 import '../utils/color.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
@@ -477,7 +480,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
     }
   }
 
-  void nextStep() {
+  /*void nextStep() {
     if (currentStep < 4) {
       setState(() {
         currentStep++;
@@ -487,6 +490,112 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
         curve: Curves.easeInOut,
       );
     }
+  }*/
+  void nextStep() {
+    bool isValid = false;
+    String? errorMessage;
+
+    switch (currentStep) {
+      case 0: // Self Detail
+        if (_selectedImage == null) {
+          errorMessage = 'Profile image is required';
+          isValid = false;
+        } else if (_nameController.text.isEmpty ||
+            _phoneNumberController.text.isEmpty ||
+            _selectedDate == null ||
+            _selectedGender == null) {
+          errorMessage = 'Please fill all required fields';
+          isValid = false;
+        } else {
+          isValid = true;
+        }
+        break;
+
+      case 1: // Address
+        if (_addressController.text.trim().isEmpty) {
+          errorMessage = 'Please enter address first';
+          isValid = false;
+        } else if (_pinCodeController.text.trim().isEmpty) {
+          errorMessage = 'Please enter pin code first';
+          isValid = false;
+        } else if (_selectedState == null) {
+          errorMessage = 'Please select state first';
+          isValid = false;
+        } else if (_selectedCity == null) {
+          errorMessage = 'Please select city first';
+          isValid = false;
+        } else {
+          isValid = true;
+        }
+        break;
+
+      case 2: // Document
+        if (!_isAadhaarVerified) {
+          errorMessage = 'Please verify your Aadhaar number';
+          isValid = false;
+        } else if (adhaar.isEmpty && adhaar.length < 2) {
+          errorMessage =
+              'Please upload both front and back images of Aadhaar card';
+          isValid = false;
+        } else if (_drivingLicenseController.text.trim().isEmpty) {
+          errorMessage = 'Please enter driving license number';
+          isValid = false;
+        } else if (drivingLicense.isEmpty) {
+          errorMessage = 'Please upload driving license';
+          isValid = false;
+        } else {
+          isValid = true;
+        }
+
+        break;
+
+      case 3: // About
+        if (_experienceController.text.trim().isEmpty) {
+          errorMessage = 'please enter experience';
+          isValid = false;
+        } else if (_minimumChargeController.text.trim().isEmpty) {
+          errorMessage = 'please enter minimum charge';
+          isValid = false;
+        } else if (_selectedVehicleType == null ||
+            _selectedVehicleType!.isEmpty) {
+          errorMessage = 'please select vehicle type';
+          isValid = false;
+        } else if (_selectedServiceLocation == null ||
+            _selectedServiceLocation!.isEmpty) {
+          errorMessage = 'please select service location type';
+          isValid = false;
+        } else {
+          isValid = true;
+        }
+        break;
+
+      case 4: // Submit
+        _submitForm();
+        return;
+    }
+
+    if (!isValid) {
+      if (errorMessage != null) {
+        _showErrorSnackBar(errorMessage);
+      }
+      return;
+    }
+
+    if (currentStep < 4) {
+      setState(() {
+        currentStep++;
+      });
+      _pageController.nextPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+      _saveCurrentStep();
+    }
+  }
+
+  Future<void> _saveCurrentStep() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('independent_driver_current_step', currentStep);
   }
 
   void previousStep() {
@@ -513,7 +622,9 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           Provider.of<LocationProvider>(context, listen: false);
       currentCountry =
           langProvider.selectedCountry ?? '68dabd590b3041213387d616';
-
+      final languageProvider =
+          Provider.of<LanguageProvider>(context, listen: false);
+      langData = languageProvider.language??[];
       final locProvider = Provider.of<LocationProvider>(context, listen: false);
       locProvider.fetchStates(currentCountry!).then(
         (value) {
@@ -530,6 +641,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
   }
 
   List<lm.Data> langData = [];
+  List<lm.Data> selectedLang = [];
 
   Future<void> _initializeSelectedLanguage() async {
     final languageProvider =
@@ -540,48 +652,57 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CommonParentContainer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              MultiStepProgressBar(
-                currentStep: currentStep,
-                stepTitles: stepTitles,
-                gradientColors: [Colors.green, Colors.green],
-              ),
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(top: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+    return WillPopScope(
+        // handle physical back button
+        onWillPop: () async {
+          if (currentStep == 0) {
+            return true; // allow pop
+          } else {
+            previousStep();
+            return false; // prevent pop
+          }
+        },
+        child: Scaffold(
+          body: CommonParentContainer(
+            child: SafeArea(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  MultiStepProgressBar(
+                    currentStep: currentStep,
+                    stepTitles: stepTitles,
+                    gradientColors: [Colors.green, Colors.green],
+                  ),
+                  Expanded(
+                    child: Container(
+                      margin: EdgeInsets.only(top: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: PageView(
+                        controller: _pageController,
+                        physics: NeverScrollableScrollPhysics(),
+                        children: [
+                          _buildCompanyDetailStep(),
+                          _buildAddressStep(),
+                          _buildDocumentStep(),
+                          _buildAboutStep(),
+                          _buildPreviewStep(),
+                        ],
+                      ),
                     ),
                   ),
-                  child: PageView(
-                    controller: _pageController,
-                    physics: NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildCompanyDetailStep(),
-                      _buildAddressStep(),
-                      _buildDocumentStep(),
-                      _buildAboutStep(),
-                      _buildPreviewStep(),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   Widget _buildHeader() {
@@ -590,7 +711,13 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              if (currentStep == 0) {
+                Navigator.of(context).pop();
+              } else {
+                previousStep();
+              }
+            },
             child: Icon(
               Icons.arrow_back,
               color: Colors.white,
@@ -778,7 +905,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             SizedBox(height: 40),
             _buildTextField('Name *', _nameController),
             SizedBox(height: 20),
-            _buildTextField('Phone Number*', _phoneNumberController),
+            _buildTextField('Phone Number*', _phoneNumberController,textInputType: TextInputType.phone),
             SizedBox(height: 20),
             _buildDateField('Date of Birth *'),
             SizedBox(height: 20),
@@ -815,7 +942,36 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               placeholder: '12 house no., XYZ STREET, Opp ABC Mall'),
           SizedBox(height: 20),
           _buildTextField('Pin Code*', _pinCodeController,
-              placeholder: '788799'),
+              placeholder: '788799',textInputType: TextInputType.phone),
+          SizedBox(height: 20),
+          _buildDropdown(
+            'State',
+            _selectedState,
+            _stateList
+                .map((state) => DropdownMenuItem(
+              value: state.sId,
+              child: Text(state.name.toString()),
+            ))
+                .toList(),
+                (newValue) {
+              setState(() {
+                _selectedState = newValue;
+                _stateController.text = newValue ?? '';
+                if (newValue != null) {
+                  final locProvider =
+                  Provider.of<LocationProvider>(context, listen: false);
+                  locProvider.fetchCity(newValue).then((_) {
+                    setState(() {
+                      _cityList = locProvider.cities;
+                      _selectedCity = null; // Reset city when state changes
+                    });
+                  });
+                }
+              });
+            },
+            validator: (value) =>
+            value == null ? 'Please select a state' : null,
+          ),
           SizedBox(height: 20),
           _buildDropdown(
             'City',
@@ -832,36 +988,8 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                 _cityController.text = newValue ?? '';
               });
             },
-            validator: (value) => value == null ? 'Please select a city first' : null,
-          ),
-          SizedBox(height: 20),
-          _buildDropdown(
-            'State',
-            _selectedState,
-            _stateList
-                .map((state) => DropdownMenuItem(
-                      value: state.sId,
-                      child: Text(state.name.toString()),
-                    ))
-                .toList(),
-            (newValue) {
-              setState(() {
-                _selectedState = newValue;
-                _stateController.text = newValue ?? '';
-                if (newValue != null) {
-                  final locProvider =
-                      Provider.of<LocationProvider>(context, listen: false);
-                  locProvider.fetchCity(newValue).then((_) {
-                    setState(() {
-                      _cityList = locProvider.cities;
-                      _selectedCity = null; // Reset city when state changes
-                    });
-                  });
-                }
-              });
-            },
             validator: (value) =>
-                value == null ? 'Please select a state' : null,
+                value == null ? 'Please select a city first' : null,
           ),
           Spacer(),
           _buildContinueButton(),
@@ -958,6 +1086,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                           ),
                           child: TextField(
                             controller: _aadharCardController,
+                            keyboardType: TextInputType.phone,
                             decoration: InputDecoration.collapsed(
                               hintText: 'Enter Aadhar Card Number',
                               hintStyle: TextStyle(
@@ -1013,7 +1142,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             Container(
               width: double.infinity,
               child: _buildTextField(
-                  'Driving License Number', _drivingLicenseController),
+                  'Driving License Number', _drivingLicenseController,),
             ),
             SizedBox(height: 24),
             Container(
@@ -1084,7 +1213,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             ),
             SizedBox(height: 40),
             _buildTextField('Experience', _experienceController,
-                placeholder: 'Years of experience'),
+                placeholder: 'Years of experience',textInputType: TextInputType.phone),
             SizedBox(height: 20),
             Row(
               children: [
@@ -1092,7 +1221,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                   flex: 2,
                   child: _buildTextField(
                       'Minimum Charge', _minimumChargeController,
-                      placeholder: '₹100'),
+                      placeholder: '₹100',textInputType: TextInputType.phone),
                 ),
                 SizedBox(width: 16),
                 Expanded(
@@ -1147,11 +1276,12 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                 _selectedLangs.add(_selectedLanguage!);
               });
             }),
-            // _buildDropdownField('Spoken Languages', _selectedLanguage, _languages, (value) {
-            //   setState(() {
-            //     _selectedLanguage = value;
-            //   });
-            // }),
+            /*_buildDropdownField(
+                'Spoken Languages', _selectedLanguage, _languages, (value) {
+              setState(() {
+                _selectedLanguage = value;
+              });
+            }),*/
             SizedBox(height: 20),
             Text(
               'About',
@@ -1345,7 +1475,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          _submitForm();
+          if (!uploadingFinalData) _submitForm();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF8B5CF6),
@@ -1355,14 +1485,23 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           ),
           elevation: 0,
         ),
-        child: Text(
-          'Submit',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: uploadingFinalData
+            ? Center(
+                child: Container(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                ),
+              ))
+            : Text(
+                'Submit',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -1520,75 +1659,108 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
 
   BecomeDriverModel _becomeDriverModel = BecomeDriverModel();
 
+  bool uploadingFinalData = false;
+
   Future<void> _proceedToFinalStep() async {
     Navigator.pop(context);
-    _showSuccessSnackBar('Agreement accepted! Submitting registration...');
-    _becomeDriverModel = _becomeDriverModel.copyWith(
-      drivingLicenceNumber: _drivingLicenseController.text ?? '',
-      drivingLicencePhoto:
-          drivingLicense.isNotEmpty ? drivingLicense[0].path : '',
-      firstName: _nameController.text ?? '',
-      lastName: _nameController.text ?? '',
-      aadharCardNumber: _aadharCardController.text,
-      aadharCardPhotoFront:
-          (adhaar != null && adhaar.isNotEmpty) ? adhaar[0].path : '',
-      aadharCardPhotoBack:
-          (adhaar != null && adhaar.isNotEmpty && adhaar.length >= 2)
-              ? adhaar[1].path
-              : '',
-      businessMobileNumber: _phoneNumberController.text,
-      profilePhoto: _selectedImage?.path ?? '',
-      languageSpoken: _selectedLangs ?? [],
-      vehicleType: vehicleType ?? [],
-      servicesCities: _serviceCities,
-      bio: _aboutController.text,
-      experience: int.parse(_experienceController.text),
-      address: _becomeDriverModel.address?.copyWith(
-          addressLine: _addressController.text,
+    setState(() {
+      uploadingFinalData = true;
+    });
+    String aadhaarBackUrl = "";
+    String aadhaarFrontUrl = "";
+    String profilePhoto = "";
+    String drivingLicenseUrl = "";
+    try {
+      if (adhaar.isNotEmpty && adhaar.length > 0 && adhaar[0].path.isNotEmpty) {
+        final XFile xFileAadhaarBack = XFile(adhaar[0].path);
+        final aadharCardPhotoBack = await MediaService()
+            .uploadMedia(xFileAadhaarBack, kind: "document", type: "document");
+        aadhaarFrontUrl = aadharCardPhotoBack.url!;
+      }
+      if (adhaar.isNotEmpty && adhaar.length > 1 && adhaar[1].path.isNotEmpty) {
+        final XFile xFileAadhaarBack = XFile(adhaar[1].path);
+        final aadharCardPhotoBack = await MediaService()
+            .uploadMedia(xFileAadhaarBack, kind: "document", type: "document");
+        aadhaarBackUrl = aadharCardPhotoBack.url!;
+      }
+      if (_selectedImage != null && _selectedImage!.path.isNotEmpty) {
+        final XFile xFileAadhaarBack = XFile(_selectedImage!.path);
+        final photo = await MediaService().uploadMedia(xFileAadhaarBack,
+            kind: "profilePhoto", type: "profilePhoto");
+        profilePhoto = photo.url!;
+      }
+      if (drivingLicense.isNotEmpty) {
+        final XFile file = XFile(drivingLicense[0].path);
+        final photo = await MediaService()
+            .uploadMedia(file, kind: "document", type: "document");
+        drivingLicenseUrl = photo.url!;
+      }
+      List<String> lanList=[];
+      langData.forEach((element) {
+        if(_selectedLangs.contains(element.name)){
+          lanList.add(element.id??"");
+        }
+      },);
+      Address address=Address(addressLine: _addressController.text,
           pincode: int.parse(_pinCodeController.text),
           state: _selectedState,
-          city: _selectedCity),
-      minimumCharges: double.parse(_minimumChargeController.text) ?? 0.0,
-      dob: _selectedDate?.timeZoneName,
-      gender: _selectedGender,
-      negotiable: _isNegotiable,
-      serviceLocation: ServiceLocation(lat: 28.6139, lng: 77.2090),
-    );
+          city: _selectedCity );
+      _becomeDriverModel = _becomeDriverModel.copyWith(
+        drivingLicenceNumber: _drivingLicenseController.text ?? '',
+        drivingLicencePhoto: drivingLicenseUrl,
+        firstName: _nameController.text ?? '',
+        lastName: _nameController.text ?? '',
+        aadharCardNumber: _aadharCardController.text,
+        aadharCardPhotoFront: aadhaarFrontUrl,
+        aadharCardPhotoBack: aadhaarBackUrl,
+        businessMobileNumber: _phoneNumberController.text,
+        profilePhoto: profilePhoto,
+        languageSpoken: lanList,
+        vehicleType: vehicleType ?? [],
+        servicesCities: _serviceCities,
+        bio: _aboutController.text,
+        experience: int.parse(_experienceController.text),
+        address: address,
+        minimumCharges: double.parse(_minimumChargeController.text) ?? 0.0,
+        dob: DateFormat('yyyy-MM-dd').format(_selectedDate!),
+        gender: _selectedGender,
+        negotiable: _isNegotiable,
+        serviceLocation: ServiceLocation(lat: 28.6139, lng: 77.2090),
+      );
 
-    final response =
-        await BecomeDriverService().submitDriverApplication(_becomeDriverModel);
-    if (response is bool && response['success'] == true) {
-      if (!mounted) return;
-      BecomeDriverService.showSuccessSnackBar(
-          context, 'Application submitted successfully!');
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const RegistrationSuccessfulScreen(
-                  userType: 'DRIVER',
-                )),
-      );
-    } else {
-      if (!mounted) return;
-      BecomeDriverService.showApiErrorSnackBar(
-        context,
-        response['message'] ?? 'Submission failed',
-      );
+      final response = await BecomeDriverService()
+          .submitDriverApplication(_becomeDriverModel);
+      if (response['success'] == true) {
+        if (!mounted) return;
+        BecomeDriverService.showSuccessSnackBar(
+            context, 'Application submitted successfully!');
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const RegistrationSuccessfulScreen(
+                    userType: 'DRIVER',
+                  )),
+        );
+      } else {
+        if (!mounted) return;
+        BecomeDriverService.showApiErrorSnackBar(
+          context,
+          response['message'] ?? 'Submission failed',
+        );
+      }
+      setState(() {
+        uploadingFinalData = false;
+      });
+    } catch (e) {
+      setState(() {
+        uploadingFinalData = false;
+      });
+    } finally {
+      setState(() {
+        uploadingFinalData = false;
+      });
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Agreement accepted! Registration completed.'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => RegistrationSuccessfulScreen(
-                  userType: 'Driver',
-                )));
   }
 
   @override
@@ -1641,7 +1813,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
   }
 
   Widget _buildTextField(String label, TextEditingController controller,
-      {String? placeholder}) {
+      {String? placeholder,TextInputType? textInputType}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1662,6 +1834,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           ),
           child: TextField(
             controller: controller,
+            keyboardType: textInputType,
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
               hintStyle: TextStyle(

@@ -5,7 +5,10 @@ import '../utils/color.dart';
 
 class CommonParentContainer extends StatelessWidget {
   final Widget child;
-  const CommonParentContainer({required this.child, super.key});
+  final bool showLargeGradient;
+
+  const CommonParentContainer(
+      {required this.child, this.showLargeGradient = true, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +26,10 @@ class CommonParentContainer extends StatelessWidget {
             Colors.white,
             Colors.white,
             Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
-            Colors.white,
+            if (showLargeGradient) Colors.white,
+            if (showLargeGradient) Colors.white,
+            if (showLargeGradient) Colors.white,
+            if (showLargeGradient) Colors.white,
           ],
         ),
       ),

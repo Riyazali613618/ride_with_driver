@@ -278,7 +278,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        if (responseData['status'] == true) {
+        if (responseData['success'] == true) {
           _showSnackBar(
             responseData['message'] ??
                 AppLocalizations.of(context)!.accountDeleted,

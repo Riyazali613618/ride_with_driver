@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/constants/color_constants.dart';
@@ -100,10 +102,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
     if (provider.profileData != null) {
       final data = provider.profileData!;
 
-      final fullName = provider.fullName ?? '';
-      final parts = fullName.trim().split(' ');
-      final firstName = parts.isNotEmpty ? parts.first : '';
-      final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+      final firstName = provider.firstName ?? '';
+      final lastName = provider.lastName ?? '';
 
       setState(() {
         _firstNameController.text = firstName;
@@ -163,8 +163,9 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
       'email': _emailController.text.trim(),
       'number': _phoneController.text.trim(),
       // 'language': _languageController.text.trim(),
-      'image': _profileImageUrl ?? '',
+      'profilePhoto': _profileImageUrl ?? '',
     };
+    jsonEncode(profileData);
 
     try {
       final success =
@@ -633,6 +634,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
       );
 
       if (url != null) {
+        print('Uploaded profile photo URL: $url');
         setState(() {
           _profileImageUrl = url;
           _hasChanges = true;
@@ -1058,6 +1060,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
                               child: Column(
                                 children: [
                                   Container(
+                                    margin: EdgeInsets.only(top: 20),
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 16, vertical: 20),
                                     child: Row(

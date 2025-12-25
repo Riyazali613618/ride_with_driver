@@ -6,6 +6,7 @@ class TokenManager {
   static const String _tokenKey = 'auth_token';
   static const String _accessToken='access_token';
   static const String _phoneNumberKey = 'phone_number';
+  static const String _userTypeKey = 'user_type';
   static const String _userDataKey = 'user_data';
   static const String _isFirstTimeKey = 'is_first_time'; // Added missing key
 
@@ -89,6 +90,8 @@ class TokenManager {
     }
   }
 
+
+
   // Get saved phone number with error handling
   static Future<String?> getPhoneNumber() async {
     try {
@@ -97,6 +100,26 @@ class TokenManager {
     } catch (e) {
       print("Error getting phone number: $e");
       return null;
+    }
+  }
+
+  // Get saved userType with error handling
+  static Future<String?> getUserType() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_userTypeKey);
+    } catch (e) {
+      print("Error getting user type: $e");
+      return null;
+    }
+  }
+  static Future<bool> saveUserType(String type) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return await prefs.setString(_userTypeKey, type);
+    } catch (e) {
+      print("Error saving user type: $e");
+      return false;
     }
   }
 

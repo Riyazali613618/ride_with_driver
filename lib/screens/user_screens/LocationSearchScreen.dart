@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:r_w_r/api/api_model/VehicleType.dart';
+import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/assets_constant.dart';
 import 'package:r_w_r/l10n/app_localizations.dart';
 import 'package:r_w_r/screens/user_screens/owner_details.dart';
@@ -182,29 +184,30 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       print("Error loading recent locations: $e");
     }
   }
-bool searchedSelected=false;
+
+  bool searchedSelected = false;
+
   Future<void> _searchLocationsWithService(String query) async {
     print("_searchLocationsWithService:${query}");
-    if(!_availableCategories.contains(query.toUpperCase()))
-      {
-        selectedLocationData=null;
-      }
-    if (query.isEmpty){
+    if (!_availableCategories.contains(query.toUpperCase())) {
+      selectedLocationData = null;
+    }
+    if (query.isEmpty) {
       _initializeSearchSuggestions();
       return;
     }
     setState(() {
       _isSearching = true;
-      searchedSelected=true;
+      searchedSelected = true;
     });
-    if(selectedLocationData!=null){
-      Future.delayed(Duration(seconds: 2)).then((_){
+    if (selectedLocationData != null) {
+      Future.delayed(Duration(seconds: 2)).then((_) {
         setState(() {
           _isSearching = false;
-          searchedSelected=false;
+          searchedSelected = false;
         });
-        });
-    }else{
+      });
+    } else {
       _locationSearchService.searchLocations(query, (results) {
         if (mounted) {
           setState(() {
@@ -297,7 +300,7 @@ bool searchedSelected=false;
     if (selectedLocationData == null) return;
     print("selectedLocationData:${selectedLocationData} ${_selectedCategory}");
     setState(() {
-      searchedSelected=false;
+      searchedSelected = false;
     });
     // if (_selectedCategory.toUpperCase() == "DRIVER") {
     //   // Updated comparison
@@ -322,7 +325,6 @@ bool searchedSelected=false;
     // }
   }
 
-
   Widget _buildSearchSuggestion(GooglePlacesSuggestion suggestion, int index) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -338,64 +340,62 @@ bool searchedSelected=false;
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: suggestion.isCurrentLocation
-                ? ColorConstants.primaryColor.withOpacity(0.1)
-                : suggestion.isRecentLocation
-                    ? Colors.orange.withOpacity(0.1)
-                    : Colors.blue.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: suggestion.isCurrentLocation
+                  ? ColorConstants.primaryColor.withOpacity(0.1)
+                  : suggestion.isRecentLocation
+                      ? Colors.orange.withOpacity(0.1)
+                      : Colors.blue.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(
+              suggestion.isCurrentLocation
+                  ? Icons.my_location
+                  : suggestion.isRecentLocation
+                      ? Icons.history
+                      : Icons.location_on,
+              color: suggestion.isCurrentLocation
+                  ? ColorConstants.primaryColor
+                  : suggestion.isRecentLocation
+                      ? Colors.orange
+                      : Colors.black,
+              size: 20,
+            ),
           ),
-          child: Icon(
+          title: Text(
             suggestion.isCurrentLocation
-                ? Icons.my_location
-                : suggestion.isRecentLocation
-                    ? Icons.history
-                    : Icons.location_on,
-            color: suggestion.isCurrentLocation
-                ? ColorConstants.primaryColor
-                : suggestion.isRecentLocation
-                    ? Colors.orange
-                    : Colors.black,
-            size: 20,
+                ? "Use current location"
+                : suggestion.mainText,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: suggestion.isCurrentLocation
+                  ? FontWeight.w600
+                  : FontWeight.w500,
+              color: suggestion.isCurrentLocation
+                  ? ColorConstants.primaryColor
+                  : Colors.black87,
+            ),
           ),
-        ),
-        title: Text(
-          suggestion.isCurrentLocation
-              ? "Use current location"
-              : suggestion.mainText,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: suggestion.isCurrentLocation
-                ? FontWeight.w600
-                : FontWeight.w500,
-            color: suggestion.isCurrentLocation
-                ? ColorConstants.primaryColor
-                : Colors.black87,
+          subtitle: Text(
+            suggestion.isCurrentLocation
+                ? (currentLocation?.displayName ?? "Your current location")
+                : (suggestion.secondaryText ?? ""),
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 14,
+            ),
           ),
-        ),
-        subtitle: Text(
-          suggestion.isCurrentLocation
-              ? (currentLocation?.displayName ?? "Your current location")
-              : (suggestion.secondaryText ?? ""),
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 14,
-          ),
-        ),
-        trailing: suggestion.isRecentLocation
-            ? Icon(Icons.north_west, color: Colors.grey.shade400, size: 16)
-            : null,
-        onTap: () {
-          setState(() {
-
-          });
-          _selectLocation(suggestion);
-        }
-      ),
+          trailing: suggestion.isRecentLocation
+              ? Icon(Icons.north_west, color: Colors.grey.shade400, size: 16)
+              : null,
+          onTap: () {
+            setState(() {});
+            _selectLocation(suggestion);
+          }),
     );
   }
 
@@ -427,6 +427,7 @@ bool searchedSelected=false;
     // Categories are already in the correct format for API
     return category.toUpperCase();
   }
+
   Widget _buildCategoryChips() {
     return Container(
       height: 30,
@@ -436,58 +437,68 @@ bool searchedSelected=false;
         itemCount: _availableCategories.length,
         itemBuilder: (context, index) {
           String category = _availableCategories[index];
-          if(_selectedCategory=="ALLVEHICLES"){
-            _selectedCategory='ALL';
+          if (_selectedCategory == "ALLVEHICLES") {
+            _selectedCategory = 'ALL';
           }
-          bool isSelected = _selectedCategory.toUpperCase() == category.toUpperCase();
+          bool isSelected =
+              _selectedCategory.toUpperCase() == category.toUpperCase();
           return Container(
             margin: const EdgeInsets.only(right: 8),
             child: Material(
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  if(selectedLocationData!=null){
+                  if (selectedLocationData != null) {
                     setState(() {
                       _selectedCategory = category;
                       searchedSelected = false;
-                      if(_selectedCategory == 'ALL') {
+                      if (_selectedCategory == 'ALL') {
                         category = 'ALLVEHICLES';
                       }
                     });
                     print("category:${category}");
                     _searchLocationsWithService(category);
-                  }else{
+                  } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Please select location'),backgroundColor: Colors.red,),
+                      SnackBar(
+                        content: Text('Please select location'),
+                        backgroundColor: Colors.red,
+                      ),
                     );
                   }
-
-
                 },
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(6),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white : Colors.white.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(20),
+                    color: isSelected
+                        ? Colors.white
+                        : Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isSelected ? Colors.white : Colors.white.withOpacity(0.5),
+                      color: isSelected
+                          ? AppColors.blue
+                          : Color(0x73FFFFFF),
                       width: 1.5,
                     ),
-                    boxShadow: isSelected ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ] : [],
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ]
+                        : [],
                   ),
                   child: Center(
                     child: Text(
                       _getCategoryDisplayNameByKey(category),
                       style: TextStyle(
-                        color: isSelected ? Color(0xFF8B5CF6) : Colors.white,
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        color: Colors.black,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
                         fontSize: 13,
                       ),
                     ),
@@ -500,32 +511,21 @@ bool searchedSelected=false;
       ),
     );
   }
-  Map<String, dynamic> filters={};
+
+  Map<String, dynamic> filters = {};
+
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
-      body: Container(
-        decoration:BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.20, 0.24, .90],
-          ),
-        ),
+      body: CommonParentContainer(
+        showLargeGradient: false,
         child: SafeArea(
           child: Column(
             children: [
-              SizedBox(height: 20),
-              // Search Bar with Back Button and Filter
+              SizedBox(height: 10),
               Container(
-                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                margin: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                 child: Row(
                   children: [
                     // Back Button
@@ -549,6 +549,8 @@ bool searchedSelected=false;
                     // Search Field
                     Expanded(
                       child: Container(
+                        alignment: Alignment.center,
+                        height: 40,
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -564,31 +566,44 @@ bool searchedSelected=false;
                           controller: _searchController,
                           focusNode: _searchFocusNode,
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 12,
                             color: Colors.black87,
                           ),
                           decoration: InputDecoration(
-                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 5),
+                            suffixIcon: GestureDetector(
+                              onTap: () {
+                                _searchController.text = "";
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 6),
+                                child: Icon(
+                                  Icons.cancel_outlined,
+                                  color: gradientSecond,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
                             hintText: localizations.searchLocation,
                             hintStyle: TextStyle(
                               color: Colors.grey.shade500,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                             prefixIcon: Icon(
                               Icons.search,
                               color: gradientSecond,
-                              size: 25,
+                              size: 20,
                             ),
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
-                            ),
+                            suffixIconConstraints: const BoxConstraints(
+                                minWidth: 32, minHeight: 32),
+                            border: InputBorder.none,
                           ),
                           onChanged: (value) {
                             _searchDebounceTimer?.cancel();
                             _searchDebounceTimer = Timer(
                               const Duration(milliseconds: 500),
-                                  () => _searchLocationsWithService(value),
+                              () => _searchLocationsWithService(value),
                             );
                           },
                         ),
@@ -598,29 +613,35 @@ bool searchedSelected=false;
                     // Filter Button
                     GestureDetector(
                       onTap: () async {
-                      final result=await showModalBottomSheet<Map<String, dynamic>>(
+                        final result =
+                            await showModalBottomSheet<Map<String, dynamic>>(
                           context: context,
                           isScrollControlled: true,
                           shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(25)),
                           ),
                           builder: (context) => FilterBottomSheet(),
                         );
-                      if (result != null) {
-                        setState(() {
-                          searchedSelected=true;
-                          filters=result;
-                        });
-                        _searchLocationsWithService(result['vehicleType'].toString().toUpperCase());
-                        Future.delayed(Duration(milliseconds:500)).then((_){
+                        if (result != null) {
                           setState(() {
-                            searchedSelected=false;
-                            _selectedCategory=result['vehicleType'].toString().toUpperCase();
-;                          });
-                        });
-                        print('Applied Filters: $result');
-                        // Use the filters in your API call or filtering logic
-                      }
+                            searchedSelected = true;
+                            filters = result;
+                          });
+                          _searchLocationsWithService(
+                              result['vehicleType'].toString().toUpperCase());
+                          Future.delayed(Duration(milliseconds: 500)).then((_) {
+                            setState(() {
+                              searchedSelected = false;
+                              _selectedCategory = result['vehicleType']
+                                  .toString()
+                                  .toUpperCase();
+                              ;
+                            });
+                          });
+                          print('Applied Filters: $result');
+                          // Use the filters in your API call or filtering logic
+                        }
                         // Navigator.push(context, MaterialPageRoute<void>(
                         //   builder: (BuildContext context) => (),
                         // ),)
@@ -655,70 +676,71 @@ bool searchedSelected=false;
                   ),
                   child: Column(
                     children: [
-                      if(selectedLocationData == null || searchedSelected) ... [
+                      if (selectedLocationData == null || searchedSelected) ...[
                         Expanded(
                           child: _isSearching || _isLoadingCurrentLocation
                               ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const CircularProgressIndicator(),
-                                const SizedBox(height: 16),
-                                Text(
-                                  _isLoadingCurrentLocation
-                                      ? 'Getting your location...'
-                                      : 'Searching...',
-                                  style: TextStyle(
-                                    color: Colors.grey.shade600,
-                                    fontSize: 16,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      const CircularProgressIndicator(),
+                                      const SizedBox(height: 16),
+                                      Text(
+                                        _isLoadingCurrentLocation
+                                            ? 'Getting your location...'
+                                            : 'Searching...',
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
+                                )
                               : filteredLocations.isEmpty &&
-                              _searchController.text.isNotEmpty
-                              ? Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.location_off,
-                                  size: 64,
-                                  color: Colors.grey.shade400,
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No locations found',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                                Text(
-                                  'Try searching with different keywords',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                              : ListView.builder(
-                            padding: const EdgeInsets.only(
-                                top: 8, bottom: 16),
-                            itemCount: filteredLocations.length,
-                            itemBuilder: (context, index) {
-                              return _buildSearchSuggestion(
-                                filteredLocations[index],
-                                index,
-                              );
-                            },
-                          ),
+                                      _searchController.text.isNotEmpty
+                                  ? Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            Icons.location_off,
+                                            size: 64,
+                                            color: Colors.grey.shade400,
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            'No locations found',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Try searching with different keywords',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.grey.shade500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : ListView.builder(
+                                      padding: const EdgeInsets.only(
+                                          top: 8, bottom: 16),
+                                      itemCount: filteredLocations.length,
+                                      itemBuilder: (context, index) {
+                                        return _buildSearchSuggestion(
+                                          filteredLocations[index],
+                                          index,
+                                        );
+                                      },
+                                    ),
                         ),
-                      ] else ... [
+                      ] else ...[
                         Expanded(
                           child: (_selectedCategory.toUpperCase() != "DRIVER")
                               ? _buildVehicleSearchContent()
@@ -736,14 +758,16 @@ bool searchedSelected=false;
     );
   }
 
-  Widget _buildVehicleSearchContent(){
-    return VehicleSearchScreen( // Make this a widget, not a screen
+  Widget _buildVehicleSearchContent() {
+    return VehicleSearchScreen(
+      // Make this a widget, not a screen
       selectedLocation: selectedLocationData,
-      selectedCategory:(_selectedCategory=='ALL')?'ALLVEHICLES': _selectedCategory,
+      selectedCategory:
+          (_selectedCategory == 'ALL') ? 'ALLVEHICLES' : _selectedCategory,
       appliedFilters: filters,
     );
   }
-  // Widget _buildOwnerSearchContent(){
-  //   return Owners(selectedLocation: selectedLocationData,);
-  // }
+// Widget _buildOwnerSearchContent(){
+//   return Owners(selectedLocation: selectedLocationData,);
+// }
 }

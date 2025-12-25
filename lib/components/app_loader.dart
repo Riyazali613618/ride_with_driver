@@ -93,6 +93,7 @@ class AppColors {
   static const Color warning = Color(0xFFFFA000); // Orange
   static const Color neutral = Color(0xFF757575); // Gray
   static const Color blue = Color(0xFF641BB4);
+  static const Color appBlack = Color(0xFF2B2A29);
 
   static const Color darkGrey=Color(0xFF757575); // Gray
 }

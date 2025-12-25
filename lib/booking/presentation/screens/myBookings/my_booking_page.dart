@@ -3,8 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
 import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/components/booking_container.dart';
+import 'package:r_w_r/screens/layout.dart';
 
+import '../../../../components/common_parent_container.dart';
 import '../../../../components/custom_text_field.dart';
+import '../../../../constants/color_constants.dart';
+import '../../../../utils/color.dart';
+import '../../../../utils/common_utils.dart';
 import '../../../domain/model/booking.dart';
 import '../../bloc/manage_booking_bloc.dart';
 import '../makeBooking/make_booking_full_screen.dart';
@@ -25,24 +31,20 @@ class MyBookingPage extends StatelessWidget {
           },
           child: Scaffold(
             // Use cream background color from design
-            backgroundColor: Colors.transparent,
-            body: Column(
-              children: [
-                Expanded(child: BlocBuilder<ManageBookingBloc, ManageState>(
-                    builder: (context, state) {
-                  if (state is ManageLoading) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  if (state is ManageError) {
-                    return Center(child: Text(state.message));
-                  }
-                  if (state is ManageLoaded) {
-                    return _BookingList(bookings: state.bookings);
-                  }
-                  return const SizedBox.shrink();
-                })),
-              ],
-            ),
+            backgroundColor: Colors.white,
+            body: Expanded(child: BlocBuilder<ManageBookingBloc, ManageState>(
+                builder: (context, state) {
+              if (state is ManageLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is ManageError) {
+                return Center(child: Text(state.message));
+              }
+              if (state is ManageLoaded) {
+                return _BookingList(bookings: state.bookings);
+              }
+              return const SizedBox.shrink();
+            })),
           )),
     );
   }
@@ -74,6 +76,83 @@ class _BookingListState extends State<_BookingList>
   @override
   Widget build(BuildContext context) {
     return Column(children: [
+      BookingContainer(
+          child: Column(
+        children: [
+          const SizedBox(
+            height: 40,
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.arrow_back,
+                  color: Colors.white,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(width: 8),
+              Text(
+                "My Bookings",
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white),
+              )
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 5.0),
+            child: TabBar(
+              onTap: (value) {
+                switch (value) {
+                  case 0:
+                    currentType = SelectedTab.booking.name;
+                    break;
+                  case 1:
+                    currentType = SelectedTab.pendingQuotes.name;
+                    break;
+                  case 2:
+                    currentType = SelectedTab.quoteRequest.name;
+                    break;
+                  case 3:
+                    currentType = SelectedTab.history.name;
+                    break;
+                }
+                setState(() {});
+              },
+              indicatorWeight: 0.000001,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorSize: TabBarIndicatorSize.label,
+              padding: EdgeInsets.zero,
+              indicatorPadding: EdgeInsets.zero,
+              dividerHeight: 0,
+              labelPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+              indicatorColor: Colors.white,
+              controller: _tc,
+              labelColor: Colors.white,
+              unselectedLabelStyle:
+                  TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+              unselectedLabelColor: Colors.white,
+              labelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              tabs: const [
+                Tab(
+                  text: 'My Booking',
+                ),
+                Tab(text: 'Pending Quotes'),
+                Tab(text: 'Sent Quote Request'),
+                Tab(text: 'History'),
+              ],
+            ),
+          ),
+        ],
+      )),
+      SizedBox(
+        height: 20,
+      ),
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 0.0),
         child: Row(
@@ -83,7 +162,8 @@ class _BookingListState extends State<_BookingList>
             Expanded(
                 child: CustomTextField(
               borderRadius: 8,
-              label: '',
+              label: 'Search',
+              showLabel: false,
               fillColor: Color(0xFFE8E7E7),
               controller: searchCtr,
               focusNode: focusNode,
@@ -93,235 +173,198 @@ class _BookingListState extends State<_BookingList>
                 size: 15,
               ),
             )),
-            SizedBox(width: 30),
-            _allMenu(context),
-          ],
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.all(5.0),
-        child: TabBar(
-          onTap: (value) {
-            switch (value) {
-              case 0:
-                currentType = SelectedTab.booking.name;
-                break;
-              case 1:
-                currentType = SelectedTab.pendingQuotes.name;
-                break;
-              case 2:
-                currentType = SelectedTab.quoteRequest.name;
-                break;
-              case 3:
-                currentType = SelectedTab.history.name;
-                break;
-            }
-            setState(() {});
-          },
-          indicatorWeight: 0.001,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          indicatorSize: TabBarIndicatorSize.label,
-          padding: EdgeInsets.zero,
-          indicatorPadding: EdgeInsets.zero,
-          dividerHeight: 0,
-          labelPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-          indicatorColor: AppColors.blue,
-          controller: _tc,
-          labelColor: Colors.purple.shade800,
-          unselectedLabelColor: Colors.grey,
-          labelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-          tabs: const [
-            Tab(text: 'My Booking'),
-            Tab(text: 'Pending Quotes'),
-            Tab(text: 'Sent Quote Request'),
-            Tab(text: 'History'),
+/*
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                margin: EdgeInsets.only(right: 0, top: 10),
+                width: 100,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  // Apply gradient only when enabled
+                  gradient: LinearGradient(
+                    colors: [gradientFirst, gradientSecond],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  // Fallback to a solid grey color when disabled
+                  color: Colors.white,
+                ),
+                // Use Material/InkWell to handle taps and ripple effect over the gradient
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  MakeBookingFullScreen()));
+                    },
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Center(
+                        child: Text(
+                          "+ Make Booking",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+*/
+            // _allMenu(context),
           ],
         ),
       ),
       Expanded(
-          child: ListView.separated(
-        separatorBuilder: (context, index) => SizedBox(
-          height: 5,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-        itemCount: widget.bookings.length,
-        itemBuilder: (context, i) {
-          final b = widget.bookings[i];
-          return Column(
-            children: [
-              if (i == 0)
-                Container(
-                  padding: EdgeInsets.symmetric(vertical: 10),
-                  color: AppColors.blue,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          maxLines: 1,
-                          "Date",
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500),
-                          textAlign: TextAlign.start,
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          maxLines: 1,
-                          "Pickup Point",
-                          textAlign: TextAlign.start,
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          maxLines: 1,
-                          "Destination",
-                          textAlign: TextAlign.start,
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Text(
-                          "Client Name",
-                          maxLines: 1,
-                          textAlign: TextAlign.start,
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Text(
-                        "Action",
-                        maxLines: 1,
-                        textAlign: TextAlign.start,
-                        style: TextStyle(
-                            fontSize: 10,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                    ],
-                  ),
+          child: Container(
+        color: Colors.white,
+        child: ListView.builder(
+          padding: EdgeInsets.zero,
+          itemCount: widget.bookings.length,
+          itemBuilder: (context, i) {
+            final b = widget.bookings[i];
+            return GestureDetector(
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (context) {
+                    return ViewBookingDetailsScreen(
+                        selectedVehicle: ["Tata SUV"],
+                        userType: UserTypes.user.name,
+                        type: getType(),
+                        isQuoteRequest:
+                            currentType == SelectedTab.quoteRequest.name,
+                        isMyBooking: true);
+                  },
+                ));
+              },
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0x1AB16449), // brown/orange shade
+                  borderRadius: BorderRadius.circular(18),
                 ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 20,
-                    child: _statusDot(b.status),
-                  ),
-                  Expanded(
-                    child: Text(
-                      DateFormat('dd/MM/yy').format(b.date),
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500),
-                      textAlign: TextAlign.start,
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      b.pickupPoint,
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: Text(
-                      b.destination,
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: Text(
-                      b.clientName,
-                      textAlign: TextAlign.start,
-                      style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.black,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  if (currentType == SelectedTab.quoteRequest.name)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (_) => ViewBookingDetailsScreen(
-                                selectedVehicle: ["Tata SUV"],
-                                type: getType(),
-                                isQuoteRequest: false,
-                                isMyBooking: true)));
-                      },
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                        child: Icon(
-                          Icons.visibility,
-                          size: 20,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Top row: Quote ID & Date time
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              "Quote ID  ",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: ColorConstants.black2,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Q-9872348",
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: ColorConstants.black2,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            )
+                          ],
                         ),
-                      ),
-                    )
-                  else
-                    _moreMenu(context, b,i),
-                ],
+                        Text(
+                          "Pending",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 4),
+
+                    // Avatar + Name
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Row(children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.transparent,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Flexible(
+                              flex: 1,
+                              child: Text(
+                                b.clientName,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        ),
+                        Text(
+                          "30/11/2025   10:30 AM",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ColorConstants.black2,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Pickup & Destination
+                    Row(
+                      children: const [
+                        Expanded(
+                          child: _InfoColumn(
+                            title: "Pickup point",
+                            value: "CP, New Delhi",
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: _InfoColumn(
+                            title: "Destination",
+                            value: "Simla, +5 others",
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ) /*ListTile(
-            leading: _statusDot(b.status),
-            title: Text(DateFormat('dd/MM/yyyy').format(b.date) +
-                ' - ' +
-                b.pickupPoint),
-            subtitle: Text('${b.destination} • ${b.clientName}'),
-            trailing: _moreMenu(context, b),
-          )*/
-              ;
-        },
+            );
+          },
+        ),
       )),
     ]);
   }
@@ -348,7 +391,7 @@ class _BookingListState extends State<_BookingList>
     return CircleAvatar(radius: 4, backgroundColor: c);
   }
 
-  Widget _moreMenu(BuildContext context, Booking b,int index) {
+  Widget _moreMenu(BuildContext context, Booking b, int index) {
     focusNode.unfocus();
     return PopupMenuButton<String>(
       offset: Offset(-10, 15),
@@ -358,6 +401,7 @@ class _BookingListState extends State<_BookingList>
               builder: (_) => ViewBookingDetailsScreen(
                   isQuoteRequest: false,
                   type: getType(),
+                  userType: UserTypes.user.name,
                   selectedVehicle: ["Tata SUV"],
                   isMyBooking: true)));
         } else if (val == 'cancel') {
@@ -522,16 +566,15 @@ class _BookingListState extends State<_BookingList>
     );
   }
 
-
   String getType() {
     if (currentType == SelectedTab.booking.name) {
-      return "My Booking";
+      return MyBookingTabs.myBooking.name;
     } else if (currentType == SelectedTab.pendingQuotes.name) {
-      return "Pending Quotes";
+      return MyBookingTabs.pendingQuotes.name;
     } else if (currentType == SelectedTab.quoteRequest.name) {
-      return "Sent Quote Request";
+      return MyBookingTabs.sentQuoteRequest.name;
     } else if (currentType == SelectedTab.history.name) {
-      return "History";
+      return MyBookingTabs.history.name;
     } else {
       return "";
     }
@@ -543,4 +586,47 @@ enum SelectedTab {
   pendingQuotes,
   quoteRequest,
   history,
+}
+
+class _InfoColumn extends StatelessWidget {
+  final String title;
+  final String value;
+
+  const _InfoColumn({
+    required this.title,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 11,
+            color: ColorConstants.black2,
+            fontWeight: FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+enum MyBookingTabs{
+  myBooking,
+  pendingQuotes,
+  sentQuoteRequest,
+  history
 }

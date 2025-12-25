@@ -116,6 +116,7 @@ class ProfileProvider with ChangeNotifier {
             // If model parsing fails, we still have raw data as fallback
             print('Model parsing failed: $modelError');
           }
+          await TokenManager.saveUserType(_profileModel?.data.usertype??"USER");
           _languageProvider.setLangCode(_profileModel!.data.language!.id!);
           _locationProvider.setSelectedCountry(_profileModel!.data.country!.id!);
           print("load profile: ${_languageProvider.langCode} ${_locationProvider.selectedCountry}");
@@ -241,7 +242,7 @@ class ProfileProvider with ChangeNotifier {
   bool _handleResponse(http.Response response) {
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      if (data['status'] == true) {
+      if (data['success'] == true) {
         // Update both raw data and model
         _rawProfileData = data['data'] ?? data;
         try {

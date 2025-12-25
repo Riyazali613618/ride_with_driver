@@ -13,6 +13,7 @@ class ColorConstants {
   static const Color greyLight = Color(0xFFDEE0E4);
   static const Color appBlue = Color(0xFF23334A);
   static const Color black = Color(0xFF000000);
+  static const Color black2 = Color(0xFF2B2A29);
   static const Color appYellow = Color(0xFFF5C25B);
   static const Color starRate = Color(0xFFE65100);
 

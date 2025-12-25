@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/screens/auth_screens/not_allowed.dart';
+import 'package:r_w_r/screens/auth_screens/select_language_screen.dart';
 import 'package:r_w_r/screens/layout.dart';
 
 import '../../api/api_service/countryStateProviderService.dart';
@@ -16,7 +17,6 @@ import '../../constants/token_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/color.dart';
 import '../block/language/language_provider.dart';
-import '../common_screens/language_screen.dart';
 import 'first_time_user.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
@@ -120,20 +120,28 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           'isAllowed': response.data!.isAllowed,
           'language': response.data!.language,
           'fcm': response.data!.fcm,
+          'usertype': response.data!.usertype,
           'isFirstTimeUser': response.data!.isFirstTimeUser,
         };
+        await TokenManager.saveUserType(response.data?.usertype??"USER");
         await TokenManager.saveUserData(userDataMap);
         // Handle first-time user flow
         if (response != null &&
             response.data != null &&
             response.data!.isFirstTimeUser!) {
           if (!mounted) return;
+          final lang = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(
+                builder: (context) => const LanguageSelectionScreen(
+                      isRegistration: true,
+                    )),
+          );
           final profileCompleted = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
                 builder: (context) => const FirstTimeUserScreen()),
           );
-
           if (profileCompleted == true) {
             await _handleLanguageSelection();
             _navigateToHome();

@@ -2083,7 +2083,7 @@ abstract class AppLocalizations {
   /// No description provided for @vehicle_type.
   ///
   /// In en, this message translates to:
-  /// **'vehicleType'**
+  /// **'Vehicle Type'**
   String get vehicle_type;
 
   /// No description provided for @services_cities.

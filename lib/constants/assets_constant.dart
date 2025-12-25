@@ -21,4 +21,7 @@ class AssetsConstant {
   static const String whatsApp = "assets/img/Mask group (2).png";
   static const String chat = "assets/img/chat (2).png";
   static const String callPhone = "assets/img/Mask group (1).png";
+  static const String whatsAppSVG = "assets/svg/whatsapp.svg";
+  static const String chatSVG = "assets/svg/chat_icon.svg";
+  static const String callPhoneSVG = "assets/svg/call.svg";
 }

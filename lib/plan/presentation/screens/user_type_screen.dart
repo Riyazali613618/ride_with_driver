@@ -5,7 +5,12 @@ import '../bloc/plan_bloc.dart';
 import '../bloc/plan_event.dart';
 import '../bloc/plan_state.dart';
 
-class UserTypeScreen extends StatelessWidget {
+class UserTypeScreen extends StatefulWidget {
+  @override
+  State<UserTypeScreen> createState() => _UserTypeScreenState();
+}
+
+class _UserTypeScreenState extends State<UserTypeScreen> {
   final List<String> userTypes = [
     "DRIVER",
     "E_RICKSHAW",
@@ -13,6 +18,7 @@ class UserTypeScreen extends StatelessWidget {
     "TAXI",
     "TRANSPORTER"
   ];
+
   String selectType = "";
 
   @override
@@ -22,7 +28,7 @@ class UserTypeScreen extends StatelessWidget {
       body: BlocListener<PlanBloc, PlanState>(
         listener: (context, state) {
           if (!state.loading && state.statusData != null) {
-            checkStatus(context);
+            checkStatus(context,"");
           }
 
           if (state.error != null) {
@@ -38,7 +44,7 @@ class UserTypeScreen extends StatelessWidget {
             return ListTile(
               title: Text(type),
               onTap: () {
-                context.read<PlanBloc>().add(FetchUserStatusEvent(selectType));
+                context.read<PlanBloc>().add(FetchUserStatusEvent(selectType,""));
               },
             );
           },
@@ -47,11 +53,11 @@ class UserTypeScreen extends StatelessWidget {
     );
   }
 
-  void checkStatus(BuildContext context) {
+  void checkStatus(BuildContext context,String title) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PlanSelectionScreen(category: selectType),
+        builder: (_) => PlanSelectionScreen(category: selectType,title: title,currentCategory: "",),
       ),
     );
   }

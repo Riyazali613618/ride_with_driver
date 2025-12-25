@@ -31,6 +31,7 @@ class CustomTextField extends StatefulWidget {
   final double borderRadius;
   final bool isPhoneField;
   final String? profileField;
+  final String? hintText;
   int? maxLength;
   TextCapitalization? textCapitalization;
   final bool autoFillFromProfile;
@@ -41,6 +42,7 @@ class CustomTextField extends StatefulWidget {
     super.key,
     required this.controller,
     required this.label,
+    this.hintText,
     this.validator,
     this.maxLength,
     this.focusNode,
@@ -299,7 +301,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
                               vertical: widget.maxLines == 1 ? 0 : 12.0,
                             ),
                         child: TextFormField(
-                          
                           textCapitalization: widget.textCapitalization!,
                           maxLength: widget.maxLength,
                           controller: widget.controller,
@@ -330,7 +331,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
                               
                           decoration: InputDecoration(
                             
-                            hintText: widget.showLabel ? null : widget.label,
+                            hintText: widget.label??"",
                             hintStyle: widget.hintStyle ??
                                 TextStyle(
                                   color: Colors.grey.shade400,

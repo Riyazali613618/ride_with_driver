@@ -8,7 +8,8 @@ import 'package:r_w_r/screens/layout.dart';
 import '../block/language/language_provider.dart';
 
 class LanguageSelectionScreen extends StatelessWidget {
-  const LanguageSelectionScreen({super.key});
+  final bool isRegistration;
+  const LanguageSelectionScreen({this.isRegistration=false,super.key});
 
   @override
   Widget build(BuildContext context) {

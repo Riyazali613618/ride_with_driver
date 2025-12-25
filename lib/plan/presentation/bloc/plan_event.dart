@@ -6,8 +6,9 @@ abstract class PlanEvent extends Equatable {
 }
 
 class FetchUserStatusEvent extends PlanEvent {
-  final String category;
-  FetchUserStatusEvent(this.category);
+  final String selectedCategory;
+  final String currentCategory;
+  FetchUserStatusEvent(this.selectedCategory,this.currentCategory);
 }
 
 class FetchPlansEvent extends PlanEvent {
@@ -16,3 +17,5 @@ class FetchPlansEvent extends PlanEvent {
   final String stateId;
   FetchPlansEvent(this.planFor, this.countryId, this.stateId);
 }
+
+class ResetStatusDataEvent extends PlanEvent {}

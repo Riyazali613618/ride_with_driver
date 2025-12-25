@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_w_r/constants/token_manager.dart';
 import 'package:r_w_r/utils/color.dart';
@@ -245,17 +246,10 @@ class CustomActivity extends StatelessWidget {
             break;
         }
       },
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: gradientFirst.withOpacity(0.01),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Image.asset(
-          icon,
-          height: 24,
-          width: 24,
-        ),
+      child: SvgPicture.asset(
+        icon,
+        height: 20,
+        width: 20,
       ),
     );
   }

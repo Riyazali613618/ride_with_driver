@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 
@@ -87,29 +88,35 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     _visiblePlan = widget.showDriverSubscription;
     final localizations = AppLocalizations.of(context)!;
-
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
-        decoration: BoxDecoration(
-          gradient:LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.01, 0.20, 0.31, .34],
-          ),
-        ),
+      body: CommonParentContainer(
+        showLargeGradient: false,
         child: Column(
           children: [
-            SafeArea(
-              child: Container(
-                height: 16,
-              ),
+            const SizedBox(
+              height: 40,
+            ),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  "Profile",
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                )
+              ],
             ),
             Expanded(
               child: Consumer<ProfileProvider>(
@@ -160,7 +167,8 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
             await Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (context) => RickshawProfileScreen(userType: userType!),
+                builder: (context) =>
+                    RickshawProfileScreen(userType: userType!),
               ),
             );
           } else if (['DRIVER', 'TRANSPORTER'].contains(userType)) {
@@ -201,22 +209,22 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               radius: 28,
               backgroundColor: Colors.grey[300],
               backgroundImage:
-              profileProvider.profileData?.profilePhoto != null &&
-                  profileProvider.profileData!.profilePhoto
-                      .toString()
-                      .isNotEmpty
-                  ? NetworkImage(
-                  profileProvider.profileData!.profilePhoto ?? '')
-                  : null,
+                  profileProvider.profileData?.profilePhoto != null &&
+                          profileProvider.profileData!.profilePhoto
+                              .toString()
+                              .isNotEmpty
+                      ? NetworkImage(
+                          profileProvider.profileData!.profilePhoto ?? '')
+                      : null,
               child: profileProvider.profileData?.profilePhoto == null ||
-                  profileProvider.profileData!.profilePhoto
-                      .toString()
-                      .isEmpty
+                      profileProvider.profileData!.profilePhoto
+                          .toString()
+                          .isEmpty
                   ? Icon(
-                CupertinoIcons.person_fill,
-                color: Colors.grey[600],
-                size: 28,
-              )
+                      CupertinoIcons.person_fill,
+                      color: Colors.grey[600],
+                      size: 28,
+                    )
                   : null,
             ),
             const SizedBox(width: 16),
@@ -367,15 +375,14 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
   }
 
   void showUserTerms(String type) {
-      showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          backgroundColor: Colors.transparent,
-          builder: (context) => TermsConditionsBottomSheet(
-            type: type,
-            buttonHide: true,
-          ));
-
+    showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => TermsConditionsBottomSheet(
+              type: type,
+              buttonHide: true,
+            ));
   }
 
   Widget _buildMenuItem({

@@ -1123,7 +1123,7 @@ class AppLocalizationsKn extends AppLocalizations {
   String get gender => 'gender';
 
   @override
-  String get vehicle_type => 'vehicleType';
+  String get vehicle_type => 'Vehicle Type';
 
   @override
   String get services_cities => 'servicesCities';

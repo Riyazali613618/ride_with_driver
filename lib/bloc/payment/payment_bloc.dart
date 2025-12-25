@@ -48,6 +48,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       print('[PaymentBloc] Processing payment success for plan: ${_currentInitiatePaymentEvent!.plan.name}');
       add(PaymentSuccess(
         response: response,
+        currentCategory: _currentInitiatePaymentEvent!.currentCategory,
         plan: _currentInitiatePaymentEvent!.plan,
         planType: _currentInitiatePaymentEvent!.planType,
         paymentType: _currentInitiatePaymentEvent!.paymentType,
@@ -85,12 +86,14 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
         case PaymentType.registrationOnly:
           orderResponse = await PaymentService.createOrderForRegistrationOnly(
             category: event.category ?? event.planType,
+            currentCategory: event.currentCategory??"",
             planId: event.plan.id,
           );
           break;
         case PaymentType.registrationWithSubscription:
           orderResponse = await PaymentService.createOrderForRegistrationWithSubscription(
             category: event.category ?? event.planType,
+            currentCategory: event.currentCategory??"",
             planId: event.plan.id,
           );
           break;
@@ -163,6 +166,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             planId: event.plan.id,
+            currentCategory: event.currentCategory??"",
           );
           break;
         case PaymentType.registrationOnly:
@@ -171,6 +175,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             category: event.category ?? event.planType,
+            currentCategory: event.currentCategory??"",
             registrationFeeId: event.registrationFeeId ?? '',
           );
           break;
@@ -180,6 +185,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             category: event.category ?? event.planType,
+            currentCategory: event.currentCategory??"",
             planId: event.plan.id,
             registrationFeeId: event.registrationFeeId ?? '',
           );

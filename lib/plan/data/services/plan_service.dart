@@ -39,6 +39,8 @@ class PlanService {
       final baseUrl = ApiConstants.baseUrl;
       final uri = Uri.parse(
           "$baseUrl/user/plans/location?planFor=$planFor&countryId=$countryId&stateId=$stateId");
+      print("Riyaz Ali getPlans:$uri");
+      print("Riyaz Ali getPlans Token:$token");
       final response = await http.get(uri,  headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',

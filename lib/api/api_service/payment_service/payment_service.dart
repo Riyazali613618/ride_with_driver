@@ -28,32 +28,43 @@ class PaymentService {
   static Future<Map<String, dynamic>> createOrderForRegistrationOnly({
     required String category,
     required String planId,
+    required String currentCategory,
   }) async {
-
-    return _createOrder({
-      'paymentType': 'SUBSCRIPTION',
-      'category': category,
-      'subscriptionPlanId': planId,
-      'paymentGatewayType': 'razorpay',
-    });
+    if (currentCategory.isNotEmpty) {
+      return _createUpgradeOrder({
+        'chosen_category': category,
+        'subscriptionPlanId': planId,
+      });
+    } else {
+      return _createOrder({
+        'paymentType': 'SUBSCRIPTION',
+        'category': category,
+        'subscriptionPlanId': planId,
+        'paymentGatewayType': 'razorpay',
+      });
+    }
   }
 
   // Create order for registration with subscription
   static Future<Map<String, dynamic>>
       createOrderForRegistrationWithSubscription({
+    required String currentCategory,
     required String category,
     required String planId,
   }) async {
-    print("==================================================");
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    print("==================================================");
-
-    return _createOrder({
-      'paymentType': 'SUBSCRIPTION',
-      'category': category,
-      'subscriptionPlanId': planId,
-      'paymentGatewayType': 'razorpay',
-    });
+    if (currentCategory.isNotEmpty) {
+      return _createUpgradeOrder({
+        'chosen_category': category,
+        'subscriptionPlanId': planId,
+      });
+    } else {
+      return _createOrder({
+        'paymentType': 'SUBSCRIPTION',
+        'category': category,
+        'subscriptionPlanId': planId,
+        'paymentGatewayType': 'razorpay',
+      });
+    }
   }
 
   // Generic create order method (for backward compatibility)
@@ -116,15 +127,38 @@ class PaymentService {
     required String razorpayPaymentId,
     required String razorpaySignature,
     required String planId,
+    required String currentCategory,
   }) async {
-    return _saveOrder({
-      'razorpay_order_id': razorpayOrderId,
-      'razorpay_payment_id': razorpayPaymentId,
-      'razorpay_signature': razorpaySignature,
-      'paymentType': 'SUBSCRIPTION',
-      'subscriptionPlanId': planId,
-      'paymentGatewayType': "razorpay",
-    });
+    if (currentCategory.isNotEmpty) {
+      return _verifyUpgradeOrder({
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_signature': razorpaySignature,
+        'paymentType': 'SUBSCRIPTION',
+        'subscriptionPlanId': planId,
+        'paymentGatewayType': "razorpay",
+      });
+    } else {
+      if (currentCategory.isNotEmpty) {
+        return _verifyUpgradeOrder({
+          'razorpay_order_id': razorpayOrderId,
+          'razorpay_payment_id': razorpayPaymentId,
+          'razorpay_signature': razorpaySignature,
+          'paymentType': 'SUBSCRIPTION',
+          'subscriptionPlanId': planId,
+          'paymentGatewayType': "razorpay",
+        });
+      } else {
+        return _saveOrder({
+          'razorpay_order_id': razorpayOrderId,
+          'razorpay_payment_id': razorpayPaymentId,
+          'razorpay_signature': razorpaySignature,
+          'paymentType': 'SUBSCRIPTION',
+          'subscriptionPlanId': planId,
+          'paymentGatewayType': "razorpay",
+        });
+      }
+    }
   }
 
   // Save order for registration only
@@ -133,17 +167,32 @@ class PaymentService {
     required String razorpayPaymentId,
     required String razorpaySignature,
     required String category,
+    required String currentCategory,
     required String registrationFeeId,
   }) async {
-    return _saveOrder({
-      'razorpay_order_id': razorpayOrderId,
-      'razorpay_payment_id': razorpayPaymentId,
-      'razorpay_signature': razorpaySignature,
-      'paymentType': 'SUBSCRIPTION',
-      'category': category,
-      'subscriptionPlanId': registrationFeeId,
-      'paymentGatewayType': "razorpay",
-    });
+    if (currentCategory.isNotEmpty) {
+      return _verifyUpgradeOrder({
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_signature': razorpaySignature,
+        'paymentType': 'SUBSCRIPTION',
+        'currentCategory': currentCategory,
+        'category': category,
+        'subscriptionPlanId': registrationFeeId,
+        'paymentGatewayType': "razorpay",
+      });
+    } else {
+      return _saveOrder({
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_signature': razorpaySignature,
+        'paymentType': 'SUBSCRIPTION',
+        'currentCategory': currentCategory,
+        'category': category,
+        'subscriptionPlanId': registrationFeeId,
+        'paymentGatewayType': "razorpay",
+      });
+    }
   }
 
   // Save order for registration with subscription
@@ -151,67 +200,32 @@ class PaymentService {
     required String razorpayOrderId,
     required String razorpayPaymentId,
     required String razorpaySignature,
+    required String currentCategory,
     required String category,
     required String planId,
     required String registrationFeeId,
   }) async {
-    return _saveOrder({
-      'razorpay_order_id': razorpayOrderId,
-      'razorpay_payment_id': razorpayPaymentId,
-      'razorpay_signature': razorpaySignature,
-      'paymentType': 'SUBSCRIPTION',
-      'category': category,
-      'subscriptionPlanId': planId,
-      'paymentGatewayType': "razorpay",
-    });
-  }
-
-  // Generic save order method (for backward compatibility)
-  static Future<Map<String, dynamic>> saveOrder({
-    required String razorpayOrderId,
-    required String razorpayPaymentId,
-    required String razorpaySignature,
-    String? planId,
-    String? category,
-    String? registrationFeeId,
-    PaymentType? paymentType,
-  }) async {
-    // Determine payment type and call appropriate method
-    if (paymentType == PaymentType.subscriptionRenewal && planId != null) {
-      return saveOrderForSubscriptionRenewal(
-        razorpayOrderId: razorpayOrderId,
-        razorpayPaymentId: razorpayPaymentId,
-        razorpaySignature: razorpaySignature,
-        planId: planId,
-      );
-    } else if (paymentType == PaymentType.registrationOnly &&
-        category != null &&
-        registrationFeeId != null) {
-      return saveOrderForRegistrationOnly(
-        razorpayOrderId: razorpayOrderId,
-        razorpayPaymentId: razorpayPaymentId,
-        razorpaySignature: razorpaySignature,
-        category: category,
-        registrationFeeId: registrationFeeId,
-      );
-    } else if (paymentType == PaymentType.registrationWithSubscription &&
-        category != null &&
-        planId != null &&
-        registrationFeeId != null) {
-      return saveOrderForRegistrationWithSubscription(
-        razorpayOrderId: razorpayOrderId,
-        razorpayPaymentId: razorpayPaymentId,
-        razorpaySignature: razorpaySignature,
-        category: category,
-        planId: planId,
-        registrationFeeId: registrationFeeId,
-      );
+    if (currentCategory.isNotEmpty) {
+      return _verifyUpgradeOrder({
+        'razorpay_order_id': razorpayOrderId,
+        'razorpay_payment_id': razorpayPaymentId,
+        'razorpay_signature': razorpaySignature,
+        'paymentType': 'SUBSCRIPTION',
+        'category': category,
+        'currentCategory': currentCategory,
+        'subscriptionPlanId': planId,
+        'paymentGatewayType': "razorpay",
+      });
     } else {
-      // Default behavior for backward compatibility
       return _saveOrder({
         'razorpay_order_id': razorpayOrderId,
         'razorpay_payment_id': razorpayPaymentId,
         'razorpay_signature': razorpaySignature,
+        'paymentType': 'SUBSCRIPTION',
+        'category': category,
+        'currentCategory': currentCategory,
+        'subscriptionPlanId': planId,
+        'paymentGatewayType': "razorpay",
       });
     }
   }
@@ -227,6 +241,59 @@ class PaymentService {
 
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/user/save-order'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      print("==================================================");
+      print(response);
+      print("==================================================");
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // Check if subscriptionId exists in the response data
+        if (responseData['data'] != null &&
+            responseData['data']['subscriptionId'] != null) {
+          final subscriptionId = responseData['data']['subscriptionId'];
+          print(
+              '[PaymentService] Found subscriptionId in response: $subscriptionId');
+
+          // Call regStatusUpdate with the subscriptionId (make it non-blocking)
+          try {
+            await regStatusUpdate(subscriptionId);
+            print('[PaymentService] regStatusUpdate completed successfully');
+          } catch (e) {
+            // Log the error but don't fail the entire payment process
+            print('[PaymentService] regStatusUpdate failed but continuing: $e');
+            // Note: We don't rethrow here so the payment can still be marked as successful
+          }
+        } else {
+          print('[PaymentService] No subscriptionId found in response data');
+        }
+
+        return responseData;
+      } else {
+        throw Exception('Failed to save order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to save order: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> _verifyUpgradeOrder(
+      Map<String, dynamic> requestBody) async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/user/verify-upgrade-payment'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -315,6 +382,51 @@ class PaymentService {
     } catch (e) {
       print('[PaymentService] Exception in regStatusUpdate: $e');
       throw Exception("Error fetching payment status: $e");
+    }
+  }
+
+  static Future<Map<String, dynamic>> _createUpgradeOrder(
+    Map<String, dynamic> requestBody,
+  ) async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+      print(token);
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/user/save-upgrade-order'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(requestBody),
+      );
+      print("==================================================");
+      print(response.body);
+      print("==================================================");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        var data = jsonDecode(response.body);
+        print("Errro : ${response.body}");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          rootScaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text(
+                data["error"].toString(),
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
+        throw Exception('Failed to create order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to create order: $e');
     }
   }
 }

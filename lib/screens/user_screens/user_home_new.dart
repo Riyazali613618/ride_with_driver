@@ -14,6 +14,7 @@ import 'package:r_w_r/screens/profileScreens/widget/videoPlayerWidget.dart';
 import 'package:r_w_r/screens/user_screens/JoinPartnerContainer.dart';
 import 'package:r_w_r/screens/user_screens/PartnerRegistrationWidget.dart'
     hide ApplicationStatus;
+import 'package:r_w_r/screens/user_screens/more/more_screen.dart';
 import 'package:r_w_r/screens/user_screens/vehicles.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,7 @@ import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
 import '../../plan/data/repositories/plan_repository.dart';
 import '../../plan/presentation/bloc/plan_bloc.dart';
+import '../auth_screens/select_language_screen.dart';
 import '../block/home/home_provider.dart';
 import '../block/language/language_provider.dart';
 import '../block/provider/profile_provider.dart';
@@ -58,102 +60,104 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   ApplicationStatus _status = ApplicationStatus.notStarted;
   String? whoReg;
 
-  // Future<ApplicationStatus> _getApplicationStatus() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final statusString = prefs.getString('auto_rickshaw_status');
-  //   if (statusString != null) {
-  //     return ApplicationStatus.values.firstWhere(
-  //           (e) => e.toString() == statusString,
-  //       orElse: () => ApplicationStatus.notStarted,
-  //     );
-  //   }
-  //   return ApplicationStatus.notStarted;
-  // }
+  Future<ApplicationStatus> _getApplicationStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final statusString = prefs.getString('auto_rickshaw_status');
+    if (statusString != null) {
+      return ApplicationStatus.values.firstWhere(
+            (e) => e.toString() == statusString,
+        orElse: () => ApplicationStatus.notStarted,
+      );
+    }
+    return ApplicationStatus.notStarted;
+  }
 
-  // Future<ApplicationStatus> _loadApplicationStatus() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final statusString = prefs.getString('auto_rickshaw_status');
-  //   if (statusString != null) {
-  //     setState(() {
-  //       _status = ApplicationStatus.values.firstWhere(
-  //             (e) => e.toString() == statusString,
-  //         orElse: () => ApplicationStatus.notStarted,
-  //       );
-  //     });
-  //   }
-  //   return ApplicationStatus.notStarted;
-  // }
-  //
-  // Future<ApplicationStatus> _loadApplicationStatusDriver() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final statusString = prefs.getString('driver_status');
-  //   if (statusString != null) {
-  //     setState(() {
-  //       _status = ApplicationStatus.values.firstWhere(
-  //             (e) => e.toString() == statusString,
-  //         orElse: () => ApplicationStatus.notStarted,
-  //       );
-  //     });
-  //   }
-  //   return ApplicationStatus.notStarted;
-  // }
-  // Future<ApplicationStatus> _loadApplicationStatusER() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final statusString = prefs.getString('er_status');
-  //   if (statusString != null) {
-  //     setState(() {
-  //       _status = ApplicationStatus.values.firstWhere(
-  //             (e) => e.toString() == statusString,
-  //         orElse: () => ApplicationStatus.notStarted,
-  //       );
-  //     });
-  //   }
-  //   return ApplicationStatus.notStarted;
-  // }
-  // Future<ApplicationStatus> _loadApplicationStatusTrans() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final statusString = prefs.getString('transporter_status');
-  //   if (statusString != null) {
-  //     setState(() {
-  //       _status = ApplicationStatus.values.firstWhere(
-  //             (e) => e.toString() == statusString,
-  //         orElse: () => ApplicationStatus.notStarted,
-  //       );
-  //     });
-  //   }
-  //   return ApplicationStatus.notStarted;
-  // }
-  // Future<ApplicationStatus> _loadApplicationStatusIndi() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   final statusString = prefs.getString('indi_status');
-  //   if (statusString != null) {
-  //     setState(() {
-  //       _status = ApplicationStatus.values.firstWhere(
-  //             (e) => e.toString() == statusString,
-  //         orElse: () => ApplicationStatus.notStarted,
-  //       );
-  //     });
-  //   }
-  //   return ApplicationStatus.notStarted;
-  // }
-  //
-  // Future<void> _loadWhoReg() async {
-  //   final prefs = await SharedPreferences.getInstance();
-  //   whoReg = prefs.getString('who_reg');
-  //
-  //   if (whoReg == "Auto") {
-  //     _loadApplicationStatus();
-  //   }else if(whoReg == "Driver"){
-  //     _loadApplicationStatusDriver();
-  //   }else if(whoReg == "ER"){
-  //     _loadApplicationStatusER();
-  //   }else if(whoReg == "Transporter"){
-  //     _loadApplicationStatusTrans();
-  //   }else if(whoReg == "Indi"){
-  //     _loadApplicationStatusIndi();
-  //   }
-  // }
-  Future<ApplicationStatus> _loadApplicationStatus(String key) async {
+  Future<ApplicationStatus> _loadApplicationStatus(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    final statusString = prefs.getString(type);
+    if (statusString != null) {
+      setState(() {
+        _status = ApplicationStatus.values.firstWhere(
+              (e) => e.toString() == statusString,
+          orElse: () => ApplicationStatus.notStarted,
+        );
+      });
+    }
+    return ApplicationStatus.notStarted;
+  }
+
+  Future<ApplicationStatus> _loadApplicationStatusDriver() async {
+    final prefs = await SharedPreferences.getInstance();
+    final statusString = prefs.getString('driver_status');
+    if (statusString != null) {
+      setState(() {
+        _status = ApplicationStatus.values.firstWhere(
+              (e) => e.toString() == statusString,
+          orElse: () => ApplicationStatus.notStarted,
+        );
+      });
+    }
+    return ApplicationStatus.notStarted;
+  }
+  Future<ApplicationStatus> _loadApplicationStatusER() async {
+    final prefs = await SharedPreferences.getInstance();
+    final statusString = prefs.getString('er_status');
+    if (statusString != null) {
+      setState(() {
+        _status = ApplicationStatus.values.firstWhere(
+              (e) => e.toString() == statusString,
+          orElse: () => ApplicationStatus.notStarted,
+        );
+      });
+    }
+    return ApplicationStatus.notStarted;
+  }
+  Future<ApplicationStatus> _loadApplicationStatusTrans() async {
+    final prefs = await SharedPreferences.getInstance();
+    final statusString = prefs.getString('transporter_status');
+    if (statusString != null) {
+      setState(() {
+        _status = ApplicationStatus.values.firstWhere(
+              (e) => e.toString() == statusString,
+          orElse: () => ApplicationStatus.notStarted,
+        );
+      });
+    }
+    return ApplicationStatus.notStarted;
+  }
+  Future<ApplicationStatus> _loadApplicationStatusIndi() async {
+    final prefs = await SharedPreferences.getInstance();
+    final statusString = prefs.getString('indi_status');
+    if (statusString != null) {
+      setState(() {
+        _status = ApplicationStatus.values.firstWhere(
+              (e) => e.toString() == statusString,
+          orElse: () => ApplicationStatus.notStarted,
+        );
+      });
+    }
+    return ApplicationStatus.notStarted;
+  }
+
+  Future<void> _loadWhoReg() async {
+    final prefs = await SharedPreferences.getInstance();
+    whoReg = prefs.getString('who_reg');
+
+    if (whoReg == "Auto") {
+      _loadApplicationStatus("auto_rickshaw_status");
+    }else if(whoReg == "Driver"){
+      _loadApplicationStatusDriver();
+    }else if(whoReg == "ER"){
+      _loadApplicationStatusER();
+    }else if(whoReg == "Transporter"){
+      _loadApplicationStatusTrans();
+    }else if(whoReg == "Indi"){
+      _loadApplicationStatusIndi();
+    }
+  }
+
+
+/*  Future<ApplicationStatus> _loadApplicationStatus(String key) async {
     final prefs = await SharedPreferences.getInstance();
     final statusString = prefs.getString(key);
 
@@ -169,7 +173,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     });
 
     return status; // ✅ return actual status
-  }
+  }*/
 
   /// 🔹 Wrapper to decide which status to load based on whoReg
   Future<ApplicationStatus> _loadWhoRegAndStatus() async {
@@ -398,6 +402,14 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
         profileProvider.showDialogBox(context);
       });
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfileData();
+    });
+  }
+
+  Future<void> _loadProfileData() async {
+    await context.read<ProfileProvider>().loadProfile(context);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -1197,110 +1209,136 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                     children: [
                       Padding(
                           padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: ClipOval(
-                                  child: Image.network(
-                                    profileProvider.profilePhoto.toString(),
-                                    width: 40,
-                                    height: 40,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.account_circle_sharp,
-                                        color: Colors.grey,
-                                        size: 35,
-                                      );
-                                    },
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                CupertinoPageRoute(
+                                  builder: (context) => MoreScreen(
+                                    showDriverSubscription:
+                                        widget.showDriverSubscription??false,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Hi, ${profileProvider.fullName ?? "Getting Name"}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
+                              );
+                            },
+                            child: Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: ClipOval(
+                                    child: Image.network(
+                                      profileProvider.profilePhoto.toString(),
+                                      width: 40,
+                                      height: 40,
+                                      fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Icon(
+                                          Icons.account_circle_sharp,
+                                          color: Colors.grey,
+                                          size: 35,
+                                        );
+                                      },
                                     ),
-                                    Text(
-                                      currentLocationName,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 1,
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 8),
-                              Consumer<LanguageProvider>(
-                                builder: (context, languageProvider, child) {
-                                  return GestureDetector(
-                                    onTap: null,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 6),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Image.asset(
-                                            'assets/img/flagIcon.png',
-                                            height: 22,
-                                            width: 22,
-                                          ),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            languageProvider
-                                                    .currentLanguage?.name ??
-                                                'En',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.w500,
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Hi, ${profileProvider.fullName ?? "Getting Name"}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                      Text(
+                                        currentLocationName,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Consumer<LanguageProvider>(
+                                  builder: (context, languageProvider, child) {
+                                    return GestureDetector(
+                                      onTap: null,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 6),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Image.asset(
+                                              'assets/img/flagIcon.png',
+                                              height: 22,
+                                              width: 22,
                                             ),
-                                          ),
-                                        ],
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            GestureDetector(
+                                              onTap: () async {
+                                                final lang =
+                                                    await Navigator.push<bool>(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          const LanguageSelectionScreen()),
+                                                );
+                                              },
+                                              child: Text(
+                                                languageProvider.currentLanguage
+                                                        ?.name ??
+                                                    'En',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 6),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          NotificationListScreen(),
-                                    ),
-                                  );
-                                },
-                                child: const Icon(
-                                  CupertinoIcons.bell_solid,
-                                  color: Colors.white,
-                                  size: 22,
+                                    );
+                                  },
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            NotificationListScreen(),
+                                      ),
+                                    );
+                                  },
+                                  child: const Icon(
+                                    CupertinoIcons.bell_solid,
+                                    color: Colors.white,
+                                    size: 22,
+                                  ),
+                                ),
+                              ],
+                            ),
                           )),
 
                       _buildImageSlider(),
@@ -1717,8 +1755,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                   ),
                                                 ),
                                               );
-
-
                                             },
                                             child: Row(
                                               mainAxisAlignment:

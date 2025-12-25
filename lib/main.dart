@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 // API and BLoC imports
@@ -20,6 +23,8 @@ import 'package:r_w_r/bloc/payment/payment_bloc.dart';
 
 // Screen and service imports
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
+import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_bloc.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_vehicle_screen.dart';
 import 'package:r_w_r/firebase_options.dart';
 import 'package:r_w_r/plan/data/repositories/plan_repository.dart';
 import 'package:r_w_r/plan/presentation/bloc/plan_bloc.dart';
@@ -31,10 +36,13 @@ import 'package:r_w_r/screens/autoRikshawDriverRegistration.dart';
 import 'package:r_w_r/screens/block/home/home_provider.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 import 'package:r_w_r/screens/block/provider/profile_provider.dart';
+import 'package:r_w_r/screens/dashboard/dashboard_bloc.dart';
+import 'package:r_w_r/screens/dashboard/dashboard_state.dart';
 import 'package:r_w_r/screens/driverRegistrationScreen.dart';
 import 'package:r_w_r/screens/driver_screens/dashbord.dart';
 import 'package:r_w_r/screens/eRickshawRegistration.dart';
-import 'package:r_w_r/screens/independentCarOwnerRegistration.dart';
+import 'package:r_w_r/screens/independentCarOwnerRegistration.dart'
+    hide ProfileProvider, LocationProvider;
 import 'package:r_w_r/screens/registration_screens/indipendent_car_owner_registration_screen.dart';
 import 'package:r_w_r/screens/transporterRegistration.dart';
 import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
@@ -44,6 +52,12 @@ import 'api/api_service/notification_globle_service.dart';
 import 'booking/data/repository/mock_repository.dart';
 import 'booking/presentation/bloc/make_booking_bloc.dart';
 import 'booking/presentation/bloc/manage_booking_bloc.dart';
+import 'features/newDashboard/dashboard_api_service.dart';
+import 'features/newDashboard/dashboard_repository.dart';
+import 'features/vehicles/data/datasources/vehicle_remote_datasource.dart';
+import 'features/vehicles/data/repositories/vehicle_repository_impl.dart';
+import 'features/vehicles/domain/usecases/get_vehicles_usecase.dart';
+import 'features/vehicles/presentation/bloc/vehicle_list_bloc.dart';
 import 'firebase_config.dart';
 import 'l10n/app_localizations.dart'; // Generated file
 
@@ -64,12 +78,21 @@ Future<void> _firebaseBackgroundMessage(RemoteMessage message) async {
   }
 }
 
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (cert, host, port) => true;
+  }
+}
+
 Future<void> main() async {
   try {
     print("Starting app initialization...");
 
     WidgetsFlutterBinding.ensureInitialized();
     print("Flutter binding initialized");
+    HttpOverrides.global = MyHttpOverrides();
 
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
@@ -151,17 +174,42 @@ class MyApp extends StatelessWidget {
     // Create a single instance of ApiRepository to be shared across all BLoCs
     final apiRepository = ApiRepository();
 
+    final vehicleRemoteDatasource = VehicleRemoteDatasourceImpl();
+
+    final vehicleRepository = VehicleRepositoryImpl(vehicleRemoteDatasource);
+
+    final getVehiclesUseCase = GetVehiclesUseCase(vehicleRepository);
+
     return MultiRepositoryProvider(
         providers: [
           RepositoryProvider(create: (_) => PlanRepository()),
         ],
         child: MultiBlocProvider(
           providers: [
-            BlocProvider(create: (_) => ManageBookingBloc(MockRepository())..add(LoadBookings())),
+            BlocProvider<VehicleListBloc>(
+              create: (_) => VehicleListBloc(getVehiclesUseCase),
+            ),
+            BlocProvider(
+                create: (_) =>
+                    ManageBookingBloc(MockRepository())..add(LoadBookings())),
             BlocProvider(create: (_) => MakeBookingBloc(MockRepository())),
             // Provider dependencies first
             BlocProvider(
               create: (context) => PlanBloc(context.read<PlanRepository>()),
+            ),
+            BlocProvider(
+              create: (_) => DashboardBloc(
+                DashboardRepository(
+                  DashboardApiService(http.Client()),
+                ),
+              ),
+            ),
+            BlocProvider(
+              create: (_) => UpgradeablePlansBloc(
+                UpgradeablePlansRepository(
+                  DashboardApiService(http.Client()),
+                ),
+              ),
             ),
             ChangeNotifierProvider(create: (_) => LanguageProvider()),
             Provider<UserProfileService>(create: (_) => UserProfileService()),
@@ -170,6 +218,7 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ProfileViewModel()),
             ChangeNotifierProvider(
                 create: (_) => VehicleRegistrationProvider()),
+            ChangeNotifierProvider(create: (_) => AddVehicleProvider()),
             ChangeNotifierProvider(create: (_) => LocationProvider()),
 
             // BLoC Providers that depend on providers

@@ -13,7 +13,7 @@ class NotificationServiceInApp {
     try {
       final token = await TokenManager.getToken();
       final response = await http.get(
-        Uri.parse('$baseUrl/user/my-notification'),
+        Uri.parse('$baseUrl/user/notifications'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

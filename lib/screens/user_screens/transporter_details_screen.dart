@@ -59,21 +59,21 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
 
   Future<void> _loadTransporterDetails() async {
     // try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
 
-      final details = await TransporterDetailsService.getTransporterDetails(
-        widget.transporterId,
-      );
-      print("details:${details}");
-      if (mounted) {
-        setState(() {
-          _transporterDetails = details;
-          _isLoading = false;
-        });
-      }
+    final details = await TransporterDetailsService.getTransporterDetails(
+      widget.transporterId,
+    );
+    print("details:${details}");
+    if (mounted) {
+      setState(() {
+        _transporterDetails = details;
+        _isLoading = false;
+      });
+    }
     // } catch (e) {
     //   if (mounted) {
     //     setState(() {
@@ -135,7 +135,8 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
             _buildTransporterHeader(),
             _buildContactInfo(),
             _buildFleetInfo(),
-            if (_transporterDetails!.provider!.bio!.isNotEmpty) _buildAboutSection(),
+            if (_transporterDetails!.provider!.bio!.isNotEmpty)
+              _buildAboutSection(),
             _buildVehiclesSection(),
             _buildReviewsSection(),
             const SizedBox(height: 20),
@@ -153,8 +154,8 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-                ColorConstants.primaryColor),
+            valueColor:
+                AlwaysStoppedAnimation<Color>(ColorConstants.primaryColor),
             strokeWidth: 3,
           ),
           const SizedBox(height: 16),
@@ -296,21 +297,21 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
                       child: ClipOval(
                         child: transporter!.profilePhoto!.isNotEmpty
                             ? CachedNetworkImage(
-                          imageUrl: transporter!.profilePhoto!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.person, size: 40),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.person, size: 40),
-                          ),
-                        )
+                                imageUrl: transporter!.profilePhoto!,
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.person, size: 40),
+                                ),
+                                errorWidget: (context, url, error) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.person, size: 40),
+                                ),
+                              )
                             : Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.person, size: 40),
-                        ),
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.person, size: 40),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -611,7 +612,8 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
-              children: _buildPaginationDots(vehicles.length, _currentVehicleIndex),
+              children:
+                  _buildPaginationDots(vehicles.length, _currentVehicleIndex),
             ),
           ),
       ],
@@ -638,7 +640,8 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Vehicle Image
-          if (vehicle.images!.isNotEmpty && vehicle.images!.any((img) => img.isNotEmpty))
+          if (vehicle.images!.isNotEmpty &&
+              vehicle.images!.any((img) => img.isNotEmpty))
             ClipRRect(
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
@@ -720,7 +723,7 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
                       '${vehicle.seatingCapacity} ${localizations.seats}',
                     ),
                     const SizedBox(width: 12),
-                    if (vehicle!.airConditioning==true)
+                    if (vehicle!.airConditioning == true)
                       _buildVehicleSpec(
                         Icons.ac_unit,
                         vehicle!.airConditioning.toString(),
@@ -730,7 +733,8 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    Icon(Icons.confirmation_number, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.confirmation_number,
+                        size: 16, color: Colors.grey[600]),
                     const SizedBox(width: 6),
                     Text(
                       vehicle.vehicleNumber!,
@@ -923,7 +927,8 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.directions_car_outlined, size: 60, color: Colors.grey[400]),
+            Icon(Icons.directions_car_outlined,
+                size: 60, color: Colors.grey[400]),
             const SizedBox(height: 16),
             Text(
               localizations.no_vehicles_available,

@@ -14,6 +14,7 @@ import '../../api/api_model/vehicle/add_vehicle_model.dart';
 import '../../components/app_appbar.dart';
 import '../../constants/api_constants.dart';
 import '../../constants/color_constants.dart';
+import '../../features/vehicles/presentation/pages/vehicles_list_page.dart';
 import '../../l10n/app_localizations.dart';
 import '../vehicle/add_vehicle_screen.dart';
 import 'driver_profile_info.dart';
@@ -61,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_isLoading && _dashboardData.isEmpty) {
-      // _fetchDashboardData();
+      _fetchDashboardData();
     }
   }
 
@@ -84,7 +85,8 @@ class _DashboardScreenState extends State<DashboardScreen>
       print("Fetching dashboard data...");
 
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/user/register/home-'),
+        Uri.parse('${ApiConstants
+            .baseUrl}/user/bookings/partner-dashboard?filter_type=card&time_filter=1month'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -98,7 +100,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         final data = json.decode(response.body);
         print("Decoded data: $data");
 
-        if (data['status'] == true) {
+        if (data['success'] == true) {
           setState(() {
             _dashboardData = data['data'] ?? {};
             _activityData = _dashboardData['activity'] ??
@@ -147,7 +149,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
 
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/user/vehicle/vehicle'),
+        Uri.parse('${ApiConstants.baseUrl}/user/vehicles'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -291,19 +293,20 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Navigator.push(
                   context,
                   CupertinoPageRoute(
-                    builder: (context) => TransporterDriverProfileScreen(
-                      userType: _userTypes.contains('TRANSPORTER')
-                          ? 'TRANSPORTER'
-                          : _userTypes.contains('DRIVER')
+                    builder: (context) =>
+                        TransporterDriverProfileScreen(
+                          userType: _userTypes.contains('TRANSPORTER')
+                              ? 'TRANSPORTER'
+                              : _userTypes.contains('DRIVER')
                               ? 'DRIVER'
                               : _userTypes.contains('INDEPENDENT_CAR_OWNER')
-                                  ? 'INDEPENDENT_CAR_OWNER'
-                                  : _userTypes.contains('RICKSHAW')
-                                      ? 'RICKSHAW'
-                                      : _userTypes.contains('E_RICKSHAW')
-                                          ? 'E_RICKSHAW'
-                                          : 'DRIVER',
-                    ),
+                              ? 'INDEPENDENT_CAR_OWNER'
+                              : _userTypes.contains('RICKSHAW')
+                              ? 'RICKSHAW'
+                              : _userTypes.contains('E_RICKSHAW')
+                              ? 'E_RICKSHAW'
+                              : 'DRIVER',
+                        ),
                   ),
                 );
               },
@@ -327,25 +330,25 @@ class _DashboardScreenState extends State<DashboardScreen>
         child: _isLoading
             ? _buildLoadingIndicator()
             : _errorMessage.isNotEmpty
-                ? _buildErrorWidget()
-                : Column(
-                    children: [
-                      _buildTabBar(),
-                      Expanded(
-                        child: RefreshIndicator(
-                          onRefresh: _fetchDashboardData,
-                          color: ColorConstants.primaryColor,
-                          child: TabBarView(
-                            controller: _tabController,
-                            children: [
-                              _buildStatsTab(),
-                              _buildVehiclesTab(),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+            ? _buildErrorWidget()
+            : Column(
+          children: [
+            _buildTabBar(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: _fetchDashboardData,
+                color: ColorConstants.primaryColor,
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildStatsTab(),
+                    _buildVehiclesTab(),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -484,10 +487,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                       Navigator.push(
                         context,
                         CupertinoPageRoute(
-                          builder: (context) => AddVehicleScreen(
-                            removeAutoRikshaw:
+                          builder: (context) =>
+                              AddVehicleScreen(
+                                removeAutoRikshaw:
                                 _userTypes.contains('TRANSPORTER'),
-                          ),
+                              ),
                         ),
                       ).then((_) => _fetchVehicles());
                     } else {
@@ -506,9 +510,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
-                        builder: (context) => PlanSelectionScreen(
-                          planType: 'REGISTRATION', planFor: 'TRANSPORTER', countryId: '', stateId: '',
-                        ),
+                        builder: (context) =>
+                            PlanSelectionScreen(
+                              planType: 'REGISTRATION',
+                              planFor: 'TRANSPORTER',
+                              countryId: '',
+                              stateId: '',
+                            ),
                       ),
                     );
                   },
@@ -699,12 +707,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: isSelected
                       ? [
-                          BoxShadow(
-                            color: ColorConstants.primaryColor.withAlpha(75),
-                            blurRadius: 8,
-                            offset: Offset(0, 2),
-                          ),
-                        ]
+                    BoxShadow(
+                      color: ColorConstants.primaryColor.withAlpha(75),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ]
                       : null,
                 ),
                 child: Text(
@@ -724,8 +732,8 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildDonutChart(
-      int reachPercentage, List<double> sectionPercentages) {
+  Widget _buildDonutChart(int reachPercentage,
+      List<double> sectionPercentages) {
     final localizations = AppLocalizations.of(context)!;
 
     return Container(
@@ -827,7 +835,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             iconBgColor: Colors.blue.withAlpha(25),
             label: localizations.chat,
             callsAttended:
-                '${_currentPeriodData['chat']} ${localizations.messages}',
+            '${_currentPeriodData['chat']} ${localizations.messages}',
           ),
           _buildStatRow(
             imagePath: "assets/img/Mask group (2).png",
@@ -835,7 +843,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             iconBgColor: Colors.green.withAlpha(25),
             label: localizations.whatsapp,
             callsAttended:
-                '${_currentPeriodData['whatsapp']} ${localizations.messages}',
+            '${_currentPeriodData['whatsapp']} ${localizations.messages}',
           ),
           _buildStatRow(
             imagePath: "assets/img/Mask group (1).png",
@@ -843,7 +851,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             iconBgColor: Colors.purple.withAlpha(25),
             label: localizations.call,
             callsAttended:
-                '${_currentPeriodData['call']}${localizations.calls}',
+            '${_currentPeriodData['call']}${localizations.calls}',
           ),
           _buildStatRow(
             imagePath: "assets/img/eye.png",
@@ -851,7 +859,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             iconBgColor: Colors.orange.withAlpha(25),
             label: localizations.views,
             callsAttended:
-                '${_currentPeriodData['click']} ${localizations.clicks}',
+            '${_currentPeriodData['click']} ${localizations.clicks}',
             isLast: true,
           ),
         ],
@@ -928,7 +936,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              callsAttended.split(' ').first,
+              callsAttended
+                  .split(' ')
+                  .first,
               style: TextStyle(
                 color: iconColor,
                 fontWeight: FontWeight.bold,
@@ -995,7 +1005,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                     ),
                     Text(
-                      '${_vehicles.length}/$_maxLimit ${localizations.vehicleAdded}',
+                      '${_vehicles.length}/$_maxLimit ${localizations
+                          .vehicleAdded}',
                       style: TextStyle(
                         color: Colors.white.withAlpha(225),
                         fontSize: 14,
@@ -1007,14 +1018,21 @@ class _DashboardScreenState extends State<DashboardScreen>
               GestureDetector(
                 onTap: () {
                   if (_vehicles.length >= _maxLimit) {
-                    _showUpgradePlanDialog();
+                    // _showUpgradePlanDialog();
+                    Navigator.push(context, CupertinoPageRoute(
+                      builder: (context) {
+                        return VehiclesListingPage();
+                      },
+                    ));
                   } else if (_userTypes.contains('TRANSPORTER')) {
                     Navigator.push(
                       context,
                       CupertinoPageRoute(
-                        builder: (context) => AddVehicleScreen(
-                          removeAutoRikshaw: _userTypes.contains('TRANSPORTER'),
-                        ),
+                        builder: (context) =>
+                            AddVehicleScreen(
+                              removeAutoRikshaw: _userTypes.contains(
+                                  'TRANSPORTER'),
+                            ),
                       ),
                     ).then((_) => _fetchVehicles());
                   } else {
@@ -1122,8 +1140,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         _isLoadingVehicles
             ? _buildVehiclesLoadingState()
             : _vehicles.isEmpty
-                ? _buildNoVehiclesState()
-                : _buildVehiclesList(),
+            ? _buildNoVehiclesState()
+            : _buildVehiclesList(),
       ],
     );
   }
@@ -1222,9 +1240,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Navigator.push(
                   context,
                   CupertinoPageRoute(
-                    builder: (context) => AddVehicleScreen(
-                      removeAutoRikshaw: _userTypes.contains('TRANSPORTER'),
-                    ),
+                    builder: (context) =>
+                        AddVehicleScreen(
+                          removeAutoRikshaw: _userTypes.contains('TRANSPORTER'),
+                        ),
                   ),
                 ).then((_) => _fetchVehicles());
               } else {
@@ -1250,7 +1269,10 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildVehiclesList() {
     return Column(
-      children: _vehicles.asMap().entries.map((entry) {
+      children: _vehicles
+          .asMap()
+          .entries
+          .map((entry) {
         int index = entry.key;
         Vehicle vehicle = entry.value;
         return Container(
@@ -1315,27 +1337,27 @@ class _DashboardScreenState extends State<DashboardScreen>
                     borderRadius: BorderRadius.circular(15),
                     child: vehicle.images.isNotEmpty
                         ? Image.network(
-                            vehicle.images.first,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                color: Colors.grey[200],
-                                child: Icon(
-                                  Icons.directions_car,
-                                  color: Colors.grey[400],
-                                  size: 30,
-                                ),
-                              );
-                            },
-                          )
-                        : Container(
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.directions_car,
-                              color: Colors.grey[400],
-                              size: 30,
-                            ),
+                      vehicle.images.first,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[200],
+                          child: Icon(
+                            Icons.directions_car,
+                            color: Colors.grey[400],
+                            size: 30,
                           ),
+                        );
+                      },
+                    )
+                        : Container(
+                      color: Colors.grey[200],
+                      child: Icon(
+                        Icons.directions_car,
+                        color: Colors.grey[400],
+                        size: 30,
+                      ),
+                    ),
                   ),
                 ),
 
@@ -1543,9 +1565,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Navigator.push(
                             context,
                             CupertinoPageRoute(
-                              builder: (context) => PlanSelectionScreen(
-                                planType: 'REGISTRATION', planFor: 'TRANSPORTER', countryId: '', stateId: '',
-                              ),
+                              builder: (context) =>
+                                  PlanSelectionScreen(
+                                    planType: 'REGISTRATION',
+                                    planFor: 'TRANSPORTER',
+                                    countryId: '',
+                                    stateId: '',
+                                  ),
                             ),
                           );
                         },

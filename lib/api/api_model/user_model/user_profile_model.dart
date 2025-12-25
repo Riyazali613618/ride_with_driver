@@ -34,10 +34,14 @@ class UserData {
   final String? number;
   final String email;
   final String language;
+  final String languageID;
+  final String userType;
 
   UserData({
     required this.firstName,
+    required this.userType,
     required this.lastName,
+    required this.languageID,
     this.number,
     required this.email,
     required this.language,
@@ -48,14 +52,17 @@ class UserData {
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       number: json['number'],
+      userType: json['usertype'] ?? '',
       email: json['email'] ?? '',
-      language: json['language'] ?? '',
+      language: json['language']!=null?json['language']["name"] ?? '':"",
+      languageID: json['language']!=null?json['language']["id"] ?? '':""
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'firstName': firstName,
+      'userType': userType,
       'lastName': lastName,
       if (number != null) 'number': number,
       'email': email,
@@ -68,13 +75,17 @@ class UserData {
     String? lastName,
     String? number,
     String? email,
+    String? userType,
     String? language,
+    String? languageID,
   }) {
     return UserData(
+      userType: userType ?? this.userType,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       number: number ?? this.number,
       email: email ?? this.email,
+      languageID: languageID ?? this.languageID,
       language: language ?? this.language,
     );
   }

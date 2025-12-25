@@ -27,6 +27,7 @@ dependencies:
   #  visibility_detector: ^0.4.0+2
   image_picker: ^1.1.2
   fl_chart: ^0.71.0
+  speedometer_chart: ^1.0.8
   share_plus: ^11.0.0
   razorpay_flutter: ^1.4.0
   #  file_picker: ^10.1.6
@@ -66,6 +67,7 @@ dependencies:
   geocoding: ^4.0.0
   image_cropper: ^8.0.2
   path: ^1.9.0
+  dio: ^5.4.0
 
 dev_dependencies:
   flutter_test:

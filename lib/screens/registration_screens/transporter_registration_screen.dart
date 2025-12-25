@@ -22,6 +22,7 @@ import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
 import '../block/provider/profile_provider.dart';
 import '../other/terms_and_coditions_bottom_sheet.dart';
+import '../registrationSyccessfulScreen.dart';
 
 class TransporterScreen extends StatefulWidget {
   const TransporterScreen({super.key});
@@ -639,7 +640,7 @@ class _TransporterScreenState extends State<TransporterScreen> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Layout()),
+          MaterialPageRoute(builder: (context) => const RegistrationSuccessfulScreen(userType: "TRANSPORTER",)),
         );
       } else {
         if (!mounted) return;

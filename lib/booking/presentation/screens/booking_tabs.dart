@@ -7,7 +7,9 @@ import 'manageBooking/manage_booking_page.dart';
 import 'myBookings/my_booking_page.dart';
 
 class BookingTabs extends StatefulWidget {
-  const BookingTabs({super.key});
+  final bool isManageBooking;
+
+  const BookingTabs({this.isManageBooking = false, super.key});
 
   @override
   State<BookingTabs> createState() => _BookingTabsState();
@@ -15,18 +17,15 @@ class BookingTabs extends StatefulWidget {
 
 class _BookingTabsState extends State<BookingTabs>
     with SingleTickerProviderStateMixin {
-  late TabController _tc;
-
   @override
   void initState() {
-    _tc = TabController(length: 2, vsync: this);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: false, // Prevents default pop behavior
+        canPop: true, // Prevents default pop behavior
         onPopInvokedWithResult: (didPop, result) {
           // previousStep(context);
         },
@@ -71,45 +70,14 @@ class _BookingTabsState extends State<BookingTabs>
                       decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
                           color: Colors.white),
-                      child: TabBar(
-                        indicatorWeight: 2,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        padding: EdgeInsets.zero,
-                        dividerHeight: 0,
-                        controller: _tc,
-                        labelColor: Colors.purple.shade800,
-                        unselectedLabelColor: Colors.grey,
-                        indicator: BoxDecoration(
-                            color: Color(0x1F641BB4),
-                            borderRadius: BorderRadius.only(
-                                topLeft:
-                                    Radius.circular(_tc.index == 0 ? 12 : 0),
-                                bottomLeft:
-                                    Radius.circular(_tc.index == 0 ? 12 : 0),
-                                topRight:
-                                    Radius.circular(_tc.index == 0 ? 12 : 0),
-                                bottomRight:
-                                    Radius.circular(_tc.index == 0 ? 12 : 0))),
-                        tabs: [
-                          Tab(
-                            child: Text(
-                              "Manage Booking",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                  color: Colors.black),
-                            ),
-                          ),
-                          Tab(
-                            child: Text(
-                              "My Booking",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                  color: Colors.black),
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        widget.isManageBooking
+                            ? "Manage Bookings"
+                            : "My Bookings",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -159,10 +127,9 @@ class _BookingTabsState extends State<BookingTabs>
                     ),
                   ),
                   Expanded(
-                    child: TabBarView(controller: _tc, children: const [
-                      ManageBookingPage(),
-                      MyBookingPage()
-                    ]),
+                    child: widget.isManageBooking
+                        ? ManageBookingPage()
+                        : MyBookingPage(),
                   )
                 ],
               ),

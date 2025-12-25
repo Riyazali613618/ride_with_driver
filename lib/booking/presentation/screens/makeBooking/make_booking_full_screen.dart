@@ -157,7 +157,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                 ),
               ),
             ),
-            const Spacer(),
+          const Spacer(),
 
           const SizedBox(width: 12),
 

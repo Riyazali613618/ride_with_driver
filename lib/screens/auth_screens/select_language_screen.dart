@@ -10,7 +10,8 @@ import '../../utils/color.dart';
 import '../block/language/language_provider.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
-  const LanguageSelectionScreen({Key? key}) : super(key: key);
+  final bool isRegistration;
+  const LanguageSelectionScreen({this.isRegistration=false,super.key});
 
   @override
   State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
@@ -281,10 +282,7 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
             if(languageProvider.currentLanguage?.code==lang.code){
               print("langData:${lang.id} ${languageProvider.currentLanguage?.code}");
               languageProvider.setLangCode(lang.id!);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-              );
+              Navigator.of(context).pop();
               return;
             }
           }

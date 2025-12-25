@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:r_w_r/components/booking_container.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -61,7 +62,7 @@ class _SupportPageState extends State<SupportPage>
         errorMessage = '';
       });
 
-      final uri = Uri.parse('${widget.baseUrl}/session/support');
+      final uri = Uri.parse('${widget.baseUrl}/public/support');
 
       final response = await http.get(
         uri,
@@ -80,23 +81,16 @@ class _SupportPageState extends State<SupportPage>
         final data = json.decode(response.body);
 
         if (data != null && data is Map<String, dynamic>) {
-          if (data['status'] == true && data['data'] != null) {
-            final emailsData = data['data']['emails'];
-            final contactData = data['data']['contact'];
-
-            setState(() {
-              emails = emailsData != null && emailsData is List
-                  ? emailsData
-                      .map<EmailSupport>(
-                          (email) => EmailSupport.fromJson(email))
-                      .toList()
-                  : [];
-              contact = contactData != null
-                  ? ContactInfo.fromJson(contactData)
-                  : null;
-              isLoading = false;
-            });
-
+          if (data['success'] == true && data['data'] != null) {
+            if (true) {
+              setState(() {
+                emails = data['data']
+                    .map<EmailSupport>((data) => EmailSupport.fromJson(data))
+                    .toList();
+                contact = ContactInfo.fromJson(data['data'][0]);
+                isLoading = false;
+              });
+            }
             if (mounted) {
               _animationController.forward();
             }
@@ -118,7 +112,8 @@ class _SupportPageState extends State<SupportPage>
     } on Exception catch (e) {
       _handleError(e.toString().replaceFirst('Exception: ', ''));
     } catch (e) {
-      _handleError('An unexpected error occurred. Please try again.');
+      _handleError(
+          'An unexpected error occurred. Please try again.${e.toString()}');
     }
   }
 
@@ -316,20 +311,14 @@ class _SupportPageState extends State<SupportPage>
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: CustomAppBar(
-        title: localizations.support_center,
-        elevation: 0,
-        centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
-      ),
       body: RefreshIndicator(
         onRefresh: _fetchSupportData,
-        child: _buildBody(),
+        child: _buildBody(localizations),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(AppLocalizations localizations) {
     if (isLoading) {
       return _buildLoadingState();
     }
@@ -340,24 +329,36 @@ class _SupportPageState extends State<SupportPage>
 
     return FadeTransition(
       opacity: _fadeAnimation,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(),
-            const SizedBox(height: 24),
-            if (emails.isNotEmpty) ...[
-              _buildEmailSection(),
-              const SizedBox(height: 32),
-            ],
-            if (contact != null) ...[
-              _buildContactSection(),
-              const SizedBox(height: 24),
-            ],
-          ],
-        ),
+      child: BookingContainer(
+        showLargeGradient: true,
+        child: Column(children: [
+          CustomAppBar(
+            title: localizations.support_center,
+            titleColor: Colors.white,
+            elevation: 0,
+            centerTitle: true,
+            systemOverlayStyle: SystemUiOverlayStyle.light,
+          ),
+          Expanded(child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 24),
+                if (emails.isNotEmpty) ...[
+                  _buildEmailSection(),
+                  const SizedBox(height: 32),
+                ],
+                if (contact != null) ...[
+                  _buildContactSection(),
+                  const SizedBox(height: 24),
+                ],
+              ],
+            ),
+          )),
+        ]),
       ),
     );
   }
@@ -461,12 +462,7 @@ class _SupportPageState extends State<SupportPage>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            gradientFirst,
-            gradientSecond,
-            gradientThird,
-            Colors.white
-          ],
+          colors: [gradientFirst, gradientSecond, gradientThird, Colors.white],
           stops: [0.01, 0.20, 0.31, .34],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -685,7 +681,7 @@ class _SupportPageState extends State<SupportPage>
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => _launchPhone(contact!.phone),
+          onTap: () => _launchPhone(contact!.contact),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -715,7 +711,7 @@ class _SupportPageState extends State<SupportPage>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  contact!.phone,
+                  contact!.contact,
                   style: TextStyle(
                     fontSize: 14,
                     color: Colors.green[600],
@@ -820,6 +816,16 @@ class _SupportPageState extends State<SupportPage>
   }
 }
 
+class SupportModel {
+  final String email;
+  final String contact;
+
+  const SupportModel({required this.email, required this.contact});
+
+  @override
+  List<Object?> get props => [contact, email];
+}
+
 class EmailSupport {
   final String id;
   final int numId;
@@ -857,7 +863,7 @@ class EmailSupport {
 }
 
 class ContactInfo {
-  final String phone;
+  final String contact;
   final String phoneTitle;
   final String phoneDesc;
   final String addressTitle;
@@ -866,7 +872,7 @@ class ContactInfo {
   final String id;
 
   ContactInfo({
-    required this.phone,
+    required this.contact,
     required this.phoneTitle,
     required this.phoneDesc,
     required this.addressTitle,
@@ -877,7 +883,7 @@ class ContactInfo {
 
   factory ContactInfo.fromJson(Map<String, dynamic> json) {
     return ContactInfo(
-      phone: json['phone']?.toString() ?? '',
+      contact: json['contact']?.toString() ?? '',
       phoneTitle: json['phoneTitle']?.toString() ?? 'Call Us',
       phoneDesc: json['phoneDesc']?.toString() ?? '',
       addressTitle: json['addressTitle']?.toString() ?? 'Our Office',
@@ -889,6 +895,12 @@ class ContactInfo {
 
   @override
   String toString() {
-    return 'ContactInfo{phone: $phone, phoneTitle: $phoneTitle, phoneDesc: $phoneDesc, addressTitle: $addressTitle, addressLine1: $addressLine1, addressLine2: $addressLine2, id: $id}';
+    return 'ContactInfo{phone: $contact, phoneTitle: $phoneTitle, phoneDesc: $phoneDesc, addressTitle: $addressTitle, addressLine1: $addressLine1, addressLine2: $addressLine2, id: $id}';
   }
+}
+
+mixin A {
+  var a = 2;
+
+  dataA() {}
 }

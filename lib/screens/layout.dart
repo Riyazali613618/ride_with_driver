@@ -3,13 +3,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/api/api_service/verify_otp_service.dart';
+import 'package:r_w_r/booking/presentation/screens/manageBooking/manage_booking_page.dart';
+import 'package:r_w_r/booking/presentation/screens/myBookings/my_booking_page.dart';
 import 'package:r_w_r/constants/token_manager.dart';
+import 'package:r_w_r/screens/dashboard/dashboard_screen_new.dart';
 import 'package:r_w_r/screens/favoriteScreen.dart';
 import 'package:r_w_r/screens/user_screens/PartnerRegistrationWidget.dart';
 import 'package:r_w_r/screens/user_screens/more/more_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:r_w_r/screens/user_screens/user_home_new.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../booking/presentation/screens/booking_tabs.dart';
 import '../constants/api_constants.dart';
@@ -24,9 +29,10 @@ class Layout extends StatefulWidget {
   final int initialIndex;
   final bool isFirstTime;
 
-   const Layout({
+  const Layout({
     super.key,
-    this.initialIndex = 0, this.isFirstTime=false,
+    this.initialIndex = 0,
+    this.isFirstTime = false,
   });
 
   @override
@@ -50,6 +56,7 @@ class _LayoutState extends State<Layout> {
     super.initState();
     _index = widget.initialIndex;
     refreshToken();
+    getUserProfile();
   }
 
   String? accessToken;
@@ -154,17 +161,23 @@ class _LayoutState extends State<Layout> {
   }
 
   List<Widget> _getPages(bool showDashboard) {
-    if (showDashboard) {
+    if (true) {
       return [
         // const TransportApp(showDriverSubscription: false),
         UserHomeNewScreen(
           showDriverSubscription: false,
           isFirstTime: widget.isFirstTime,
         ),
-        const DashboardScreen(),
+        FavoriteScreen(),
+        if (showDashboard) const DashboardScreenNew(),
         // PartnerRegistrationWidget(),
         ChatListScreen(controller: _chatListController),
+
+        const BookingTabs(),
+
+/*
         const MoreScreen(showDriverSubscription: false),
+*/
       ];
     }
     return [
@@ -178,7 +191,6 @@ class _LayoutState extends State<Layout> {
         baseUrl: ApiConstants.baseUrl,
       ),*/
       ChatListScreen(controller: _chatListController),
-      const MoreScreen(showDriverSubscription: true),
       const BookingTabs(),
     ];
   }
@@ -186,7 +198,7 @@ class _LayoutState extends State<Layout> {
   List<BottomNavigationBarItem> _getNavigationItems(bool showDashboard) {
     final localizations = AppLocalizations.of(context)!;
 
-    if (showDashboard) {
+    if (_showDashboard) {
       return [
         BottomNavigationBarItem(
           icon: const Icon(CupertinoIcons.home, color: Colors.black),
@@ -215,17 +227,17 @@ class _LayoutState extends State<Layout> {
           label: localizations.message,
           activeIcon: Icon(Icons.message, color: ColorConstants.primaryColor),
         ),
-        BottomNavigationBarItem(
+        /* BottomNavigationBarItem(
           icon: const Icon(CupertinoIcons.profile_circled, color: Colors.black),
           label: localizations.profile,
           activeIcon: Icon(CupertinoIcons.profile_circled,
               color: ColorConstants.primaryColor),
-        ),
+        ),*/
         BottomNavigationBarItem(
           icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
-          label: localizations.profile,
-          activeIcon: Icon(CupertinoIcons.car_fill,
-              color: ColorConstants.primaryColor),
+          label: "Booking",
+          activeIcon:
+              Icon(CupertinoIcons.car_fill, color: ColorConstants.primaryColor),
         ),
       ];
     }
@@ -247,23 +259,36 @@ class _LayoutState extends State<Layout> {
         label: localizations.message,
         activeIcon: Icon(Icons.message, color: ColorConstants.primaryColor),
       ),
-      BottomNavigationBarItem(
+      /*BottomNavigationBarItem(
         icon: const Icon(CupertinoIcons.profile_circled, color: Colors.black),
         label: localizations.profile,
         activeIcon: Icon(CupertinoIcons.profile_circled,
             color: ColorConstants.primaryColor),
-      ),
+      ),*/
       BottomNavigationBarItem(
         icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
         label: "Booking",
-        activeIcon: Icon(CupertinoIcons.car_fill,
-            color: ColorConstants.primaryColor),
+        activeIcon:
+            Icon(CupertinoIcons.car_fill, color: ColorConstants.primaryColor),
       ),
     ];
   }
 
-  void _onItemTapped(int index, List<Widget> pages) {
+  Future<void> _onItemTapped(int index, List<Widget> pages) async {
     if (!mounted) return;
+    if (index == pages.length - 1) {
+      final userType = await TokenManager.getUserType() ?? "user";
+
+      if (userType.toLowerCase() == UserTypes.user.name) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MyBookingPage()),
+        );
+        return;
+      }
+      showBookingBottomSheet();
+      return;
+    }
 
     final chatTabIndex = pages.length == 5 ? 3 : 2;
     if (index == chatTabIndex && _index != chatTabIndex) {
@@ -448,8 +473,8 @@ class _LayoutState extends State<Layout> {
 
     return Consumer<HomeDataProvider>(
       builder: (context, provider, child) {
-        final pages = _getPages(provider.showDashboard);
-        final navigationItems = _getNavigationItems(provider.showDashboard);
+        final pages = _getPages(_showDashboard);
+        final navigationItems = _getNavigationItems(_showDashboard);
 
         if (_index >= pages.length) {
           _index = 0;
@@ -498,8 +523,8 @@ class _LayoutState extends State<Layout> {
                   onTap: (index) => _onItemTapped(index, pages),
                   elevation: 0,
                   showUnselectedLabels: true,
-                  selectedFontSize: 14,
-                  selectedIconTheme: const IconThemeData(size: 28),
+                  selectedFontSize: 12,
+                  selectedIconTheme: const IconThemeData(size: 20),
                   backgroundColor: Colors.white,
                 ),
               ),
@@ -507,6 +532,123 @@ class _LayoutState extends State<Layout> {
           ),
         );
       },
+    );
+  }
+
+  void showBookingBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // drag handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+
+              _ActionButton(
+                title: "Manage Booking",
+                backgroundColor: const Color(0xFFE0E0E0),
+                textColor: Colors.grey.shade700,
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const ManageBookingPage()),
+                  );
+                }, // disabled
+              ),
+
+              const SizedBox(height: 16),
+
+              _ActionButton(
+                title: "My Booking",
+                backgroundColor: const Color(0xFF6A1BC2),
+                textColor: Colors.white,
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const MyBookingPage()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  bool _showDashboard = false;
+
+  Future<void> getUserProfile() async {
+    final data = await UserProfileService().getUserProfile();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('who_reg', data.data?.userType??"");
+    if (data.data != null && data.data!.userType.toLowerCase() != "client") {
+      _showDashboard = true;
+      setState(() {});
+    }
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final String title;
+  final Color backgroundColor;
+  final Color textColor;
+  final VoidCallback? onTap;
+
+  const _ActionButton({
+    required this.title,
+    required this.backgroundColor,
+    required this.textColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: onTap,
+        style: ElevatedButton.styleFrom(
+          elevation: 4,
+          backgroundColor: backgroundColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          shadowColor: Colors.black.withOpacity(0.15),
+        ),
+        child: Text(
+          title,
+          style: TextStyle(
+            color: textColor,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -518,4 +660,9 @@ enum ErrorType {
   timeout,
   apiError,
   unknown,
+}
+
+enum UserTypes {
+  user,
+  partner,
 }

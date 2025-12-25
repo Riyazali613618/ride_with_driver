@@ -26,10 +26,12 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
   final String planType;
   final PaymentType paymentType;
   final String? category;
+  final String? currentCategory;
 
   const PaymentBottomSheetBlocView({
     Key? key,
     required this.plan,
+    required this.currentCategory,
     required this.planType,
     this.paymentType = PaymentType.subscriptionRenewal,
     this.category,
@@ -128,11 +130,13 @@ class _PaymentBottomSheetBlocViewState
                       ),
                       const SizedBox(height: 24),
                       // Plan card
+/*
                       _buildPlanCard(),
+
                       const SizedBox(height: 24),
                       // Payment type indicator
                       _buildPaymentTypeIndicator(),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 24),*/
                       _buildTotalAndPaymentButton(),
                       const SizedBox(height: 16),
                       // Bottom indicator bar
@@ -380,7 +384,7 @@ class _PaymentBottomSheetBlocViewState
                 ),
               ),
               Text(
-                'Rs ${widget.plan.earlyBirdDiscountPrice.toStringAsFixed(2)}',
+                'Rs ${widget.plan.finalPrice.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -404,6 +408,7 @@ class _PaymentBottomSheetBlocViewState
                                 planType: widget.planType,
                                 paymentType: widget.paymentType,
                                 category: widget.category,
+                                currentCategory: widget.currentCategory,
                               ),
                             );
 

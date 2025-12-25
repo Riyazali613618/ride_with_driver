@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:r_w_r/booking/presentation/screens/booking_tabs.dart';
 import 'package:r_w_r/booking/presentation/screens/makeBooking/make_booking_full_screen.dart';
+import 'package:r_w_r/booking/presentation/screens/myBookings/my_booking_page.dart';
 import 'package:r_w_r/booking/presentation/widgets/add_value_popup.dart';
 import 'package:r_w_r/booking/presentation/widgets/show_otp_popup.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
@@ -18,9 +20,11 @@ class ViewBookingDetailsScreen extends StatefulWidget {
   final bool isMyBooking;
   final bool isQuoteRequest;
   final String type;
+  final String userType;
 
   const ViewBookingDetailsScreen(
       {required this.isMyBooking,
+      required this.userType,
       required this.isQuoteRequest,
       required this.selectedVehicle,
       required this.type,
@@ -51,6 +55,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
               children: [
                 const SizedBox(height: 42),
                 Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -67,16 +72,13 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                     ),
                   ],
                 ),
-                if (widget.isQuoteRequest) const SizedBox(height: 10),
 
-                if (!widget.isMyBooking && !widget.isQuoteRequest && widget.type != "History")
-                  showEditCancelView(context),
-                if((widget.isMyBooking && widget.type!="Pending Quotes" ))
-                  showEditCancelView(context),
-                const SizedBox(height: 10),
-                if (!widget.isQuoteRequest &&
-                    widget.type != "History" &&
-                    (widget.isMyBooking && widget.type != "Pending Quotes"))
+                if ((widget.type==MyBookingTabs.myBooking.name || widget.type==MyBookingTabs.sentQuoteRequest.name || widget.type==SelectedTab.booking.name || widget.type==SelectedTab.pendingQuotes.name))
+                  ...[
+                    showEditCancelView(context),
+                    const SizedBox(height: 10),
+                  ],
+                if ((widget.isMyBooking && widget.type==MyBookingTabs.myBooking.name) ||(!widget.isMyBooking && widget.type==SelectedTab.booking.name))
                   Row(
                     children: [
                       Expanded(
@@ -296,6 +298,31 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                                           color: Colors.white))),
                             ),
                             const SizedBox(height: 10),
+                            GestureDetector(
+                              onTap: () {
+
+                              },
+                              child: Container(
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xFFB16449),
+                                    borderRadius: BorderRadius.circular(6),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Color(0x40641BB4),
+                                        blurRadius: 4,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 10, vertical: 4),
+                                  child: Text("  + Add Value  ",
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w400,
+                                          color: Colors.white))),
+                            ),
                             GestureDetector(
                               onTap: () {
                                 showDialog(
@@ -536,11 +563,11 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                 _bigNoteBox(),
                 const SizedBox(height: 36),
 
-                if (widget.type != "Booking" && (!widget.isMyBooking)) ...[
+                if (widget.type != "Booking" && (!widget.isMyBooking) && widget.type!=SelectedTab.pendingQuotes.name) ...[
                   _sendQuotationBtn(),
                   const SizedBox(height: 40),
                 ],
-                if(widget.isMyBooking && widget.type=="Pending Quotes" )...[
+                if(widget.isMyBooking && widget.type==MyBookingTabs.pendingQuotes.name )...[
                   _acceptDeclineBtn(),
                   const SizedBox(height: 40),
                 ]
@@ -1088,7 +1115,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (widget.type != "Pending Quote")
+        if (widget.type!=MyBookingTabs.sentQuoteRequest.name && widget.type!=SelectedTab.pendingQuotes.name)
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             color: Colors.red,
@@ -1101,7 +1128,6 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
             ),
           ),
         Spacer(),
-        if (!widget.isMyBooking)
           GestureDetector(
             onTap: () {
               CommonUtils.goToScreen(context, MakeBookingFullScreen());

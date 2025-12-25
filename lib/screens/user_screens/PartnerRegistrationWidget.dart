@@ -1,28 +1,27 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/components/custom_activity.dart';
+import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_bloc.dart';
+import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_event.dart';
+import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_state.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:r_w_r/utils/images.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../bloc/payment/payment_bloc.dart';
-import '../../bloc/plan_flow/plan_flow_cubit.dart';
-import '../../constants/color_constants.dart';
 import '../../l10n/app_localizations.dart';
 import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../../plan/presentation/bloc/plan_event.dart';
 import '../../plan/presentation/bloc/plan_state.dart';
 import '../../plan/presentation/screens/plan_selection_screen.dart' as planNew;
-
-import '../driverRegistrationScreen.dart';
-import '../driver_screens/driver_registration.dart';
-import '../driver_screens/plans.dart';
 import '../../screens/autoRikshawDriverRegistration.dart';
+import '../../screens/independentCarOwnerRegistration.dart'
+    hide ProfileProvider;
 import '../../screens/transporterRegistration.dart';
-import '../../screens/independentCarOwnerRegistration.dart';
-import '../eRickshawRegistration.dart';
 import '../block/provider/profile_provider.dart';
+import '../driverRegistrationScreen.dart';
+import '../eRickshawRegistration.dart';
 
 enum ApplicationStatus { notStarted, inProgress, completed, rejected }
 
@@ -35,6 +34,7 @@ class PartnerRegistrationWidget extends StatefulWidget {
 }
 
 class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
+  String currentCategory="";
   String? whoReg;
   bool isLoading = true;
   ApplicationStatus applicationStatus = ApplicationStatus.notStarted;
@@ -47,35 +47,35 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       'title': 'Transport Driver',
       'icon': transporter,
       'key': "TRANSPORTER",
-      'route': TransporterRegistrationFlow(),
+      'route': "TransporterRegistrationFlow",
       'colors': [Color(0xFFE8F5E8), Color(0xFFB8E6B8)]
     },
     {
       'title': 'Independent Taxi Owner',
       'icon': aloneDriver,
       'key': "INDEPENDENT_CAR_OWNER",
-      'route': IndependentTaxiOwnerFlow(),
+      'route': "IndependentTaxiOwnerFlow",
       'colors': [Color(0xFFE3F2FD), Color(0xFF90CAF9)]
     },
     {
       'title': 'Auto Rickshaw Driver',
       'icon': auto,
       'key': "RICKSHAW",
-      'route': AutoRickshawDriverFlow(),
+      'route': "AutoRickshawDriverFlow",
       'colors': [Color(0xFFF3E5F5), Color(0xFFCE93D8)]
     },
     {
       'title': 'E Rickshaw Driver',
       'icon': erickshaw,
       'key': "E_RICKSHAW",
-      'route': ERickshawDriverFlow(),
+      'route': "ERickshawDriverFlow",
       'colors': [Color(0xFFFFEBEE), Color(0xFFFFAB91)]
     },
     {
       'title': 'Stand Alone Driver',
       'icon': taxiDriver,
       'key': 'DRIVER',
-      'route': DriverRegistrationFlow(),
+      'route': "DriverRegistrationFlow",
       'colors': [Color(0xFFFFF8E1), Color(0xFFFFE082)]
     },
   ];
@@ -89,13 +89,17 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
     _loadStatus();
   }
 
-  Future<void> _loadStatus() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      whoReg = prefs.getString('who_reg');
-    } catch (_) {}
-
-    setState(() => isLoading = false);
+  void _loadStatus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        whoReg = prefs.getString('who_reg');
+      } catch (_) {}
+      context
+          .read<UpgradeablePlansBloc>()
+          .add(UpgradeablePlanLoad(whoReg ?? ""));
+      setState(() => isLoading = false);
+    });
   }
 
   // ---------------------------------------------------------------------
@@ -105,15 +109,31 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
     required BuildContext context,
     required bool hasSubscription,
     required String category,
+    required String currentCategory,
   }) {
     if (!hasSubscription) {
+      String title = category == UserType.TRANSPORTER.name
+          ? "Become a Transporter"
+          : category == UserType.DRIVER.name
+              ? "Become Independent Taxi Driver"
+              : category == UserType.RICKSHAW.name
+                  ? "Become a Rickshaw Driver"
+                  : category == UserType.E_RICKSHAW.name
+                      ? "Become a E-Rickshaw Driver"
+                      : category == UserType.INDEPENDENT_CAR_OWNER.name
+                          ? "Become a Stand Alone Driver"
+                          : "";
       Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => BlocProvider(
             create: (_) =>
                 PaymentBloc(profileProvider: context.read<ProfileProvider>()),
-            child: planNew.PlanSelectionScreen(category: category),
+            child: planNew.PlanSelectionScreen(
+              category: category,
+              title: title,
+              currentCategory: currentCategory,
+            ),
           ),
         ),
       );
@@ -123,44 +143,67 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
   }
 
   void _launchRegistrationFlow(String type) {
-    Widget target = DriverRegistrationFlow();
-
-    final map = {
-      "TRANSPORTER": TransporterRegistrationFlow(),
-      "INDEPENDENT_CAR_OWNER": IndependentTaxiOwnerFlow(),
-      "RICKSHAW": AutoRickshawDriverFlow(),
-      "E_RICKSHAW": ERickshawDriverFlow(),
-      "DRIVER": DriverRegistrationFlow(),
-    };
-
-    if (map.containsKey(type)) target = map[type]!;
-
-    Navigator.push(context, MaterialPageRoute(builder: (_) => target));
+    switch (type) {
+      case "TRANSPORTER":
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => TransporterRegistrationFlow()));
+        break;
+      case "INDEPENDENT_CAR_OWNER":
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => IndependentTaxiOwnerFlow()));
+        break;
+      case "RICKSHAW":
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => AutoRickshawDriverFlow()));
+        break;
+      case "E_RICKSHAW":
+        Navigator.push(
+            context, MaterialPageRoute(builder: (_) => ERickshawDriverFlow()));
+        break;
+      case "DRIVER":
+        Navigator.push(context,
+            MaterialPageRoute(builder: (_) => DriverRegistrationFlow()));
+        break;
+    }
   }
 
   // ---------------------------------------------------------------------
   // MAIN BUILD
   // ---------------------------------------------------------------------
+  bool handled = false;
+
   @override
   Widget build(BuildContext context) {
+    if (whoReg == "TRANSPORTER") {
+      return Center(
+        child: Text(
+          "You are already registered as Transporter",
+          style: TextStyle(color: Colors.black),
+        ),
+      );
+    }
     final local = AppLocalizations.of(context);
 
     if (isLoading) return _loadingScreen();
 
     return CommonParentContainer(
       child: BlocListener<PlanBloc, PlanState>(
+        listenWhen: (previous, current) {
+          return previous.statusData != current.statusData &&
+              current.statusData != null &&
+              !current.loading;
+        },
         listener: (context, state) {
-          if (state.statusData != null) {
-            final hasSub =
-                state.statusData!['hasActiveSubscription'] ?? false;
-            final type = state.statusData!['category'] ?? '';
+          final hasSub = state.statusData!['hasActiveSubscription'] ?? false;
+          final type = state.statusData!['category'] ?? '';
+          final currentCategory = state.statusData!['currentCategory'] ?? '';
 
-            _navigateAfterPlanCheck(
-              context: context,
-              hasSubscription: hasSub,
-              category: type,
-            );
-          }
+          _navigateAfterPlanCheck(
+            context: context,
+            hasSubscription: hasSub,
+            category: type,
+            currentCategory: currentCategory,
+          );
         },
         child: Scaffold(
           backgroundColor: Colors.transparent,
@@ -175,7 +218,10 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             titleSpacing: 0,
             title: const Text(
               "Select your Partnership Type",
-              style: TextStyle(fontSize: 18,color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
             ),
           ),
           body: _buildScrollableContent(),
@@ -192,7 +238,12 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [gradientFirst, gradientSecond, gradientThird, Colors.white],
+            colors: [
+              gradientFirst,
+              gradientSecond,
+              gradientThird,
+              Colors.white
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -205,31 +256,51 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
   }
 
   Widget _buildScrollableContent() {
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.only(top: 130, left: 16, right: 16),
-          sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1,
+    return BlocBuilder<UpgradeablePlansBloc, UpgradeablePlansState>(
+      builder: (context, state) {
+        final List<Map<String, dynamic>> filteredOptions;
+
+        if (state is UpgradeablePlansLoaded &&
+            state.data.data?.availableUpgrades?.isNotEmpty == true) {
+          final allowedCategories = state.data.data!.availableUpgrades!
+              .map((e) => e.upgradeCategory)
+              .toSet();
+
+          filteredOptions = options
+              .where((option) => allowedCategories.contains(option['key']))
+              .toList();
+         currentCategory= state.data.data?.currentCategory??"";
+        } else {
+          filteredOptions = List<Map<String, dynamic>>.from(options);
+        }
+
+        return CustomScrollView(
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.only(top: 130, left: 16, right: 16),
+              sliver: SliverGrid(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1,
+                ),
+                delegate: SliverChildBuilderDelegate(
+                  childCount: filteredOptions.length,
+                  (context, index) => _buildOptionCard(filteredOptions[index]),
+                ),
+              ),
             ),
-            delegate: SliverChildBuilderDelegate(
-              childCount: options.length,
-                  (context, index) => _buildOptionCard(options[index]),
-            ),
-          ),
-        ),
-      ],
+          ],
+        );
+      },
     );
   }
 
   Widget _buildOptionCard(Map<String, dynamic> option) {
     return GestureDetector(
       onTap: () {
-        context.read<PlanBloc>().add(FetchUserStatusEvent(option['key']));
+        context.read<PlanBloc>().add(FetchUserStatusEvent(option['key'],currentCategory));
       },
       child: Container(
         padding: const EdgeInsets.all(16),

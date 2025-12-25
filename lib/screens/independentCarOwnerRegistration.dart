@@ -1,31 +1,26 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
+import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../api/api_model/language/language_model.dart';
 import '../api/api_model/registrations/become_driver_registration_model.dart';
-import '../api/api_model/registrations/transporter_model.dart' hide Address;
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/indi_car_service.dart';
 import '../api/api_service/registration_services/transporter_service.dart';
-import '../utils/color.dart';
 import '../constants/api_constants.dart';
 import '../constants/token_manager.dart';
-import '../../bloc/driver/driver_bloc.dart';
-import '../../bloc/driver/driver_event.dart';
-import '../../bloc/driver/driver_state.dart';
+import '../utils/color.dart';
 import 'block/provider/profile_provider.dart';
-import 'block/language/language_provider.dart';
-import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
-import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
-
 import 'multi_step_progress_bar.dart';
 
 class IndependentTaxiOwnerFlow extends StatefulWidget {
@@ -88,9 +83,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeLocation();
+      _prefillData();
+      _loadCurrentStep();
     });
-    // _loadCurrentStep();
-    _prefillData();
   }
 
   void _initializeLocation() {
@@ -141,9 +136,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   // Validation methods
   String? _validateRequired(String? value, String fieldName) {
-    if (value == null || value.trim().isEmpty) {
-      return '$fieldName is required';
-    }
+    if (value == null || value.trim().isEmpty) return '$fieldName is required';
     return null;
   }
 
@@ -870,10 +863,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           .uploadMedia(xFileAadhaarBack, kind: "document", type: "document");
       aadhaarBackUrl = aadharCardPhotoBack.url!;
     }
-    if (drivingLicense.isNotEmpty &&
-        drivingLicense.length > 1 &&
-        drivingLicense[1]!.path.isNotEmpty) {
-      final XFile drivingLicenseFile = XFile(drivingLicense[1]!.path);
+    if (drivingLicense.isNotEmpty ) {
+      final XFile drivingLicenseFile = XFile(drivingLicense[0]!.path);
       final drivingLicencePhotoUrl = await MediaService()
           .uploadMedia(drivingLicenseFile, kind: "document", type: "document");
       drivingLicencePhoto = drivingLicencePhotoUrl.url!;
@@ -899,18 +890,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       aadharCardNumber: _aadharCardController.text,
       aadharCardPhotoFront: aadhaarFrontUrl ?? '',
       aadharCardPhotoBack: aadhaarBackUrl ?? '',
-      drivingLicenceNumber: (drivingLicense != null &&
-              drivingLicense.isNotEmpty &&
-              drivingLicense.length >= 1)
-          ? drivingLicense[0]!.path
-          : '',
+      drivingLicenceNumber: _drivingLicenseController.text,
       drivingLicencePhoto: drivingLicencePhoto,
       transportationPermitPhoto: transportationPermitPhoto,
       independentCarOwnerFleetSize: FleetSize(
-          cars: vehicleCounts['Car'] ?? 0,
-          minivans: vehicleCounts['Mini Van'] ?? 0,
-          buses: vehicleCounts['Bus'] ?? 0,
-          suvs: vehicleCounts['Suv'] ?? 0),
+          cars: 1 ?? 0,
+          minivans: 1 ?? 0,
+          buses:  0,
+          suvs:  0),
     );
     try {
       final response = await BecomeDriverServiceIndi()
@@ -968,31 +955,20 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      onPopInvokedWithResult: (didPop, result) {
-        if (currentStep == 0 &&Navigator.canPop(context)) {
-          Navigator.of(context).pop();
+    return WillPopScope(
+      // handle physical back button
+      onWillPop: () async {
+        if (currentStep == 0) {
+          return true; // allow pop
         } else {
           previousStep();
+          return false; // prevent pop
         }
       },
-      canPop: false,
-      child: Scaffold(
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                gradientFirst,
-                gradientSecond,
-                gradientThird,
-                Colors.white
-              ],
-              stops: [0.0, 0.15, 0.30, .90],
-            ),
-          ),
-          child: SafeArea(
+      child: CommonParentContainer(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: SafeArea(
             child: Column(
               children: [
                 _buildHeader(),
@@ -1052,12 +1028,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             ),
           ),
           SizedBox(width: 16),
-          Text(
-            'Become Independent Taxi Owner',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+          Expanded(
+            child: Text(
+              'Become Independent Taxi Owner',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

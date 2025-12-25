@@ -15,4 +15,8 @@ class ApiConstants {
 
   static const int connectionTimeout = 15;
   static const int receiveTimeout = 15;
+
+
+  static const vehicles = '/user/vehicles';
+
 }

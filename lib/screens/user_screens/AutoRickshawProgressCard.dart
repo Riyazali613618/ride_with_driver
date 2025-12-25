@@ -10,7 +10,7 @@ import '../../api/api_model/language/language_model.dart';
 import '../../constants/color_constants.dart';
 import '../../l10n/app_localizations.dart';
 import '../../transporterRegistration/presentation/pages/transporter_registration_page.dart';
-import '../independentCarOwnerRegistration.dart';
+import '../independentCarOwnerRegistration.dart' hide ApplicationStatus;
 import '../registration_screens/auto_rikshaw_registration_screenn.dart';
 import '../registration_screens/indipendent_car_owner_registration_screen.dart';
 import '../registration_screens/transporter_registration_screen.dart';

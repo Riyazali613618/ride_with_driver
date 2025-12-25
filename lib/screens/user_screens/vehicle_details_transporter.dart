@@ -6,9 +6,11 @@ import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/screens/user_screens/transporter_details_screen.dart';
+import 'package:r_w_r/screens/widgets/gradient_button.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:video_player/video_player.dart';
 import 'package:http/http.dart' as http;
+import '../../components/app_loader.dart';
 import '../../components/custom_activity.dart';
 import '../../constants/api_constants.dart';
 import '../../constants/assets_constant.dart';
@@ -51,7 +53,6 @@ class _VehicleDetailScreenTransPorterState
     super.initState();
     _initializeMedia();
 
-
     _mediaPageController = PageController();
 
     _animationController = AnimationController(
@@ -69,16 +70,18 @@ class _VehicleDetailScreenTransPorterState
 
     _controller = VideoPlayerController.network(
       'https://example.com/your-video.mp4',
-    )..initialize().then((_) {
-      setState(() {});
-    });
+    )
+      ..initialize().then((_) {
+        setState(() {});
+      });
 
     _animationController.forward();
   }
 
   Future<void> _verifyReview(String reviewDone, bool status) async {
     try {
-      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+      final profileProvider =
+      Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
@@ -129,11 +132,12 @@ class _VehicleDetailScreenTransPorterState
   void _showFullScreenMedia(int index) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => _FullScreenMediaViewer(
-          mediaList: _allMedia,
-          initialIndex: index,
-          isVideo: (url) => widget.vehicle.videos.contains(url),
-        ),
+        builder: (context) =>
+            _FullScreenMediaViewer(
+              mediaList: _allMedia,
+              initialIndex: index,
+              isVideo: (url) => widget.vehicle.videos.contains(url),
+            ),
       ),
     );
   }
@@ -194,9 +198,11 @@ class _VehicleDetailScreenTransPorterState
               gradientFirst,
               gradientSecond,
               gradientThird,
-              Colors.white
+              Colors.white,
+              Colors.white,
+              Colors.white,
+              Colors.white,
             ],
-            stops: [0.0, 0.15, 0.30, .90],
           ),
         ),
         child: SafeArea(
@@ -220,16 +226,19 @@ class _VehicleDetailScreenTransPorterState
 
   Widget _buildMediaSection() {
     return Container(
-      height: 280,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      width: MediaQuery
+          .of(context)
+          .size
+          .width,
+      height: 180,
+      decoration: BoxDecoration(boxShadow: [
+        BoxShadow(
+          color: Colors.black.withOpacity(0.1),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ], borderRadius: BorderRadius.circular(8)),
       child: Stack(
         children: [
           PageView.builder(
@@ -247,29 +256,39 @@ class _VehicleDetailScreenTransPorterState
               return GestureDetector(
                 onTap: () => _showFullScreenMedia(index),
                 child: Container(
-                  color: Colors.grey[200],
+                  decoration: BoxDecoration(boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ], borderRadius: BorderRadius.circular(8)),
                   child: mediaUrl == 'placeholder'
                       ? _buildPlaceholderImage()
                       : Stack(
                     children: [
-                      Image.network(
-                        mediaUrl,
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildPlaceholderImage(),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) return child;
-                          return Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 3,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                ColorConstants.primaryColor,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8.0),
+                        child: Image.network(
+                          mediaUrl,
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
+                          errorBuilder: (context, error, stackTrace) =>
+                              _buildPlaceholderImage(),
+                          loadingBuilder:
+                              (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  ColorConstants.primaryColor,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
                       if (isVideo)
                         Center(
@@ -318,7 +337,7 @@ class _VehicleDetailScreenTransPorterState
                     child: const Icon(
                       Icons.chevron_left,
                       color: Colors.white,
-                      size: 24,
+                      size: 14,
                     ),
                   ),
                 ),
@@ -347,7 +366,7 @@ class _VehicleDetailScreenTransPorterState
                     child: const Icon(
                       Icons.chevron_right,
                       color: Colors.white,
-                      size: 24,
+                      size: 14,
                     ),
                   ),
                 ),
@@ -361,17 +380,17 @@ class _VehicleDetailScreenTransPorterState
               top: 16,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
-                  borderRadius: BorderRadius.circular(20),
+                  color: Color(0x42000000),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${_currentMediaIndex + 1}/${_allMedia.length}',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -384,19 +403,6 @@ class _VehicleDetailScreenTransPorterState
   Widget _buildVehicleInfoCard(AppLocalizations localizations) {
     return Container(
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -404,75 +410,92 @@ class _VehicleDetailScreenTransPorterState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    localizations.vehicle_type ?? 'Vehicle Type',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
+              Expanded(
+                flex: 2,
+                child: Text(
+                  localizations.vehicle_type ?? 'Vehicle Type',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w400,
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    getLocalizedVehicleType(widget.vehicle.vehicleName, localizations),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
+                ),
               ),
-              Row(
-                children: [
-                  CustomActivity(
-                    baseUrl: ApiConstants.baseUrl,
-                    userId: widget.owner.userId,
-                    icon: AssetsConstant.chat,
-                    type: 'CHAT',
-                    phone: widget.owner.businessMobileNumber,
-                    activityType: ActivityType.CHAT,
-                    userType: getMyType(widget.owner.vehicles.length > 1
-                        ? "Transporter"
-                        : widget.owner.vehicles.elementAt(0).vehicleType),
-                    onBeforeTap: () => _verifyReview('CHAT', true),
-                  ),
-                  const SizedBox(width: 12),
-                  CustomActivity(
-                    baseUrl: ApiConstants.baseUrl,
-                    userId: widget.owner.userId,
-                    icon: AssetsConstant.whatsApp,
-                    type: 'WHATSAPP',
-                    phone: widget.owner.businessMobileNumber,
-                    activityType: ActivityType.WHATSAPP,
-                    userType: getMyType(widget.owner.vehicles.length > 1
-                        ? "Transporter"
-                        : widget.owner.vehicles.elementAt(0).vehicleType),
-                    onBeforeTap: () => _verifyReview('WHATSAPP', true),
-                  ),
-                  const SizedBox(width: 12),
-                  CustomActivity(
-                    baseUrl: ApiConstants.baseUrl,
-                    userId: widget.owner.userId,
-                    icon: AssetsConstant.callPhone,
-                    type: 'PHONE',
-                    phone: widget.owner.businessMobileNumber,
-                    activityType: ActivityType.PHONE,
-                    userType: getMyType(widget.owner.vehicles.length > 1
-                        ? "Transporter"
-                        : widget.owner.vehicles.elementAt(0).vehicleType),
-                    onBeforeTap: () => _verifyReview('PHONE', true),
-                  ),
-                ],
-              ),
+              Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          maxLines: 2,
+                          getLocalizedVehicleType(
+                              widget.vehicle.vehicleType, localizations),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Spacer(),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          CustomActivity(
+                            baseUrl: ApiConstants.baseUrl,
+                            userId: widget.owner.userId,
+                            icon: AssetsConstant.chatSVG,
+                            type: 'CHAT',
+                            phone: widget.owner.businessMobileNumber,
+                            activityType: ActivityType.CHAT,
+                            userType: getMyType(widget.owner.vehicles.length > 1
+                                ? "Transporter"
+                                : widget.owner.vehicles
+                                .elementAt(0)
+                                .vehicleType),
+                            onBeforeTap: () => _verifyReview('CHAT', true),
+                          ),
+                          const SizedBox(width: 12),
+                          CustomActivity(
+                            baseUrl: ApiConstants.baseUrl,
+                            userId: widget.owner.userId,
+                            icon: AssetsConstant.whatsAppSVG,
+                            type: 'WHATSAPP',
+                            phone: widget.owner.businessMobileNumber,
+                            activityType: ActivityType.WHATSAPP,
+                            userType: getMyType(widget.owner.vehicles.length > 1
+                                ? "Transporter"
+                                : widget.owner.vehicles
+                                .elementAt(0)
+                                .vehicleType),
+                            onBeforeTap: () => _verifyReview('WHATSAPP', true),
+                          ),
+                          const SizedBox(width: 12),
+                          CustomActivity(
+                            baseUrl: ApiConstants.baseUrl,
+                            userId: widget.owner.userId,
+                            icon: AssetsConstant.callPhoneSVG,
+                            type: 'PHONE',
+                            phone: widget.owner.businessMobileNumber,
+                            activityType: ActivityType.PHONE,
+                            userType: getMyType(widget.owner.vehicles.length > 1
+                                ? "Transporter"
+                                : widget.owner.vehicles
+                                .elementAt(0)
+                                .vehicleType),
+                            onBeforeTap: () => _verifyReview('PHONE', true),
+                          ),
+                        ],
+                      )
+                    ],
+                  ))
             ],
           ),
-
-          const Divider(height: 32),
-
+          SizedBox(
+            height: 20,
+          ),
           // Vehicle Name
           _buildInfoRow(
             localizations.vehicle_name ?? 'Vehicle Name',
@@ -493,61 +516,31 @@ class _VehicleDetailScreenTransPorterState
           Row(
             children: [
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.airline_seat_recline_normal,
-                        size: 20,
+                flex: 2,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Image.asset("assets/img/seats.png", width: 14, height: 14),
+                    const SizedBox(width: 4),
+                    Text(
+                      "Seats",
+                      style: TextStyle(
+                        fontSize: 11,
                         color: Colors.grey[700],
+                        fontWeight: FontWeight.w500,
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${widget.vehicle.seatingCapacity} ${localizations.seats ?? 'Seats'}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: 4),
+                  ],
                 ),
               ),
-              const SizedBox(width: 12),
               Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: widget.vehicle.airConditioning.toLowerCase().contains('ac')
-                        ? gradientFirst.withOpacity(0.1)
-                        : Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: widget.vehicle.airConditioning.toLowerCase().contains('ac')
-                          ? gradientFirst!
-                          : Colors.grey[200]!,
-                    ),
-                  ),
-                  child: Text(
-                    widget.vehicle.airConditioning.isNotEmpty
+                flex: 3,
+                child: _buildFeatureTag(
+                    icon: "",
+                    text: widget.vehicle.airConditioning.isNotEmpty
                         ? widget.vehicle.airConditioning
-                        : localizations.not_specified ?? 'Not Specified',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black
-
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
+                        : localizations.not_specified ?? 'Not Specified'),
               ),
             ],
           ),
@@ -555,13 +548,13 @@ class _VehicleDetailScreenTransPorterState
           const SizedBox(height: 16),
 
           // Service Locations
-          if (widget.serviceLocation!=null) ...[
+          ...[
             Text(
               localizations.service_areas ?? 'Service Locations',
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 12,
                 color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
+                fontWeight: FontWeight.w400,
               ),
             ),
             const SizedBox(height: 8),
@@ -592,224 +585,248 @@ class _VehicleDetailScreenTransPorterState
             const SizedBox(height: 16),
           ],
 
-          const Divider(height: 32),
-
           // Minimum Charge and Negotiable
           Row(
             children: [
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      localizations.min_charge ?? 'Minimum Charge',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '₹ ${widget.vehicle.minimumChargePerHour}',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: ColorConstants.primaryColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: widget.vehicle.isPriceNegotiable
-                      ? Colors.green[50]
-                      : Colors.orange[50],
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: widget.vehicle.isPriceNegotiable
-                        ? Colors.green[200]!
-                        : Colors.orange[200]!,
-                  ),
-                ),
+                flex: 2,
                 child: Text(
-                  widget.vehicle.isPriceNegotiable
-                      ? localizations.negotiable ?? 'Negotiable'
-                      : localizations.fixedPrice ?? 'Fixed',
+                  localizations.min_charge ?? 'Minimum Charge',
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: widget.vehicle.isPriceNegotiable
-                        ? Colors.green[700]
-                        : Colors.orange[700],
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w400,
                   ),
                 ),
               ),
+              Expanded(
+                  flex: 3,
+                  child: Row(
+                    children: [
+                      Text(
+                        '₹ ${widget.vehicle.minimumChargePerHour}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: ColorConstants.black,
+                        ),
+                      ),
+                      Spacer(),
+                      Container(
+                        padding:
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: gradientSecond,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: AppColors.blue,
+                            width: 0.5,
+                          ),
+                        ),
+                        child: Text(
+                          (widget.vehicle.isPriceNegotiable == true ||
+                              widget.owner.negotiable)
+                              ? localizations.negotiable
+                              : localizations.fixedPrice,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 50,
+                      )
+                    ],
+                  ))
             ],
           ),
-
-          const Divider(height: 32),
+          SizedBox(
+            height: 20,
+          ),
 
           // Vehicle Specifications
-          if (widget.vehicle.vehicleSpecifications.isNotEmpty) ...[
-            Text(
-              localizations.vehicle_specifications ?? 'Vehicle Specification',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: widget.vehicle.vehicleSpecifications.map((spec) {
-                return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color:gradientFirst.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: gradientFirst.withOpacity(0.1)!),
-                  ),
+          if (widget.vehicle.vehicleSpecifications.isNotEmpty)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 2,
                   child: Text(
-                    spec,
+                    localizations.vehicle_specifications ??
+                        'Vehicle Specification',
                     style: TextStyle(
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 20),
-          ],
-
-          // Owner Section
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 24,
-                      backgroundColor: Colors.grey[300],
-                      backgroundImage: widget.owner.profilePhoto.isNotEmpty
-                          ? NetworkImage(widget.owner.profilePhoto)
-                          : null,
-                      child: widget.owner.profilePhoto.isEmpty
-                          ? const Icon(Icons.person, color: Colors.grey)
-                          : null,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                 "${widget.owner.firstName} ${widget.owner.lastName}",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (widget.owner.isVerifiedByAdmin) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.verified,
-                                  size: 16,
-                                  color: Colors.blue,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          'Vehicles Owned',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ColorConstants.primaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: ColorConstants.primaryColor.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Text(
-                            '${widget.owner.vehicles.length}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: ColorConstants.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        CupertinoPageRoute(
-                          builder: (context) => TransporterDetailsScreen(
-                            transporterId: widget.owner.userId,
+                Expanded(
+                  flex: 3,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: widget.vehicle.vehicleSpecifications.map((spec) {
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: gradientFirst.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: gradientFirst.withOpacity(0.1)!),
+                        ),
+                        child: Text(
+                          spec,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.black,
                           ),
                         ),
                       );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: ColorConstants.primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: Text(
-                     'View Profile',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    }).toList(),
                   ),
                 ),
               ],
             ),
+          const SizedBox(
+            height: 20,
+          ),
+          // Owner Section
+          Column(
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: widget.owner.profilePhoto.isNotEmpty
+                        ? NetworkImage(widget.owner.profilePhoto)
+                        : null,
+                    child: widget.owner.profilePhoto.isEmpty
+                        ? const Icon(Icons.person, color: Colors.grey)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                "${widget.owner.firstName} ${widget.owner
+                                    .lastName},\n${widget.owner.companyName}",
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            if (widget.owner.isVerifiedByAdmin) ...[
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.verified,
+                                size: 16,
+                                color: Colors.green,
+                              ),
+
+                            ],
+                            const SizedBox(width: 6),
+                            Text(
+                              'Vehicles Owned',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w400
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 0,
+                              ),
+                              decoration: BoxDecoration(
+                                color: ColorConstants.primaryColor.withOpacity(
+                                    0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  width: 0.5,
+                                  color: ColorConstants.primaryColor
+                                      .withOpacity(0.3),
+                                ),
+                              ),
+                              child: Text(
+                                '${widget.owner.vehicles.length}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: ColorConstants.primaryColor,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: 150,
+                height: 40,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    // Apply gradient only when enabled
+                    gradient: LinearGradient(
+                      colors: [gradientFirst, gradientSecond],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    // Fallback to a solid grey color when disabled
+                  ),
+                  // Use Material/InkWell to handle taps and ripple effect over the gradient
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          CupertinoPageRoute(
+                            builder: (context) => TransporterDetailsScreen(
+                              transporterId: widget.owner.userId,
+                            ),
+                          ),
+                        );
+                      },
+                      borderRadius: BorderRadius.circular(30),
+                      child: Center(
+                        child: Text(
+                          "View Profile",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -820,20 +837,26 @@ class _VehicleDetailScreenTransPorterState
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
-            fontWeight: FontWeight.w500,
+        Expanded(
+          flex: 2,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
+        Expanded(
+          flex: 3,
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
           ),
         ),
       ],
@@ -868,6 +891,41 @@ class _VehicleDetailScreenTransPorterState
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildFeatureTag({required String icon, required String text}) {
+    return Row(
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          decoration: BoxDecoration(
+            color: gradientFirst.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AppColors.blue,
+              width: 0.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon.isNotEmpty) Image.asset(icon, width: 14, height: 14),
+              const SizedBox(width: 4),
+              Text(
+                text,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
+          ),
+        ),
+        Spacer()
+      ],
     );
   }
 }
@@ -966,11 +1024,12 @@ class _FullScreenMediaViewerState extends State<_FullScreenMediaViewer> {
                 child: Image.network(
                   mediaUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    Icons.broken_image,
-                    size: 100,
-                    color: Colors.grey[600],
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: Colors.grey[600],
+                      ),
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Center(

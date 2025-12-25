@@ -5,17 +5,20 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
+import 'package:r_w_r/api/api_service/media_service.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 
 import '../../constants/token_manager.dart';
 import '../../utils/color.dart';
+import '../layout.dart';
 
 class VehicleRegistrationProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
   bool get isLoading => _isLoading;
+
   String? get error => _error;
 
   static const String baseUrl = '${ApiConstants.baseUrl}';
@@ -28,6 +31,7 @@ class VehicleRegistrationProvider extends ChangeNotifier {
       throw Exception('Authentication token not found');
     }
   }
+
   Future<bool> submitVehicleRegistration({
     required String userType,
     String? vehicleType,
@@ -53,6 +57,8 @@ class VehicleRegistrationProvider extends ChangeNotifier {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $authToken'
       };
+      print(authToken.substring(0, 100));
+      print(authToken.substring(100));
 
       var request = http.Request('POST', Uri.parse('$baseUrl/user/vehicles'));
 
@@ -77,23 +83,37 @@ class VehicleRegistrationProvider extends ChangeNotifier {
 
       // Add RC photos only if not auto-rickshaw or e-rickshaw
       if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
-        if (rcBookFrontPhoto != null) requestBody["rcBookFrontPhoto"] = rcBookFrontPhoto;
-        if (rcBookBackPhoto != null) requestBody["rcBookBackPhoto"] = rcBookBackPhoto;
+        if (rcBookFrontPhoto != null)
+          requestBody["rcBookFrontPhoto"] = rcBookFrontPhoto;
+        if (rcBookBackPhoto != null)
+          requestBody["rcBookBackPhoto"] = rcBookBackPhoto;
       }
-
+      print(requestBody);
       request.body = json.encode(requestBody);
       request.headers.addAll(headers);
 
       http.StreamedResponse response = await request.send();
+      print('Success: ${response.statusCode}');
 
-      if (response.statusCode == 200) {
+
+
+      if (response.statusCode == 201) {
         String responseBody = await response.stream.bytesToString();
         print('Success: $responseBody');
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _error = 'Failed to submit: ${response.reasonPhrase}';
+        String responseBody = await response.stream.bytesToString();
+        Map<String, dynamic> map = json.decode(responseBody);
+        print('failed: ${responseBody}');
+
+        try {
+          _error = 'Failed to submit: ${map["errors"]["errors"].toList()[0]}';
+        } catch (e, s) {
+          _error = 'Failed to submit';
+          print(s);
+        }
         _isLoading = false;
         notifyListeners();
         return false;
@@ -115,7 +135,8 @@ class VehicleRegistrationProvider extends ChangeNotifier {
 // vehicle_registration_form.dart
 
 class VehicleRegistrationForm extends StatefulWidget {
-  final String userType; // 'Transporter', 'Taxi Owner', 'Auto-Rickshaw', 'E-Rickshaw Driver'
+  final String
+      userType; // 'Transporter', 'Taxi Owner', 'Auto-Rickshaw', 'E-Rickshaw Driver'
 
   const VehicleRegistrationForm({
     Key? key,
@@ -123,7 +144,8 @@ class VehicleRegistrationForm extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<VehicleRegistrationForm> createState() => _VehicleRegistrationFormState();
+  State<VehicleRegistrationForm> createState() =>
+      _VehicleRegistrationFormState();
 }
 
 class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
@@ -146,38 +168,68 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
   List<File> _vehicleVideos = [];
   List<File> _rcImages = [];
 
-  final Map<String, double> _currentLocation = {
-    'lat': 28.6139,
-    'lng': 77.209
-  };
+  final Map<String, double> _currentLocation = {'lat': 28.6139, 'lng': 77.209};
 
   final List<String> _vehicleTypes = [
-    'CAR', 'SUV', 'VAN', 'BUS', 'TRUCK', 'MOTORCYCLE', 'RICKSHAW'
+    'CAR',
+    'SUV',
+    'VAN',
+    'BUS',
+    'TRUCK',
+    'MOTORCYCLE',
+    'RICKSHAW'
   ];
 
   final List<String> _seatingCapacities = [
-    '2', '3', '4', '5', '7', '9', '12', '15', '20', '25', '30'
+    '2',
+    '3',
+    '4',
+    '5',
+    '7',
+    '9',
+    '12',
+    '15',
+    '20',
+    '25',
+    '30'
   ];
 
   final List<String> _serviceLocations = [
-    'New Delhi', 'Faridabad', 'Noida', 'Gurgaon', 'Mumbai', 'Bangalore'
+    'New Delhi',
+    'Faridabad',
+    'Noida',
+    'Gurgaon',
+    'Mumbai',
+    'Bangalore'
   ];
 
   final List<String> _specifications = [
-    'Navigation System', 'Airbags', 'ABS', 'Leather Seats',
-    'Rear Camera', 'Bluetooth', 'Sunroof', 'Petrol', 'CNG fuel',
-    'Good condition', 'Regular maintenance', 'Clean interior'
+    'Navigation System',
+    'Airbags',
+    'ABS',
+    'Leather Seats',
+    'Rear Camera',
+    'Bluetooth',
+    'Sunroof',
+    'Petrol',
+    'CNG fuel',
+    'Good condition',
+    'Regular maintenance',
+    'Clean interior'
   ];
 
   // Check if field should be shown based on user type
   bool get _shouldShowVehicleType =>
-      widget.userType != 'Auto-Rickshaw' && widget.userType != 'E-Rickshaw Driver';
+      widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver';
 
   bool get _shouldShowVehicleName =>
-      widget.userType != 'Auto-Rickshaw' && widget.userType != 'E-Rickshaw Driver';
+      widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver';
 
   bool get _shouldShowRCPhotos =>
-      widget.userType != 'Auto-Rickshaw' && widget.userType != 'E-Rickshaw Driver';
+      widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver';
 
   @override
   void initState() {
@@ -236,13 +288,26 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
 
   Future<List<String>> _uploadFiles(List<File> files, String type) async {
     List<String> urls = [];
+    int i = 0;
     for (File file in files) {
-      urls.add('https://example.com/${type}_${DateTime.now().millisecondsSinceEpoch}.jpg');
+      var type = "";
+      if (i == 0) {
+        type = "rcBookFront";
+      } else {
+        type = "rcBookBack";
+      }
+      final String? url = await MediaService().uploadFileAndGetUrl(
+        file,
+        kind: type,
+      );
+      urls.add(url ?? "");
     }
     return urls;
   }
 
-  Future<void> _submitForm() async {
+  bool isLoading=false;
+
+  Future<void> _submitForm(VehicleRegistrationProvider provider) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -278,21 +343,44 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
       return;
     }
 
-    try {
-      List<String> imageUrls = await _uploadFiles(_vehicleImages, 'vehicle');
-      List<String> videoUrls = await _uploadFiles(_vehicleVideos, 'video');
-      List<String> rcUrls = _shouldShowRCPhotos ? await _uploadFiles(_rcImages, 'rc') : [];
+    try{
+    isLoading=true;
+    setState(() {
+    });
+      List<String> imageUrls = [];
+      for (var images in _vehicleImages) {
+        final String? url = await MediaService().uploadFileAndGetUrl(
+          images,
+          kind: "vehicleImage",
+        );
+        imageUrls.add(url ?? "");
+      }
+      List<String> videoUrls = [];
+      for (var videos in _vehicleVideos) {
+        final String? url = await MediaService().uploadFileAndGetUrl(
+          videos,
+          kind: "vehicleVideo",
+        );
+        imageUrls.add(url ?? "");
+      }
+      print(videoUrls);
+      List<String> rcUrls =
+          _shouldShowRCPhotos ? await _uploadFiles(_rcImages, 'rc') : [];
 
-      String? rcFrontUrl = _shouldShowRCPhotos && rcUrls.isNotEmpty ? rcUrls[0] : null;
-      String? rcBackUrl = _shouldShowRCPhotos && rcUrls.length > 1 ? rcUrls[1] : null;
+      String? rcFrontUrl =
+          _shouldShowRCPhotos && rcUrls.isNotEmpty ? rcUrls[0] : null;
+      String? rcBackUrl =
+          _shouldShowRCPhotos && rcUrls.length > 1 ? rcUrls[1] : null;
 
-      final provider = Provider.of<VehicleRegistrationProvider>(context, listen: false);
+     /* final provider =
+          Provider.of<VehicleRegistrationProvider>(context, listen: false);*/
       await provider.getToken();
 
       bool success = await provider.submitVehicleRegistration(
         userType: widget.userType,
         vehicleType: _shouldShowVehicleType ? _selectedVehicleType : null,
-        vehicleName: _shouldShowVehicleName ? _vehicleNameController.text.trim() : null,
+        vehicleName:
+            _shouldShowVehicleName ? _vehicleNameController.text.trim() : null,
         vehicleNumber: _vehicleNumberController.text.trim().toUpperCase(),
         seatingCapacity: int.parse(_selectedSeatingCapacity!),
         airConditioning: _selectedAirConditioning,
@@ -305,14 +393,20 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
         rcBookFrontPhoto: rcFrontUrl,
         rcBookBackPhoto: rcBackUrl,
       );
+    isLoading=false;
 
       if (success) {
         _showSuccessSnackBar('Vehicle registration submitted successfully!');
-        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const Layout()),
+              (route) => false,
+        );
       } else if (provider.error != null) {
         _showErrorSnackBar(provider.error!);
       }
     } catch (e) {
+      isLoading=false;
       _showErrorSnackBar('An error occurred: $e');
     }
   }
@@ -468,7 +562,8 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                             title: 'Upload Vehicle Image',
                             files: _vehicleImages,
                             onAddFile: () => _pickImage('vehicle'),
-                            onRemoveFile: (index) => _removeFile('vehicle', index),
+                            onRemoveFile: (index) =>
+                                _removeFile('vehicle', index),
                             fileType: 'image',
                           ),
 
@@ -476,13 +571,13 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                             title: 'Upload Vehicle Video',
                             files: _vehicleVideos,
                             onAddFile: () => _pickVideo(),
-                            onRemoveFile: (index) => _removeFile('video', index),
+                            onRemoveFile: (index) =>
+                                _removeFile('video', index),
                             fileType: 'video',
                           ),
 
                           // RC Upload - Only for Transporter and Taxi Owner
-                          if (_shouldShowRCPhotos)
-                            _buildRCUploadSection(),
+                          if (_shouldShowRCPhotos) _buildRCUploadSection(),
 
                           const SizedBox(height: 40),
 
@@ -492,32 +587,36 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                               return SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed: provider.isLoading ? null : _submitForm,
+                                  onPressed:() {
+                                    (provider.isLoading|| isLoading) ? null : _submitForm(provider);
+                                  }
+                                      ,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: gradientFirst,
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 16),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     elevation: 0,
                                   ),
-                                  child: provider.isLoading
+                                  child: (provider.isLoading|| isLoading)
                                       ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
-                                    ),
-                                  )
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
                                       : const Text(
-                                    'Submit',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+                                          'Submit',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
                                 ),
                               );
                             },
@@ -568,8 +667,7 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
                     color: isHighlighted ? Colors.grey : Colors.grey.shade300,
-                    width: 1
-                ),
+                    width: 1),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -610,14 +708,18 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isRequired && value == null ? Colors.grey : Colors.grey.shade300,
+                  color: isRequired && value == null
+                      ? Colors.grey
+                      : Colors.grey.shade300,
                   width: isRequired && value == null ? 2 : 1,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isRequired && value == null ? Colors.grey : Colors.grey.shade300,
+                  color: isRequired && value == null
+                      ? Colors.grey
+                      : Colors.grey.shade300,
                   width: isRequired && value == null ? 2 : 1,
                 ),
               ),
@@ -741,7 +843,8 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                 }).toList(),
                 onChanged: (String? value) {
                   if (value != null && !selectedItems.contains(value)) {
-                    final newList = List<String>.from(selectedItems)..add(value);
+                    final newList = List<String>.from(selectedItems)
+                      ..add(value);
                     onSelectionChanged(newList);
                   }
                 },
@@ -755,7 +858,8 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
               runSpacing: 8,
               children: selectedItems.map((item) {
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF9C27B0).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -777,7 +881,8 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                       const SizedBox(width: 4),
                       GestureDetector(
                         onTap: () {
-                          final newList = List<String>.from(selectedItems)..remove(item);
+                          final newList = List<String>.from(selectedItems)
+                            ..remove(item);
                           onSelectionChanged(newList);
                         },
                         child: const Icon(
@@ -891,12 +996,12 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                           child: fileType == 'video'
                               ? const Icon(Icons.video_file, size: 40)
                               : ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              files[index],
-                              fit: BoxFit.cover,
-                            ),
-                          ),
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.file(
+                                    files[index],
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
                         ),
                         Positioned(
                           top: -4,

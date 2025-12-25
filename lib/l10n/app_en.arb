@@ -328,7 +328,7 @@
   "submission_confirmation": "By submitting this application, you confirm that all the information provided is accurate and true.",
   "label_colon": "{label}:",
   "gender": "gender",
-  "vehicle_type": "vehicleType",
+  "vehicle_type": "Vehicle Type",
   "services_cities": "servicesCities",
   "language_spoken": "languageSpoken",
   "become_driver": "Become a Driver",

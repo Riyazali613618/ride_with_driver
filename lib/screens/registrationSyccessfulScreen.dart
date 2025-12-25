@@ -2,12 +2,29 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../api/api_service/user_service/user_profile_service.dart';
 import '../utils/color.dart';
+import 'layout.dart';
 
-class RegistrationSuccessfulScreen extends StatelessWidget {
+class RegistrationSuccessfulScreen extends StatefulWidget {
   final String userType;
 
   const RegistrationSuccessfulScreen({super.key, required this.userType});
+
+  @override
+  State<RegistrationSuccessfulScreen> createState() =>
+      _RegistrationSuccessfulScreenState();
+}
+
+class _RegistrationSuccessfulScreenState
+    extends State<RegistrationSuccessfulScreen> {
+  @override
+  void initState() {
+    super.initState();
+    updateProfile();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +51,17 @@ class RegistrationSuccessfulScreen extends StatelessWidget {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        if (widget.userType != 'DRIVER') {
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const Layout(isFirstTime: false)),
+                            (route) => false,
+                          );
+                        }
+                      },
                       child: Icon(
                         Icons.arrow_back,
                         color: Colors.white,
@@ -88,21 +115,23 @@ class RegistrationSuccessfulScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 30),
                     // Description text
-                    (userType!='DRIVER')?  Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      child: Text(
-                        'Now, you may continue to list your Vehicles',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black87,
-                          height: 1.4,
-                        ),
-                      ),
-                    ):Container(),
+                    (widget.userType != 'DRIVER')
+                        ? Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 40),
+                            child: Text(
+                              'Now, you may continue to list your Vehicles',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.black87,
+                                height: 1.4,
+                              ),
+                            ),
+                          )
+                        : Container(),
                     SizedBox(height: 50),
                     // Continue button
-                    (userType!='DRIVER')? _buildContinueButton(context):Container(),
+                    _buildContinueButton(context)
                   ],
                 ),
               ),
@@ -117,8 +146,17 @@ class RegistrationSuccessfulScreen extends StatelessWidget {
     return Container(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: (){
-          _navigateToVehicleListingScreen(context);
+        onPressed: () {
+          if (widget.userType != 'DRIVER') {
+            _navigateToVehicleListingScreen(context);
+          } else {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const Layout(isFirstTime: false)),
+              (route) => false,
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF8B5CF6),
@@ -142,10 +180,20 @@ class RegistrationSuccessfulScreen extends StatelessWidget {
 
   void _navigateToVehicleListingScreen(BuildContext context) {
     // Navigate to vehicle listing screen
-    Navigator.push(context, MaterialPageRoute(builder: (context) => VehicleRegistrationForm(userType: userType)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                VehicleRegistrationForm(userType: widget.userType)));
 
     // For now, just pop back to previous screens
     // Navigator.popUntil(context, (route) => route.isFirst);
+  }
+
+  Future<void> updateProfile() async {
+    final data = await UserProfileService().getUserProfile();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('who_reg', data.data?.userType ?? "");
   }
 }
 

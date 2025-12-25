@@ -337,7 +337,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
         'email': _emailController.text.trim(),
         'state': _selectedState ?? '',
         'city': _selectedCity ?? '',
-        'image': imageUrl ?? '', // Empty as specified
+        'profilePhoto': imageUrl ?? '', // Empty as specified
       };
       if (kDebugMode) {
         print('Updating user profile with data: $requestBody');
@@ -421,10 +421,10 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
               userData['name'] =
                   '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
               await TokenManager.saveUserData(userData);
-              Navigator.pushReplacement(
+              Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const Layout(isFirstTime: true)),
+                    builder: (context) => const Layout(isFirstTime: true)),(route) => false,
               );
             }
 

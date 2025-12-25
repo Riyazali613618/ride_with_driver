@@ -12,10 +12,12 @@ class InitiatePayment extends PaymentEvent {
   final String planType;
   final PaymentType paymentType;
   final String? category;
+  final String? currentCategory;
 
   InitiatePayment({
     required this.plan,
     required this.planType,
+    required this.currentCategory,
     required this.paymentType,
     this.category,
   });
@@ -26,12 +28,14 @@ class PaymentSuccess extends PaymentEvent {
   final PlanModel plan;
   final String planType;
   final PaymentType paymentType;
+  final String? currentCategory;
   final String? category;
   final String? registrationFeeId;
 
   PaymentSuccess({
     required this.response,
     required this.plan,
+    required this.currentCategory,
     required this.planType,
     required this.paymentType,
     this.category,

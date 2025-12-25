@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
+import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/main.dart';
 import 'package:r_w_r/screens/user_screens/vehicle_details_transporter.dart';
@@ -25,7 +26,6 @@ class VehicleSearchScreen extends StatefulWidget {
   final GooglePlaceDetails? selectedLocation;
   final Map<String, dynamic>? appliedFilters;
 
-
   const VehicleSearchScreen({
     Key? key,
     required this.selectedCategory,
@@ -42,7 +42,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   final FocusNode _searchFocusNode = FocusNode();
   final VehicleService _vehicleService = VehicleService();
   final LocationService _locationService = LocationService();
-  List<fm.Data> favouritesData=[];
+  List<fm.Data> favouritesData = [];
 
   List<VehicleOwner> _vehicles = [];
   bool _isLoading = false;
@@ -67,8 +67,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   LocationData? _currentLocation;
   final String _apiKey = 'AIzaSyDUkuN7zD7ApTqkkEyzOXnS_LDxEzP-t40';
 
-
-
   String? get currentFilterType {
     return switch (widget.selectedCategory) {
       'ALLVEHICLES' || 'BUS' => 'ALL_VEHICLES',
@@ -79,7 +77,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       _ => null,
     };
   }
-
 
   @override
   void didChangeDependencies() {
@@ -94,20 +91,17 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     }
   }
 
-
-
-
   @override
   void initState() {
     super.initState();
-    _activeFilters=widget.appliedFilters!;
+    _activeFilters = widget.appliedFilters!;
     _scrollController.addListener(_scrollListener);
     _searchFocusNode.addListener(_handleSearchFocusChange);
     getFavourites();
-
   }
+
   Future<void> getFavourites() async {
-    favouritesData=await _vehicleService.getFavourites();
+    favouritesData = await _vehicleService.getFavourites();
   }
 
   String getLocalizedCategory(String key, AppLocalizations loc) {
@@ -133,7 +127,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         return key;
     }
   }
-
 
   void _handleSearchFocusChange() {
     if (_searchFocusNode.hasFocus) {
@@ -184,8 +177,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(localizations.no_locations_found(e)
-                // 'Could not access location: $e'
-                ),
+              // 'Could not access location: $e'
+            ),
             duration: Duration(seconds: 3),
           ),
         );
@@ -223,7 +216,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
             placeId: 'current_location',
             mainText: _currentLocation!.displayName,
             secondaryText:
-                _currentLocation!.addressDetails ?? 'Current Location',
+            _currentLocation!.addressDetails ?? 'Current Location',
             fullText: _currentLocation!.displayName,
             isRecentLocation: false,
             isCurrentLocation: true,
@@ -255,7 +248,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               placeId: 'current_location',
               mainText: _currentLocation!.displayName,
               secondaryText:
-                  _currentLocation!.addressDetails ?? 'Current Location',
+              _currentLocation!.addressDetails ?? 'Current Location',
               fullText: _currentLocation!.displayName,
               isRecentLocation: false,
               isCurrentLocation: true,
@@ -278,7 +271,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               placeId: 'current_location',
               mainText: _currentLocation!.displayName,
               secondaryText:
-                  _currentLocation!.addressDetails ?? 'Current Location',
+              _currentLocation!.addressDetails ?? 'Current Location',
               fullText: _currentLocation!.displayName,
               isRecentLocation: false,
               isCurrentLocation: true,
@@ -299,7 +292,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   Future<List<GooglePlacesSuggestion>> _fetchGooglePlacesSuggestions(
       String input) async {
     final url =
-        Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
+    Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
     final headers = {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': _apiKey,
@@ -465,7 +458,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
           displayName: suggestion.mainText,
           addressDetails: suggestion.secondaryText,
           pincode:
-              placeDetails.pinCode != 'Not found' ? placeDetails.pinCode : null,
+          placeDetails.pinCode != 'Not found' ? placeDetails.pinCode : null,
         );
         _locationService.addToRecentLocations(locationData);
         _loadRecentLocations();
@@ -480,10 +473,11 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) => VehicleSearchScreen(
-          selectedCategory: widget.selectedCategory,
-          selectedLocation: placeDetails,
-        ),
+        builder: (context) =>
+            VehicleSearchScreen(
+              selectedCategory: widget.selectedCategory,
+              selectedLocation: placeDetails,
+            ),
       ),
     );
   }
@@ -536,42 +530,44 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       );
     }
   }
-  bool favAdded=false;
-  bool deletFav=false;
-  Future<void> addToFav(String partnerId,String vehicleId) async {
-    setState(() {
-      favAdded=true;
-    });
-try {
-  final res = await _vehicleService.addToFavourites(partnerId,vehicleId).then((_) {
-    setState(() {
-      favAdded = false;
-    });
-  });
-}catch(e){
-  setState(() {
-    favAdded = false;
-  });
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('failed to add favourites')),
-  );
-}
 
+  bool favAdded = false;
+  bool deletFav = false;
+
+  Future<void> addToFav(String partnerId, String vehicleId) async {
+    setState(() {
+      favAdded = true;
+    });
+    try {
+      final res =
+      await _vehicleService.addToFavourites(partnerId, vehicleId).then((_) {
+        setState(() {
+          favAdded = false;
+        });
+      });
+    } catch (e) {
+      setState(() {
+        favAdded = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('failed to add favourites')),
+      );
+    }
   }
 
   Future<void> deleteFavourires(String vehicleId) async {
     setState(() {
-      deletFav=false;
+      deletFav = false;
     });
     try {
       final res = await _vehicleService.deleteFavourites(vehicleId).then((_) {
         setState(() {
-          deletFav=true;
+          deletFav = true;
         });
       });
-    }catch(e){
+    } catch (e) {
       setState(() {
-        deletFav=false;
+        deletFav = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('failed to delete from favourites')),
@@ -613,7 +609,8 @@ try {
     });
 
     try {
-      developer.log('Making API call... ${convertVehicleType(_selectedVehicleType)}');
+      developer.log(
+          'Making API call... ${convertVehicleType(_selectedVehicleType)}');
       final response = await _vehicleService.searchVehicles(
         pincode: widget.selectedLocation?.pinCode ?? '',
         lat: widget.selectedLocation?.latitude ?? 0.0,
@@ -635,7 +632,8 @@ try {
           for (var owner in _vehicles) {
             _currentVehicleIndex[owner.id] = 0;
             developer.log(
-                'Owner: ${owner.firstName}, ID: ${owner.id}, Vehicle Count: ${owner.vehicles.length}');
+                'Owner: ${owner.firstName}, ID: ${owner
+                    .id}, Vehicle Count: ${owner.vehicles.length}');
           }
           _hasMoreItems = response.data.results.length >= _itemsPerPage;
         });
@@ -682,7 +680,9 @@ try {
       activity: ActivityType.CLICK,
       type: getMyType(owner.vehicles.length > 1
           ? "Transporter"
-          : owner.vehicles.elementAt(0).vehicleType),
+          : owner.vehicles
+          .elementAt(0)
+          .vehicleType),
       baseUrl: ApiConstants.baseUrl,
     );
 
@@ -695,26 +695,27 @@ try {
     }
     final currentIndex = _currentVehicleIndex[owner.id] ?? 0;
     final vehicle =
-        owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
-            ? owner.vehicles[currentIndex]
-            : null;
-    final serviceLocation=owner.serviceLocation!=null?owner.serviceLocation:null;
+    owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
+        ? owner.vehicles[currentIndex]
+        : null;
+    final serviceLocation =
+    owner.serviceLocation != null ? owner.serviceLocation : null;
     if (vehicle != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => VehicleDetailScreenTransPorter(
-            owner: owner,
-            vehicle: vehicle,
-            type: widget.selectedCategory,
-            serviceLocation:serviceLocation!
-          ),
+          builder: (context) =>
+              VehicleDetailScreenTransPorter(
+                  owner: owner,
+                  vehicle: vehicle,
+                  type: widget.selectedCategory,
+                  serviceLocation: serviceLocation!),
         ),
       );
     }
   }
 
-  bool favTapped=false;
+  bool favTapped = false;
 
   void _navigateVehicle(String ownerId, int direction) {
     setState(() {
@@ -734,11 +735,12 @@ try {
   }
 
   Map<String, bool> favoriteStates = {};
-  updateFavState(Vehicle? vehicle){
+
+  updateFavState(Vehicle? vehicle) {
     print("favouritesData:${favouritesData}");
-    for(var fav in favouritesData){
-      if(fav.vehicle!.sId==vehicle!.id){
-        favoriteStates[vehicle.id] = true;
+    for (var fav in favouritesData) {
+      if (fav.vehicle?.sId == vehicle?.id) {
+        favoriteStates[vehicle!.id] = true;
       }
     }
     // setState(() {});
@@ -748,479 +750,548 @@ try {
   Widget _buildVehicleCard(VehicleOwner owner) {
     final currentIndex = _currentVehicleIndex[owner.id] ?? 0;
     final hasMultipleVehicles = owner.vehicles.length > 1;
-    final vehicle = owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
+    final vehicle =
+    owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
         ? owner.vehicles[currentIndex]
         : null;
     final localizations = AppLocalizations.of(context)!;
     updateFavState(vehicle);
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: gradientFirst.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image Section with Navigation
-          Stack(
-            children: [
-              Container(
-                height: 190,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                  color: Colors.grey[100],
-                ),
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                  child: _buildVehicleImage(vehicle),
-                ),
-              ),
+    return InkWell(
+      onTap: () {
+        _navigateToVehicleDetail(owner);
 
-              // Image Counter Badge (Top Right)
-              if (hasMultipleVehicles)
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${currentIndex + 1}/${owner.vehicles.length}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-
-              // Navigation Arrows
-              if (hasMultipleVehicles) ...[
-                Positioned(
-                  left: 8,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () => _navigateVehicle(owner.id, -1),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.chevron_left,
-                          color: Colors.black87,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  right: 8,
-                  top: 0,
-                  bottom: 0,
-                  child: Center(
-                    child: GestureDetector(
-                      onTap: () => _navigateVehicle(owner.id,1),
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.9),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.chevron_right,
-                          color: Colors.black87,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ],
-          ),
-
-          // Content Section
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: gradientFirst.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section with Navigation
+            Stack(
               children: [
-                // Vehicle Name and Rating
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            vehicle?.vehicleName ?? localizations.no_vehicles_found,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            vehicle?.vehicleName ?? '',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                Container(
+                  width: double.infinity,
+                  height: 160,
+                  decoration: BoxDecoration(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
                     ),
-                    // Rating Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    color: Colors.grey[100],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(16),
+                      topRight: Radius.circular(16),
+                    ),
+                    child: _buildVehicleImage(vehicle),
+                  ),
+                ),
+                // Image Counter Badge (Top Right)
+                if (hasMultipleVehicles)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.amber[50],
-                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: Colors.amber,
-                          ),
-                          const SizedBox(width: 2),
-                          Text(
-                            owner.rating > 0 ? owner.rating.toStringAsFixed(1) : '4.3',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        '${currentIndex + 1}/${owner.vehicles.length}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
 
-                const SizedBox(height: 12),
-
-                // Features Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        _buildFeatureTag(
-                          icon: Icons.person_outline,
-                          text: '${vehicle?.seatingCapacity ?? 'N/A'} Seats',
-                        ),
-                        const SizedBox(width: 8),
-                        if (vehicle?.airConditioning != null && vehicle!.airConditioning.isNotEmpty)
-                          _buildFeatureTag(
-                            icon: Icons.ac_unit_outlined,
-                            text: vehicle.airConditioning,
-                          ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        if(favoriteStates.containsKey(vehicle!.id)){
-                          await deleteFavourires(vehicle!.id);
-                          setState(() {
-                            favoriteStates[vehicle.id] = false;
-                          });
-                        }else{
-                          await addToFav(vehicle!.userId,vehicle.id);
-                          setState(() {
-                            favoriteStates[vehicle.id] = !(favoriteStates[vehicle.id] ?? false);
-                          });
-                        }
-                      },
-                      child:(favAdded || deletFav)?Center(child: CircularProgressIndicator(),):Icon(
-                        (favoriteStates[vehicle!.id] ?? false) ? Icons.favorite : Icons.favorite_border,
-                        color: (favoriteStates[vehicle.id] ?? false) ? Colors.red : Colors.grey[400],
-                        size: 22,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-                // Price and Negotiable Badge
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Minimum Charge',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '₹ ${vehicle?.minimumChargePerHour ?? owner.minimumCharges}',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Negotiable Badge
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: (vehicle?.isPriceNegotiable == true || owner.negotiable)
-                                ? Colors.green
-                                : Colors.orange,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            (vehicle?.isPriceNegotiable == true || owner.negotiable)
-                                ? localizations.negotiable
-                                : localizations.fixedPrice,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-
-                      ],
-                    ),
-                  ],
-                ),
-                // Action Buttons and Favorite Icon Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        CustomActivity(
-                          baseUrl: ApiConstants.baseUrl,
-                          userId: owner.userId,
-                          icon: AssetsConstant.whatsApp,
-                          type: 'WHATSAPP',
-                          phone: owner.businessMobileNumber,
-                          activityType: ActivityType.WHATSAPP,
-                          userType: getMyType(
-                              owner.vehicles.length > 1 && owner.vehicles.isNotEmpty
-                                  ? "Transporter"
-                                  : owner.vehicles.isNotEmpty
-                                  ? owner.vehicles.first.vehicleType
-                                  : "Unknown"
-                          ),
-                        ),
-                        const SizedBox(width: 3),
-
-                        CustomActivity(
-                          baseUrl: ApiConstants.baseUrl,
-                          userId: owner.userId,
-                          icon: AssetsConstant.callPhone,
-                          type: 'PHONE',
-                          phone: owner.businessMobileNumber,
-                          activityType: ActivityType.PHONE,
-                          userType: getMyType(owner.vehicles.length > 1
-                              ? "Transporter"
-                              : owner.vehicles.isNotEmpty
-                              ? owner.vehicles.first.vehicleType
-                              : "Unknown"),
-                        ),
-
-
-                      ],
-                    ),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: InkWell(
-                        onTap: (){
-
-                          _navigateToVehicleDetail(owner);
-                        },
+                // Navigation Arrows
+                if (hasMultipleVehicles) ...[
+                  Positioned(
+                    left: 8,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => _navigateVehicle(owner.id, -1),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          width: 32,
+                          height: 32,
                           decoration: BoxDecoration(
-                            color: Color(0xFF8B5CF6),
-                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
                           ),
-                          child: const Text(
-                            'View More',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                          child: const Icon(
+                            Icons.chevron_left,
+                            color: Colors.black87,
+                            size: 20,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Owner Info Section (Moved Below View More)
-                Row(
-                  children: [
-                    // Profile Picture
-                    Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        shape: BoxShape.circle,
-                      ),
-                      child: owner.profilePhoto.isNotEmpty
-                          ? ClipOval(
-                        child: Image.network(
-                          owner.profilePhoto,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                          const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 18,
+                  ),
+                  Positioned(
+                    right: 8,
+                    top: 0,
+                    bottom: 0,
+                    child: Center(
+                      child: GestureDetector(
+                        onTap: () => _navigateVehicle(owner.id, 1),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.9),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.chevron_right,
+                            color: Colors.black87,
+                            size: 20,
                           ),
                         ),
-                      )
-                          : const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 18,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                  ),
+                ],
+              ],
+            ),
 
-                    // Owner Name and Details
-                    Expanded(
+            Expanded(
+              child: Column(
+                children:[
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 12,right: 12,top: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Vehicle Name and Rating
                           Row(
                             children: [
                               Flexible(
                                 child: Text(
-                                  "${owner.firstName} ${owner.lastName}",
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
+                                  vehicle?.vehicleName ?? localizations.no_vehicles_found,
+                                  style: TextStyle(
+                                    fontSize: (vehicle != null &&
+                                        vehicle.vehicleName.isNotEmpty)
+                                        ? 16
+                                        : 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black,
                                   ),
+                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (owner.isVerifiedByAdmin) ...[
-                                const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.verified,
-                                  size: 14,
-                                  color: Colors.green,
+                              const SizedBox(width: 10),
+                              Text(
+                                vehicle?.vehicleType ?? '',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: ColorConstants.black2,
+                                  fontWeight: FontWeight.w400,
                                 ),
-                              ],
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (vehicle != null && vehicle.vehicleName.isNotEmpty)
+                                Spacer()
+                              else
+                                const SizedBox(width: 20),
+                              // Rating Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber[50],
+                                  border: BoxBorder.all(color: Color(0xFFF9E9AD)),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(
+                                      Icons.star,
+                                      size: 14,
+                                      color: Colors.amber,
+                                    ),
+                                    const SizedBox(width: 2),
+                                    Text(
+                                      owner.rating > 0
+                                          ? owner.rating.toStringAsFixed(1)
+                                          : '4.3',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Features Row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildFeatureTag(
+                                icon: "assets/img/seats.png",
+                                text: '${vehicle?.seatingCapacity ?? 'N/A'} Seats',
+                              ),
+                              const SizedBox(width: 8),
+                              if (vehicle?.airConditioning != null &&
+                                  vehicle!.airConditioning.isNotEmpty)
+                                _buildFeatureTag(
+                                  icon: "",
+                                  text: vehicle.airConditioning,
+                                ),
+                              Spacer(),
+                              GestureDetector(
+                                onTap: () async {
+                                  if (favoriteStates.containsKey(vehicle!.id)) {
+                                    await deleteFavourires(vehicle!.id);
+                                    setState(() {
+                                      favoriteStates[vehicle.id] = false;
+                                    });
+                                  } else {
+                                    await addToFav(vehicle!.userId, vehicle.id);
+                                    setState(() {
+                                      favoriteStates[vehicle.id] =
+                                      !(favoriteStates[vehicle.id] ?? false);
+                                    });
+                                  }
+                                },
+                                child: (favAdded || deletFav)
+                                    ? Center(
+                                  child: CircularProgressIndicator(),
+                                )
+                                    : Icon(
+                                  (favoriteStates[vehicle?.id] ?? false)
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: (favoriteStates[vehicle?.id] ?? false)
+                                      ? Colors.red
+                                      : Colors.grey[400],
+                                  size: 22,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 10),
+                          // Price and Negotiable Badge
+                          Row(
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Minimum Charge',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w400),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    '₹ ${vehicle?.minimumChargePerHour ??
+                                        owner.minimumCharges}',
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                ],
+                              ),
+                              // Negotiable Badge
+                              if (vehicle?.isPriceNegotiable == true || owner.negotiable)
+                                Flexible(
+                                    child: Container(
+                                      padding:
+                                      EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      /* decoration: BoxDecoration(
+                                  color: gradientSecond,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: AppColors.blue,
+                                    width: 0.5,
+                                  ),
+                                ),*/
+                                      child: Text(
+                                        (vehicle?.isPriceNegotiable == true ||
+                                            owner.negotiable)
+                                            ? localizations.negotiable
+                                            : localizations.fixedPrice,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: gradientSecond,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    )),
+                              const SizedBox(width: 10),
+                            ],
+                          ),
+                          // Action Buttons and Favorite Icon Row
+                          SizedBox(
+                            height: 20,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                children: [
+                                  CustomActivity(
+                                    baseUrl: ApiConstants.baseUrl,
+                                    userId: owner.userId,
+                                    icon: AssetsConstant.chatSVG,
+                                    type: 'MESSAGE',
+                                    phone: owner.businessMobileNumber,
+                                    activityType: ActivityType.WHATSAPP,
+                                    userType: getMyType(owner.vehicles.length > 1 &&
+                                        owner.vehicles.isNotEmpty
+                                        ? "Transporter"
+                                        : owner.vehicles.isNotEmpty
+                                        ? owner.vehicles.first.vehicleType
+                                        : "Unknown"),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  CustomActivity(
+                                    baseUrl: ApiConstants.baseUrl,
+                                    userId: owner.userId,
+                                    icon: AssetsConstant.whatsAppSVG,
+                                    type: 'WHATSAPP',
+                                    phone: owner.businessMobileNumber,
+                                    activityType: ActivityType.WHATSAPP,
+                                    userType: getMyType(owner.vehicles.length > 1 &&
+                                        owner.vehicles.isNotEmpty
+                                        ? "Transporter"
+                                        : owner.vehicles.isNotEmpty
+                                        ? owner.vehicles.first.vehicleType
+                                        : "Unknown"),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  CustomActivity(
+                                    baseUrl: ApiConstants.baseUrl,
+                                    userId: owner.userId,
+                                    icon: AssetsConstant.callPhoneSVG,
+                                    type: 'PHONE',
+                                    phone: owner.businessMobileNumber,
+                                    activityType: ActivityType.PHONE,
+                                    userType: getMyType(owner.vehicles.length > 1
+                                        ? "Transporter"
+                                        : owner.vehicles.isNotEmpty
+                                        ? owner.vehicles.first.vehicleType
+                                        : "Unknown"),
+                                  ),
+                                ],
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: InkWell(
+                                  onTap: () {
+                                    // _navigateToVehicleDetail(owner);
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 4, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: gradientSecond,
+                                      borderRadius: BorderRadius.circular(2),
+                                      border: Border.all(
+                                        color: AppColors.blue,
+                                        width: 0.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          "Send Request",
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.send,
+                                          size: 12,
+                                          color: Colors.white,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                ),
+                              ),
                             ],
                           ),
                         ],
                       ),
                     ),
-
-                    // Vehicle Count Badge
-                    Row(
+                  ),
+                  // Owner Info Section (Moved Below View More)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(16),bottomRight: Radius.circular(16)),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'Vehicles Owned',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.black,
+                        // Profile Picture
+                        Container(
+                          width: 30,
+                          height: 30,
+                          decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 1)),
+                          child: owner.profilePhoto.isNotEmpty
+                              ? ClipOval(
+                            child: Image.network(
+                              owner.profilePhoto,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 18,
+                              ),
+                            ),
+                          )
+                              : const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 18,
                           ),
                         ),
-                        SizedBox(width: 10,),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.grey[300]!,
-                              width: 1,
-                            ),
+                        const SizedBox(width: 4),
+                        // Owner Name and Details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      "${owner.firstName } ${owner.lastName}",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.black87,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  if (owner.isVerifiedByAdmin) ...[
+                                    const SizedBox(width: 4),
+                                    const Icon(
+                                      Icons.verified,
+                                      size: 12,
+                                      color: Colors.green,
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            '${owner.vehicles.length.toString().padLeft(2, '0')}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                        ),
+
+                        SizedBox(
+                          width: 10,
+                        ),
+                        // Vehicle Count Badge
+                        Row(
+                          children: [
+                            Text(
+                              'Vehicles Owned',
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w400),
                             ),
-                          ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Container(
+                              padding:
+                              EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: gradientFirst.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.blue,
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Text(
+                                '${owner.vehicles.length.toString().padLeft(
+                                    2, '0')}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              ],
+                  )
+                ] ,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   // 3. ADD THESE NEW HELPER METHODS (add them to your class):
-  Widget _buildFeatureTag({required IconData icon, required String text}) {
+  Widget _buildFeatureTag({required String icon, required String text}) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
       decoration: BoxDecoration(
-        color:gradientFirst.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
+        color: gradientFirst.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.grey[300]!,
-          width: 1,
+          color: AppColors.blue,
+          width: 0.5,
         ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey[700]),
+          if (icon.isNotEmpty) Image.asset(icon, width: 14, height: 14),
           const SizedBox(width: 4),
           Text(
             text,
@@ -1230,6 +1301,7 @@ try {
               fontWeight: FontWeight.w500,
             ),
           ),
+          const SizedBox(width: 4),
         ],
       ),
     );
@@ -1320,7 +1392,8 @@ try {
   }
 
 // Enhanced action button (you'll need to update this method too)
-  Widget _buildEnhancedActionButton(String asset, Color color, VoidCallback onTap) {
+  Widget _buildEnhancedActionButton(String asset, Color color,
+      VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1345,6 +1418,7 @@ try {
       ),
     );
   }
+
   Widget _buildCompactActionButton(String icon, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
@@ -1368,7 +1442,6 @@ try {
       ),
     );
   }
-
 
   Widget _buildErrorWidget() {
     final localizations = AppLocalizations.of(context)!;
@@ -1415,7 +1488,7 @@ try {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(localizations.retry),
             ),
@@ -1470,7 +1543,7 @@ try {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(localizations.refresh),
             ),
@@ -1496,14 +1569,14 @@ try {
               prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: Icon(Icons.close),
-                      onPressed: () {
-                        setState(() {
-                          _searchController.clear();
-                          _initializeSearchSuggestions();
-                        });
-                      },
-                    )
+                icon: Icon(Icons.close),
+                onPressed: () {
+                  setState(() {
+                    _searchController.clear();
+                    _initializeSearchSuggestions();
+                  });
+                },
+              )
                   : null,
               filled: true,
               fillColor: Colors.grey[100],
@@ -1551,7 +1624,7 @@ try {
               suggestion.mainText,
               style: TextStyle(
                 fontWeight:
-                    isCurrentLocation ? FontWeight.bold : FontWeight.normal,
+                isCurrentLocation ? FontWeight.bold : FontWeight.normal,
               ),
             ),
             subtitle: isCurrentLocation
@@ -1605,32 +1678,31 @@ try {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-
+    _searchFocusNode.unfocus();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
         children: [
           // Remove the header section that was here before
-
           if (_showLocationSearch) ...[
             _buildLocationSearchBar(),
             _buildLocationSuggestions(),
-          ] else ...[
-            Expanded(
-              child: _isLoading
-                  ? _buildLoadingWidget()
-                  : _errorMessage != null
-                  ? _buildErrorWidget()
-                  : _vehicles.isEmpty
-                  ? _buildEmptyWidget()
-                  : _buildVehiclesList(),
-            ),
-          ],
+          ] else
+            ...[
+              Expanded(
+                child: _isLoading
+                    ? _buildLoadingWidget()
+                    : _errorMessage != null
+                    ? _buildErrorWidget()
+                    : _vehicles.isEmpty
+                    ? _buildEmptyWidget()
+                    : _buildVehiclesList(),
+              ),
+            ],
         ],
       ),
     );
   }
-
 
   Widget _buildVehiclesList() {
     return RefreshIndicator(
@@ -1643,7 +1715,7 @@ try {
         physics: const AlwaysScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 1,
-          childAspectRatio: 0.75, // Adjusted for new card height
+          childAspectRatio: 0.92, // Adjusted for new card height
           crossAxisSpacing: 0.5,
           mainAxisSpacing: 0.5,
         ),
@@ -1742,8 +1814,6 @@ try {
     );
   }
 
-
-
   Widget _buildLocationSelector() {
     return Container(
       margin: const EdgeInsets.all(16),
@@ -1833,7 +1903,6 @@ try {
       ),
     );
   }
-
 
   @override
   void dispose() {

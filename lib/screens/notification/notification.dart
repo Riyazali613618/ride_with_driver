@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 
 import '../../api/api_model/notification_model.dart';
@@ -34,19 +35,6 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 
     return Scaffold(
       backgroundColor: ColorConstants.backgroundColor,
-      appBar: CustomAppBar(
-        title: localizations.notifications,
-        backgroundColor: ColorConstants.primaryColor,
-        elevation: 0,
-        centerTitle: true,
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: Container(
-            height: 1,
-            color: Colors.grey[200],
-          ),
-        ),
-      ),
       body: RefreshIndicator(
         onRefresh: _refreshNotifications,
         color: ColorConstants.primaryColor,
@@ -64,7 +52,33 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
                 return _buildEmptyState();
               }
 
-              return _buildNotificationList(notifications);
+              return CommonParentContainer(
+                  child: Column(children: [
+                Container(
+                  margin: EdgeInsets.symmetric(vertical: 40),
+                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.arrow_back,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                      SizedBox(
+                        width: 20,
+                      ),
+                      Text(
+                        localizations.notifications,
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+                Expanded(child: _buildNotificationList(notifications))
+              ]));
             }
 
             return _buildEmptyState();
@@ -76,7 +90,7 @@ class _NotificationListScreenState extends State<NotificationListScreen> {
 
   Widget _buildNotificationList(List<NotificationModel> notifications) {
     return ListView.builder(
-      padding: EdgeInsets.all(16),
+      padding: EdgeInsets.zero,
       itemCount: notifications.length,
       itemBuilder: (context, index) {
         final notification = notifications[index];
