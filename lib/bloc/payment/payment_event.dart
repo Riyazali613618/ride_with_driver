@@ -13,12 +13,20 @@ class InitiatePayment extends PaymentEvent {
   final PaymentType paymentType;
   final String? category;
   final String? currentCategory;
+  final double? finalPrice;
+  final int? duration;
+  final int? maxvehicles;
+  final double? earlyBirdDiscountPrice;
 
   InitiatePayment({
+    required this.finalPrice,
+    this.maxvehicles,
     required this.plan,
     required this.planType,
     required this.currentCategory,
     required this.paymentType,
+    required this.duration,
+    required this.earlyBirdDiscountPrice,
     this.category,
   });
 }

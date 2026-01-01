@@ -12,14 +12,20 @@ class LocationProvider with ChangeNotifier {
   List<cm.Data> _countries = [];
   List<sm.Data> _states = [];
   List<cM.Data> _cities = [];
+
   // Selected values
   String? _selectedCountry;
   String? _selectedState;
+
   // Getters
   List<cm.Data> get countries => _countries;
+
   List<sm.Data> get states => _states;
+
   List<cM.Data> get cities => _cities;
+
   String? get selectedCountry => _selectedCountry;
+
   String? get selectedState => _selectedState;
 
   // Fetch countries
@@ -40,8 +46,10 @@ class LocationProvider with ChangeNotifier {
   // Fetch states based on selected country
   Future<void> fetchStates(String country) async {
     print("country id:${country}");
-    print("country id:${ApiConstants.baseUrl}/public/countries/$country/states");
-    final url = Uri.parse("${ApiConstants.baseUrl}/public/countries/$country/states");
+    print(
+        "country id:${ApiConstants.baseUrl}/public/countries/$country/states");
+    final url =
+        Uri.parse("${ApiConstants.baseUrl}/public/countries/$country/states");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
@@ -55,7 +63,8 @@ class LocationProvider with ChangeNotifier {
 
   Future<void> fetchCity(String state) async {
     print("fetchCity:$state");
-    final url = Uri.parse("${ApiConstants.baseUrl}/public/states/$state/cities");
+    final url =
+        Uri.parse("${ApiConstants.baseUrl}/public/states/$state/cities");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
@@ -75,8 +84,8 @@ class LocationProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setSelectedCountry(String selectedCountryId){
-    _selectedCountry=selectedCountryId;
+  void setSelectedCountry(String selectedCountryId) {
+    _selectedCountry = selectedCountryId;
     print("_selectedCountry:${_selectedCountry}");
     print("${selectedCountry}");
     notifyListeners();

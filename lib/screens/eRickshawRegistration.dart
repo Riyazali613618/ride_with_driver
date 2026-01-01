@@ -7,6 +7,7 @@ import 'dart:io';
 import '../api/api_model/registrations/auto_rikshaw_registration_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/registration_services/e_rekshaw_registration_service.dart';
+import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import 'block/language/language_provider.dart';
 import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
@@ -79,7 +80,7 @@ class _ERickshawDriverFlowState
   }
   void _initializeLocation() {
     final langProvider = Provider.of<LocationProvider>(context, listen: false);
-    currentCountry = langProvider.selectedCountry ?? '68dabd590b3041213387d616';
+    currentCountry = langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
 
     langProvider.fetchStates(currentCountry!).then((_) {
       if (mounted) {

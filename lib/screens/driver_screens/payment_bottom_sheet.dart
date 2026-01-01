@@ -24,12 +24,14 @@ import '../registration_screens/transporter_registration_screen.dart';
 class PaymentBottomSheetBlocView extends StatefulWidget {
   final PlanModel plan;
   final String planType;
+  final double finalPrice;
   final PaymentType paymentType;
   final String? category;
   final String? currentCategory;
 
   const PaymentBottomSheetBlocView({
     Key? key,
+    required this.finalPrice,
     required this.plan,
     required this.currentCategory,
     required this.planType,
@@ -74,8 +76,8 @@ class _PaymentBottomSheetBlocViewState
       } else if (state is PaymentCompleted) {
         print(
             '[PaymentBottomSheet] PaymentCompleted detected - navigating and closing');
-        Navigator.pop(context);
-        Navigator.pop(context);
+        if (!context.mounted) Navigator.pop(context);
+        if (!context.mounted) Navigator.pop(context);
         navigateBasedOnPlanType(context, widget.planType);
       } else if (state is PaymentError) {
         print('[PaymentBottomSheet] PaymentError detected: ${state.message}');
@@ -245,7 +247,7 @@ class _PaymentBottomSheetBlocViewState
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                '₹ ${widget.plan.earlyBirdDiscountPrice.toStringAsFixed(0)}',
+                '₹ ${widget.finalPrice.toStringAsFixed(0)}',
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
@@ -264,8 +266,9 @@ class _PaymentBottomSheetBlocViewState
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    localizations.discount_percentage_off(
-                        widget.plan.earlyBirdDiscountPercentage.toStringAsFixed(0)),
+                    localizations.discount_percentage_off(widget
+                        .plan.earlyBirdDiscountPercentage
+                        .toStringAsFixed(0)),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -384,7 +387,7 @@ class _PaymentBottomSheetBlocViewState
                 ),
               ),
               Text(
-                'Rs ${widget.plan.finalPrice.toStringAsFixed(2)}',
+                'Rs ${widget.finalPrice.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -404,14 +407,18 @@ class _PaymentBottomSheetBlocViewState
                     : () {
                         context.read<PaymentBloc>().add(
                               InitiatePayment(
+                                finalPrice: widget.finalPrice,
+                                duration: widget.plan.durationInMonths,
+                                earlyBirdDiscountPrice:
+                                    widget.plan.earlyBirdDiscountPrice,
                                 plan: widget.plan,
+                                maxvehicles: widget.plan.maxVehicles,
                                 planType: widget.planType,
                                 paymentType: widget.paymentType,
                                 category: widget.category,
                                 currentCategory: widget.currentCategory,
                               ),
                             );
-
                       },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: ColorConstants.primaryColor,

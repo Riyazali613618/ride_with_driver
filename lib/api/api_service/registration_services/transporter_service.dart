@@ -15,6 +15,7 @@ class TransporterService {
   Future<Map<String, dynamic>> submitTransporterApplication(
     TransporterModel model,
     BuildContext context,
+    String method,
   ) async {
     try {
       print(model);
@@ -35,7 +36,7 @@ class TransporterService {
         return {'success': false, 'message': 'Widget disposed'};
       }
 
-      final url = Uri.parse('${ApiConstants.baseUrl}/user/become-transporter');
+      final url = Uri.parse('${ApiConstants.baseUrl}/user/$method');
       developer.log('Submitting transporter application to: $url',
           name: logTag);
 
@@ -46,6 +47,126 @@ class TransporterService {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode(model.toJson()),
+      );
+
+      print('Bearer $token');
+
+      developer.log('Response status code: ${response.statusCode}',
+          name: logTag);
+      developer.log('Response body: ${response.body}', name: logTag);
+
+      if (!context.mounted) {
+        return {'success': true};
+      }
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        developer.log('Transporter application submitted successfully',
+            name: logTag);
+
+        return {'success': true};
+      } else {
+        final errorResponse = jsonDecode(response.body);
+        final errorMessage = errorResponse['message'] ?? 'Submission failed';
+        developer.log(
+          'Failed to submit transporter application: $errorMessage',
+          name: logTag,
+        );
+
+        if (context.mounted) {
+          showApiErrorSnackBar(context, errorMessage);
+        }
+
+        return {'success': false, 'message': errorMessage};
+      }
+    } catch (e, stackTrace) {
+      developer.log(
+        'Error submitting transporter application',
+        error: e,
+        stackTrace: stackTrace,
+        name: logTag,
+      );
+      if (context.mounted) {
+        showApiErrorSnackBar(context, 'An unexpected error occurred');
+      }
+
+      return {'success': false, 'message': 'An unexpected error occurred'};
+    }
+  }
+
+  Future<Map<String, dynamic>> submitUpgradeTransporterApplication(
+    TransporterModel model,
+    BuildContext context,
+    String method,
+    String subscriptionPlanId,
+    String paymentId,
+    String orderId,
+  ) async {
+    try {
+      print(model);
+      if (!context.mounted) {
+        return {'success': false, 'message': 'Widget disposed'};
+      }
+      print(jsonEncode({
+        "profilePhoto": model.profilePhoto,
+        "chosen_category": "TRANSPORTER",
+        "orderId": orderId,
+        "paymentId": paymentId,
+        "subscriptionPlanId": subscriptionPlanId,
+        "gstin": model.gstin,
+        "companyName": model.companyName,
+        "address": model.address,
+        "phoneNumber": model.phoneNumber,
+        //shall be same as user original number
+        "firstName": model.firstName,
+        "lastName": model.lastName,
+        "bio": model.bio,
+        "fleetSize": model.fleetSize,
+        "counts": model.counts,
+        "transportationPermit": model.transportationPermit,
+        "coverImage": model.photo
+      }));
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        developer.log('No authentication token available', name: logTag);
+        return {
+          'success': false,
+          'message': 'Authentication token not available',
+        };
+      }
+
+      if (!context.mounted) {
+        return {'success': false, 'message': 'Widget disposed'};
+      }
+
+      final url = Uri.parse('${ApiConstants.baseUrl}/user/$method');
+      developer.log('Submitting transporter application to: $url',
+          name: logTag);
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          "profilePhoto": model.profilePhoto,
+          "chosen_category": "TRANSPORTER",
+          "orderId": orderId,
+          "paymentId": paymentId,
+          "subscriptionPlanId": subscriptionPlanId,
+          "gstin": model.gstin,
+          "companyName": model.companyName,
+          "address": model.address,
+          "phoneNumber": model.phoneNumber,
+          //shall be same as user original number
+          "firstName": model.firstName,
+          "lastName": model.lastName,
+          "bio": model.bio,
+          "fleetSize": model.fleetSize,
+          "counts": model.counts,
+          "transportationPermit": model.transportationPermit,
+          "coverImage": model.photo
+        }),
       );
 
       print('Bearer $token');

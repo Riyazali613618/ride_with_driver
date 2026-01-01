@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
 
 import '../../api/api_model/user_model/user_profile_model.dart';
 import '../../api/api_service/user_service/user_profile_service.dart';
@@ -16,7 +17,7 @@ abstract class UserProfileEvent extends Equatable {
 class FetchUserProfile extends UserProfileEvent {}
 
 class UpdateUserProfile extends UserProfileEvent {
-  final UserData userData;
+  final MyProfileData userData;
 
   const UpdateUserProfile(this.userData);
 
@@ -36,7 +37,7 @@ class UserProfileInitial extends UserProfileState {}
 class UserProfileLoading extends UserProfileState {}
 
 class UserProfileLoaded extends UserProfileState {
-  final UserData userData;
+  final MyProfileData userData;
 
   const UserProfileLoaded(this.userData);
 
@@ -80,12 +81,12 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
   ) async {
     emit(UserProfileLoading());
     try {
-      final UserProfileModel response =
+      final MyProfileData? response =
           await _userProfileService.getUserProfile();
-      if (response.status && response.data != null) {
-        emit(UserProfileLoaded(response.data!));
+      if (response!= null) {
+        emit(UserProfileLoaded(response));
       } else {
-        emit(UserProfileError(response.message));
+        emit(UserProfileError("error in fetching profile"));
       }
     } catch (e) {
       emit(UserProfileError(e.toString()));
@@ -98,14 +99,14 @@ class UserProfileBloc extends Bloc<UserProfileEvent, UserProfileState> {
   ) async {
     emit(UserProfileUpdating());
     try {
-      final response =
+      final MyProfileModel response =
           await _userProfileService.updateUserProfile(event.userData);
-      if (response.status) {
+      if (response.success==true) {
         // Re-fetch the profile to ensure we have the latest data
         add(FetchUserProfile());
-        emit(UserProfileUpdateSuccess(response.message));
+        emit(UserProfileUpdateSuccess(response.message!));
       } else {
-        emit(UserProfileError(response.message));
+        emit(UserProfileError(response.message!));
       }
     } catch (e) {
       emit(UserProfileError(e.toString()));

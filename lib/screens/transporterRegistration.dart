@@ -9,8 +9,13 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart'
+    hide Counts;
+import 'package:r_w_r/api/api_model/user_model/user_profile_model.dart';
 import 'package:r_w_r/constants/api_constants.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_vehicle_screen.dart';
 import 'package:r_w_r/screens/layout.dart';
+import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
 import 'package:r_w_r/screens/widgets/gradient_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,6 +27,7 @@ import '../../bloc/driver/driver_event.dart';
 import '../../bloc/driver/driver_state.dart';
 import '../../components/media_uploader_widget.dart';
 import '../../constants/token_manager.dart';
+import '../api/api_model/user_model/user_eligibility_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/user_service/user_profile_service.dart';
 import '../transporterRegistration/presentation/widget/gradient_progress_bar.dart';
@@ -99,11 +105,21 @@ class _TransporterRegistrationFlowState
       });
     });
     _prefillData();
-    _loadCurrentStep();
+    _loadTransporterData();
+    //_loadCurrentStep();
     _markApplicationAsStarted();
   }
 
-  void _prefillData() {
+  Future<void> _prefillData() async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+      MyProfileData? profile = await TokenManager.getProfile();
+      if (profile == null) return;
+
+      _transporterModel = _transporterModel.copyWith(
+        firstName: profile.firstName ?? '',
+        lastName: profile.lastName ?? '',
+      );
+    });
     UserPrefillUtility.prefillUserData(
       contactPersonController: _contactPersonNameController,
       phoneController: _phoneNumberController,
@@ -131,6 +147,46 @@ class _TransporterRegistrationFlowState
   Future<void> _saveCurrentStep() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('transporter_current_step', _currentStep);
+  }
+
+  Future<void> _saveTransporterData() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('transporter_data', jsonEncode(_transporterModel));
+    _saveCurrentStep();
+  }
+
+  Future<void> _loadTransporterData() async {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          String data = prefs.getString('transporter_data') ?? '';
+          if (data.isNotEmpty) {
+            _transporterModel = TransporterModel.fromJson(jsonDecode(data));
+          } else {
+            MyProfileData? profile = await TokenManager.getProfile();
+            if (profile != null) {
+              _transporterModel.copyWith(
+                  firstName: profile.firstName ?? "",
+                  lastName: profile.lastName ?? "",
+                  companyName: profile.companyName ?? "",
+                  bio: profile.bio ?? "",
+                  phoneNumber: profile.mobileNumber ?? "",
+                  gstin: profile.gstin ?? "",
+                  address: _transporterModel.address.copyWith(
+                    addressLine: profile.address?.addressLine ?? "",
+                    city: profile.address?.city ?? "",
+                    state: profile.address?.state ?? "",
+                    pincode: profile.address?.pincode,
+                  ));
+            }
+          }
+          populateData();
+        } catch (e) {
+          print(e);
+        }
+      },
+    );
   }
 
   Future<void> _loadCurrentStep() async {
@@ -628,6 +684,7 @@ class _TransporterRegistrationFlowState
     String? errorMessage;
     print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     print("$_currentStep");
+    _saveTransporterData();
 
     switch (_currentStep) {
       case 0: // Company Detail
@@ -720,7 +777,7 @@ class _TransporterRegistrationFlowState
         curve: Curves.easeInOut,
       );
       _saveCurrentStep();
-
+      _saveTransporterData();
       ApplicationStatus status;
       switch (_currentStep) {
         case 1:
@@ -754,6 +811,7 @@ class _TransporterRegistrationFlowState
       );
       _saveCurrentStep();
       _saveWhoRegStatus("Transporter");
+      _saveTransporterData();
     } else {
       // If at the first step, pop the screen
       Navigator.pop(context);
@@ -775,7 +833,9 @@ class _TransporterRegistrationFlowState
       _transporterModel = _transporterModel.copyWith(
         companyName: _companyNameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
-        bio: _bioController.text.trim(),
+        bio: _bioController.text.trim().isEmpty
+            ? "bio"
+            : _bioController.text.trim(),
         contactPersonName: _contactPersonNameController.text.trim(),
         address: _transporterModel.address.copyWith(
           addressLine: _addressLineController.text.trim(),
@@ -837,8 +897,20 @@ class _TransporterRegistrationFlowState
     if (accepted != true) {
       return;
     }
+    String orderId = "";
+    String paymentId = "";
+    String subscriptionPlanId = "";
 
     if (!mounted) return;
+    bool isUpgrade = await getUserProfile();
+    if (isUpgrade) {
+      final data = await getEligibilityData();
+      if (data.data != null) {
+        subscriptionPlanId = data.data?.subscriptionId ?? "";
+        paymentId = data.data?.paymentId ?? "";
+        orderId = data.data?.orderId ?? "";
+      }
+    }
 
     context.read<DriverBloc>().add(
           TransporterRegistrationEvent(
@@ -851,9 +923,23 @@ class _TransporterRegistrationFlowState
       final profilePhoto = userData?['profilePhoto'] ?? _transporterModel.photo;
       _transporterModel = _transporterModel.copyWith(
           profilePhoto: profilePhoto,
-          firstName: _transporterModel.contactPersonName);
-      final response = await TransporterService()
-          .submitTransporterApplication(_transporterModel, context);
+          firstName: _transporterModel.contactPersonName,
+          bio: _bioController.text.trim().isEmpty
+              ? "bio"
+              : _bioController.text.trim(),
+          lastName: (_transporterModel.lastName ?? "").isEmpty
+              ? "aa"
+              : _transporterModel.lastName!);
+      final response = isUpgrade
+          ? await TransporterService().submitUpgradeTransporterApplication(
+              _transporterModel,
+              context,
+              "become-upgradable",
+              subscriptionPlanId,
+              paymentId,
+              orderId)
+          : await TransporterService().submitTransporterApplication(
+              _transporterModel, context, "become-transporter");
 
       if (response['success'] == true) {
         if (!mounted) return;
@@ -864,7 +950,9 @@ class _TransporterRegistrationFlowState
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Layout()),
+          MaterialPageRoute(
+              builder: (context) =>
+                  const AddNewVehicleScreen(userType: "Transporter")),
         );
       } else {
         if (!mounted) return;
@@ -961,62 +1049,64 @@ class _TransporterRegistrationFlowState
           );
         }
       },
-      child: PopScope(canPop: false, // Prevents default pop behavior
+      child: PopScope(
+          canPop: false, // Prevents default pop behavior
           onPopInvoked: (didPop) {
             if (didPop) {
               return;
             }
             // Call your existing logic
             previousStep();
-          },child: Scaffold(
-        // Use cream background color from design
-        backgroundColor: Color(0xFFFFFBF3),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                gradientFirst,
-                gradientSecond,
-                gradientThird,
-                Colors.white
-              ],
-              stops: [0.0, 0.15, 0.30, .90],
-            ),
-          ),
-          child: SafeArea(
-            child: Column(
-              children: [
-                _buildAppBar(),
-                MultiStepProgressBar(
-                  currentStep: _currentStep,
-                  stepTitles: _stepTitles,
-                  gradientColors: [gradientFirst, gradientSecond],
+          },
+          child: Scaffold(
+            // Use cream background color from design
+            backgroundColor: Color(0xFFFFFBF3),
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    gradientFirst,
+                    gradientSecond,
+                    gradientThird,
+                    Colors.white
+                  ],
+                  stops: [0.0, 0.15, 0.30, .90],
                 ),
-                Expanded(
-                  child: PageView(
-                    controller: _pageController,
-                    physics: NeverScrollableScrollPhysics(),
-                    onPageChanged: (step) {
-                      setState(() {
-                        _currentStep = step;
-                      });
-                    },
-                    children: [
-                      _buildCompanyDetailStep(),
-                      _buildAddressStep(),
-                      _buildDocumentStep(),
-                      _buildAboutStep(),
-                      _buildPreviewStep(),
-                    ],
-                  ),
+              ),
+              child: SafeArea(
+                child: Column(
+                  children: [
+                    _buildAppBar(),
+                    MultiStepProgressBar(
+                      currentStep: _currentStep,
+                      stepTitles: _stepTitles,
+                      gradientColors: [gradientFirst, gradientSecond],
+                    ),
+                    Expanded(
+                      child: PageView(
+                        controller: _pageController,
+                        physics: NeverScrollableScrollPhysics(),
+                        onPageChanged: (step) {
+                          setState(() {
+                            _currentStep = step;
+                          });
+                        },
+                        children: [
+                          _buildCompanyDetailStep(),
+                          _buildAddressStep(),
+                          _buildDocumentStep(),
+                          _buildAboutStep(),
+                          _buildPreviewStep(),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ),
-      )),
+          )),
     );
   }
 
@@ -2078,6 +2168,50 @@ class _TransporterRegistrationFlowState
     } else {
       previousStep();
     }
+  }
+
+  Future<bool> getUserProfile() async {
+    final data = await UserProfileService().getUserProfile();
+    final prefs = await SharedPreferences.getInstance();
+    if (data!.subscriptions != null && data!.subscriptions!.isNotEmpty) {
+      for (var sub in data!.subscriptions!) {
+        if ((sub.status ?? "").toLowerCase() == "active" &&
+            (sub.isUpgrade ?? false)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return false;
+    }
+  }
+
+  Future<UserEligibilityModel> getEligibilityData() async {
+    final data = await UserProfileService().getEligibility();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(AppConstants.planEligibilityKey, jsonEncode(data.data));
+    return data;
+  }
+
+  void populateData() {
+    _companyNameController.text = _transporterModel.companyName ?? "";
+    _phoneNumberController.text = _transporterModel.phoneNumber ?? "";
+    _bioController.text = _transporterModel.bio ?? "";
+    _addressLineController.text = _transporterModel.address.addressLine ?? "";
+    _cityController.text = _transporterModel.address.city ?? "";
+    _stateController.text = _transporterModel.address.state ?? "";
+    _pincodeController.text =
+        _transporterModel.address.pincode.toString() ?? "";
+    _contactPersonNameController.text =
+        _transporterModel.contactPersonName ?? "";
+    _gstinController.text = _transporterModel.gstin ?? "";
+    _carCountController.text = _transporterModel.counts.car.toString() ?? "";
+    _vanCountController.text = _transporterModel.counts.van.toString() ?? "";
+    _busCountController.text = _transporterModel.counts.bus.toString() ?? "";
+    _selectedFleetSize = _transporterModel.fleetSize;
+    _selectedCity = _cityController.text.toString() ?? "";
+    _selectedState = _stateController.text.toString();
+    setState(() {});
   }
 }
 

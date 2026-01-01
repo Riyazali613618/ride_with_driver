@@ -78,7 +78,7 @@ class FAQService {
       final language = currentLanguage?.code ?? 'en';
 
       final response = await http.get(
-        Uri.parse('$baseUrl/public/legal/FAQ/68d4052ce5417ced85c8b0fd'),
+        Uri.parse('$baseUrl/public/legal/FAQ/${ApiConstants.defaultLanguageCodeEng}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

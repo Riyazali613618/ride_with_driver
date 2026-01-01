@@ -53,7 +53,7 @@ class LanguageRepository {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'language': '68d4052ce5417ced85c8b0fd'}),
+        body: jsonEncode({'language': ApiConstants.defaultLanguageCodeEng}),
       );
 
       debugPrint('Language update response status: ${response.statusCode}');

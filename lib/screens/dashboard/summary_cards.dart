@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/features/newDashboard/dashboard_model.dart';
 import 'package:speedometer_chart/speedometer_chart.dart';
 
+import '../../features/vehicles/presentation/bloc/profile_bloc.dart';
+import '../../features/vehicles/presentation/bloc/profile_repository.dart';
 import '../../features/vehicles/presentation/pages/vehicles_list_page.dart';
 
 class SummaryCards extends StatelessWidget {
@@ -114,7 +117,10 @@ class SummaryCards extends StatelessWidget {
               child: _ActionCard(
                 callBack: () {
                   Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => VehiclesListingPage(),));
+                    builder: (context) => BlocProvider(
+                      create: (_) => ProfileBloc(ProfileRepository()),
+                      child: VehiclesListingPage(),
+                    ),));
                 },
                 title: "Manage Vehicles",
                 gradient: const LinearGradient(

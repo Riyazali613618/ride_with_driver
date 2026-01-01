@@ -75,8 +75,9 @@ class _LoginScreenState extends State<LoginScreen> {
     // Get just the phone number without country code for the API
     final phoneNumber = _phoneController.text;
     countryModel=locationProvider.countries;
+    final cCode=_selectedCountryCode.replaceAll('+', '');
     for(var cm in countryModel){
-      if(cm.dialCode==_selectedCountryCode){
+      if(cm.dialCode==cCode){
         locationProvider.setSelectedCountry(cm.id!);
         break;
       }

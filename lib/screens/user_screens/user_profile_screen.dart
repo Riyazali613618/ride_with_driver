@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
 import 'package:r_w_r/components/app_button.dart';
 import 'package:r_w_r/screens/user_screens/user_profile_event.dart';
 
@@ -28,7 +29,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   late UserProfileBloc _userProfileBloc;
   bool _isEditing = false;
-  UserData? _currentUserData;
+  MyProfileData? _currentUserData;
 
   @override
   void initState() {
@@ -47,12 +48,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     super.dispose();
   }
 
-  void _populateFormFields(UserData userData) {
-    _firstNameController.text = userData.firstName;
-    _lastNameController.text = userData.lastName;
-    _emailController.text = userData.email;
-    _languageController.text = userData.language;
-    _phoneController.text = userData.number ?? '';
+  void _populateFormFields(MyProfileData userData) {
+    _firstNameController.text = userData.firstName ?? "";
+    _lastNameController.text = userData.lastName ?? "";
+    _emailController.text = userData.email ?? "";
+    _languageController.text = (userData.language is Map)
+        ? ((userData.language ?? {}) as Map)["name"] ?? ''
+        : userData.language ?? '';
+    _phoneController.text = userData.mobileNumber ?? '';
     _currentUserData = userData;
   }
 
@@ -69,7 +72,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
-        language: _languageController.text.trim(),
+        language: Language(id: "", name: _languageController.text.trim()),
       );
 
       _userProfileBloc.add(UpdateUserProfile(updatedUserData));
@@ -247,10 +250,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     final lastName = _currentUserData!.lastName;
 
     String initials = '';
-    if (firstName.isNotEmpty) {
+    if (firstName!.isNotEmpty) {
       initials += firstName[0].toUpperCase();
     }
-    if (lastName.isNotEmpty) {
+    if (lastName!.isNotEmpty) {
       initials += lastName[0].toUpperCase();
     }
 

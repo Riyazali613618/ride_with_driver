@@ -90,7 +90,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   void _initializeLocation() {
     final langProvider = Provider.of<LocationProvider>(context, listen: false);
-    currentCountry = langProvider.selectedCountry ?? '68dabd590b3041213387d616';
+    currentCountry =
+        langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
 
     langProvider.fetchStates(currentCountry!).then((_) {
       if (mounted) {
@@ -104,7 +105,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   void _prefillData() {
     // Prefill with user data if available
     final profileProvider =
-        Provider.of<ProfileProvider>(context, listen: false);
+    Provider.of<ProfileProvider>(context, listen: false);
     if (profileProvider.fullName != null) {
       _selfNameController.text = profileProvider.fullName!;
     }
@@ -136,12 +137,16 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   // Validation methods
   String? _validateRequired(String? value, String fieldName) {
-    if (value == null || value.trim().isEmpty) return '$fieldName is required';
+    if (value == null || value
+        .trim()
+        .isEmpty) return '$fieldName is required';
     return null;
   }
 
   String? _validateMobileNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Mobile number is required';
     }
     if (value.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
@@ -151,7 +156,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   String? _validatePincode(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Pincode is required';
     }
     if (value.length != 6 || !RegExp(r'^[0-9]{6}$').hasMatch(value)) {
@@ -161,7 +168,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   String? _validateAadhaar(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Aadhaar number is required';
     }
     if (value.length != 12 || !RegExp(r'^[0-9]{12}$').hasMatch(value)) {
@@ -175,7 +184,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
     try {
       final profileProvider =
-          Provider.of<ProfileProvider>(context, listen: false);
+      Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
@@ -203,7 +212,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   Future<void> _verifyAadhaar(String aadhaarNumber) async {
-    if (aadhaarNumber.trim().isEmpty) return;
+    if (aadhaarNumber
+        .trim()
+        .isEmpty) return;
 
     final aadhaarError = _validateAadhaar(aadhaarNumber);
     if (aadhaarError != null) {
@@ -696,7 +707,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
-              height: MediaQuery.of(context).size.height * 0.85,
+              height: MediaQuery
+                  .of(context)
+                  .size
+                  .height * 0.85,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -735,10 +749,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                               child: SingleChildScrollView(
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black87,
@@ -773,10 +787,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                                     ),
                                     child: isAgreed
                                         ? Icon(
-                                            Icons.check,
-                                            color: Colors.white,
-                                            size: 16,
-                                          )
+                                      Icons.check,
+                                      color: Colors.white,
+                                      size: 16,
+                                    )
                                         : null,
                                   ),
                                 ),
@@ -787,18 +801,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                                     child: ElevatedButton(
                                       onPressed: isAgreed
                                           ? () {
-                                              _proceedToFinalStep();
-                                            }
+                                        _proceedToFinalStep();
+                                      }
                                           : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isAgreed
                                             ? Color(0xFF8B5CF6)
                                             : Colors.grey[300],
                                         padding:
-                                            EdgeInsets.symmetric(vertical: 12),
+                                        EdgeInsets.symmetric(vertical: 12),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
-                                              BorderRadius.circular(25),
+                                          BorderRadius.circular(25),
                                         ),
                                         elevation: 0,
                                       ),
@@ -839,101 +853,125 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   BecomeDriverModel _driverModel = BecomeDriverModel();
 
+  bool submittingForm = false;
+
   Future<void> _proceedToFinalStep() async {
     Navigator.pop(context); // Close bottom sheet
-
-    // TODO: Replace with actual API submission
-    _showSuccessSnackBar('Agreement accepted! Submitting registration...');
-    final XFile xFile = XFile(_selectedImage!.path);
-    final result = await MediaService()
-        .uploadMedia(xFile, kind: "profilePhoto", type: "profilePhoto");
-    String aadhaarFrontUrl = "";
-    String aadhaarBackUrl = "";
-    String drivingLicencePhoto = "";
-    String transportationPermitPhoto = "";
-    if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
-      final XFile xFileAadhaarFront = XFile(adhaar[0]!.path);
-      final aadharCardPhotoFront = await MediaService()
-          .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
-      aadhaarFrontUrl = aadharCardPhotoFront.url!;
-    }
-    if (adhaar.isNotEmpty && adhaar.length > 1 && adhaar[1]!.path.isNotEmpty) {
-      final XFile xFileAadhaarBack = XFile(adhaar[1]!.path);
-      final aadharCardPhotoBack = await MediaService()
-          .uploadMedia(xFileAadhaarBack, kind: "document", type: "document");
-      aadhaarBackUrl = aadharCardPhotoBack.url!;
-    }
-    if (drivingLicense.isNotEmpty ) {
-      final XFile drivingLicenseFile = XFile(drivingLicense[0]!.path);
-      final drivingLicencePhotoUrl = await MediaService()
-          .uploadMedia(drivingLicenseFile, kind: "document", type: "document");
-      drivingLicencePhoto = drivingLicencePhotoUrl.url!;
-    }
-    if (permit.isNotEmpty && permit[0]!.path.isNotEmpty) {
-      final XFile drivingLicenseFile = XFile(permit[0]!.path);
-      final transportationPermitPhotoUrl = await MediaService()
-          .uploadMedia(drivingLicenseFile, kind: "document", type: "document");
-      transportationPermitPhoto = transportationPermitPhotoUrl.url!;
-    }
-
-    _driverModel = _driverModel.copyWith(
-      profilePhoto: result.url ?? '',
-      firstName: _selfNameController.text,
-      lastName: _selfNameController.text,
-      businessMobileNumber: _phoneNumberController.text,
-      bio: _aboutController.text,
-      address: Address(
-          addressLine: _addressController.text.trim(),
-          state: _stateController.text.trim(),
-          city: _cityController.text.trim(),
-          pincode: int.tryParse(_pinCodeController.text.trim())),
-      aadharCardNumber: _aadharCardController.text,
-      aadharCardPhotoFront: aadhaarFrontUrl ?? '',
-      aadharCardPhotoBack: aadhaarBackUrl ?? '',
-      drivingLicenceNumber: _drivingLicenseController.text,
-      drivingLicencePhoto: drivingLicencePhoto,
-      transportationPermitPhoto: transportationPermitPhoto,
-      independentCarOwnerFleetSize: FleetSize(
-          cars: 1 ?? 0,
-          minivans: 1 ?? 0,
-          buses:  0,
-          suvs:  0),
-    );
+    setState(() {
+      submittingForm = true;
+    });
     try {
-      final response = await BecomeDriverServiceIndi()
-          .submitDriverApplicationIndi(_driverModel);
+      final XFile xFile = XFile(_selectedImage!.path);
+      final result = await MediaService()
+          .uploadMedia(xFile, kind: "profilePhoto", type: "profilePhoto");
+      String aadhaarFrontUrl = "";
+      String aadhaarBackUrl = "";
+      String drivingLicencePhoto = "";
+      String transportationPermitPhoto = "";
+    /*  if (permit.isNotEmpty ) {
+        final XFile xFileAadhaarFront = XFile(permit[0]!.path);
+        final permitPhoto = await MediaService()
+            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+        transportationPermitPhoto = permitPhoto.url!;
+      }*/
+      if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
+        final XFile xFileAadhaarFront = XFile(adhaar[0]!.path);
+        final aadharCardPhotoFront = await MediaService()
+            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+        aadhaarFrontUrl = aadharCardPhotoFront.url!;
+      }
+      if (adhaar.isNotEmpty && adhaar.length > 1 &&
+          adhaar[1]!.path.isNotEmpty) {
+        final XFile xFileAadhaarBack = XFile(adhaar[1]!.path);
+        final aadharCardPhotoBack = await MediaService()
+            .uploadMedia(xFileAadhaarBack, kind: "document", type: "document");
+        aadhaarBackUrl = aadharCardPhotoBack.url!;
+      }
+      if (drivingLicense.isNotEmpty) {
+        final XFile drivingLicenseFile = XFile(drivingLicense[0]!.path);
+        final drivingLicencePhotoUrl = await MediaService()
+            .uploadMedia(
+            drivingLicenseFile, kind: "document", type: "document");
+        drivingLicencePhoto = drivingLicencePhotoUrl.url!;
+      }
+      if (permit.isNotEmpty && permit[0]!.path.isNotEmpty) {
+        final XFile drivingLicenseFile = XFile(permit[0]!.path);
+        final transportationPermitPhotoUrl = await MediaService()
+            .uploadMedia(
+            drivingLicenseFile, kind: "document", type: "document");
+        transportationPermitPhoto = transportationPermitPhotoUrl.url!;
+      }
 
-      if (response['success'] == true) {
-        if (!mounted) return;
-        _clearSavedStep();
-        _saveApplicationStatus(ApplicationStatus.submitted);
-        TransporterService.showSuccessSnackBar(
-            context, 'Application submitted successfully!');
-        if (!mounted) return;
-        Future.delayed(Duration(seconds: 2), () {
+      _driverModel = _driverModel.copyWith(
+        profilePhoto: result.url ?? '',
+        firstName: _selfNameController.text,
+        lastName: _selfNameController.text,
+        businessMobileNumber: _phoneNumberController.text,
+        bio: _aboutController.text,
+        address: Address(
+            addressLine: _addressController.text.trim(),
+            state: _stateController.text.trim(),
+            city: _cityController.text.trim(),
+            pincode: int.tryParse(_pinCodeController.text.trim())),
+        aadharCardNumber: _aadharCardController.text,
+        aadharCardPhotoFront: aadhaarFrontUrl ?? '',
+        aadharCardPhotoBack: aadhaarBackUrl ?? '',
+        drivingLicenceNumber: _drivingLicenseController.text,
+        drivingLicencePhoto: drivingLicencePhoto,
+        transportationPermitPhoto: transportationPermitPhoto,
+        independentCarOwnerFleetSize:
+        FleetSize(cars: 1 ?? 0, minivans: 1 ?? 0, buses: 0, suvs: 0),
+      );
+      try {
+        final response = await BecomeDriverServiceIndi()
+            .submitDriverApplicationIndi(_driverModel);
+
+        if (response['success'] == true) {
+          if (!mounted) return;
           _clearSavedStep();
-          Navigator.pushReplacement(
+          _saveApplicationStatus(ApplicationStatus.submitted);
+          TransporterService.showSuccessSnackBar(
+              context, 'Application submitted successfully!');
+          if (!mounted) return;
+          Future.delayed(Duration(seconds: 2), () {
+            _clearSavedStep();
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) =>
+                      RegistrationSuccessfulScreen(
+                        userType: 'Taxi Owner',
+                      )),
+            );
+          });
+        } else {
+          if (!mounted) return;
+          TransporterService.showApiErrorSnackBar(
             context,
-            MaterialPageRoute(
-                builder: (context) => RegistrationSuccessfulScreen(
-                      userType: 'Taxi Owner',
-                    )),
+            response['message'] ?? 'Submission failed',
           );
-        });
-      } else {
+        }
+      } catch (e) {
         if (!mounted) return;
         TransporterService.showApiErrorSnackBar(
           context,
-          response['message'] ?? 'Submission failed',
+          'An unexpected error occurred',
         );
+        setState(() {
+          submittingForm = false;
+        });
+      } finally {
+        if (!mounted) return;
+        setState(() {
+          submittingForm = false;
+        });
       }
     } catch (e) {
       if (!mounted) return;
-      TransporterService.showApiErrorSnackBar(
-        context,
-        'An unexpected error occurred',
-      );
-    } finally {}
+      setState(() {
+        submittingForm = false;
+      });
+    }
     // Simulate API call
   }
 
@@ -1064,7 +1102,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                 child: Container(
                   height: 8,
                   width: 30 +
-                      (MediaQuery.of(context).size.width * 0.25 * currentStep),
+                      (MediaQuery
+                          .of(context)
+                          .size
+                          .width * 0.25 * currentStep),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
@@ -1173,18 +1214,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                       ),
                       child: _selectedImage != null
                           ? ClipOval(
-                              child: Image.file(
-                                _selectedImage!,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              ),
-                            )
+                        child: Image.file(
+                          _selectedImage!,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                           : Icon(
-                              Icons.camera_alt,
-                              size: 32,
-                              color: Colors.grey[600],
-                            ),
+                        Icons.camera_alt,
+                        size: 32,
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ),
                   SizedBox(height: 12),
@@ -1271,18 +1312,19 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               'State',
               _selectedState,
               _stateList
-                  .map((state) => DropdownMenuItem(
-                        value: state.sId,
-                        child: Text(state.name.toString()),
-                      ))
+                  .map((state) =>
+                  DropdownMenuItem(
+                    value: state.sId,
+                    child: Text(state.name.toString()),
+                  ))
                   .toList(),
-              (newValue) {
+                  (newValue) {
                 setState(() {
                   _selectedState = newValue;
                   _stateController.text = newValue ?? '';
                   if (newValue != null) {
                     final locProvider =
-                        Provider.of<LocationProvider>(context, listen: false);
+                    Provider.of<LocationProvider>(context, listen: false);
                     locProvider.fetchCity(newValue).then((_) {
                       setState(() {
                         _cityList = locProvider.cities;
@@ -1293,26 +1335,27 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                 });
               },
               validator: (value) =>
-                  value == null ? 'Please select a state' : null,
+              value == null ? 'Please select a state' : null,
             ),
             SizedBox(height: 20),
             _buildDropdown(
               'City',
               _selectedCity,
               _cityList
-                  .map((city) => DropdownMenuItem(
-                        value: city.sId,
-                        child: Text(city.name.toString()),
-                      ))
+                  .map((city) =>
+                  DropdownMenuItem(
+                    value: city.sId,
+                    child: Text(city.name.toString()),
+                  ))
                   .toList(),
-              (newValue) {
+                  (newValue) {
                 setState(() {
                   _selectedCity = newValue;
                   _cityController.text = newValue ?? '';
                 });
               },
               validator: (value) =>
-                  value == null ? 'Please select a city' : null,
+              value == null ? 'Please select a city' : null,
             ),
             Spacer(),
             _buildContinueButton(),
@@ -1403,18 +1446,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                           child: Center(
                             child: _isAadhaarVerifying
                                 ? SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2),
+                            )
                                 : Text(
-                                    _isAadhaarVerified ? 'Verified' : 'Verify',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
+                              _isAadhaarVerified ? 'Verified' : 'Verify',
+                              style: TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -1555,18 +1598,20 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                               onTap: () {
                                 showDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Vehicle Count Info'),
-                                    content: Text(
-                                      'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
+                                  builder: (context) =>
+                                      AlertDialog(
+                                        title: Text('Vehicle Count Info'),
+                                        content: Text(
+                                          'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: Text('OK'),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
                                 );
                               },
                               child: Container(
@@ -1671,18 +1716,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                   ),
                   child: _selectedImage != null
                       ? ClipOval(
-                          child: Image.file(
-                            _selectedImage!,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          ),
-                        )
+                    child: Image.file(
+                      _selectedImage!,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  )
                       : Icon(
-                          Icons.person,
-                          size: 30,
-                          color: Colors.grey[600],
-                        ),
+                    Icons.person,
+                    size: 30,
+                    color: Colors.grey[600],
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -1780,7 +1825,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     return Container(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: nextStep,
+        onPressed:submittingForm ?null: nextStep,
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF8B5CF6),
           padding: EdgeInsets.symmetric(vertical: 16),
@@ -1789,7 +1834,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           ),
           elevation: 0,
         ),
-        child: Text(
+        child: submittingForm ? SizedBox(width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            color: Colors.blue, strokeWidth: 2,),):Text(
           'Submit',
           style: TextStyle(
             color: Colors.white,
@@ -1833,15 +1881,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     );
   }
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    String? placeholder,
-    String? Function(String?)? validator,
-    TextInputType? keyboardType,
-    int? maxLength,
-    Function(String)? onChanged,
-  }) {
+  Widget _buildTextField(String label,
+      TextEditingController controller, {
+        String? placeholder,
+        String? Function(String?)? validator,
+        TextInputType? keyboardType,
+        int? maxLength,
+        Function(String)? onChanged,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1879,13 +1926,12 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     );
   }
 
-  Widget _buildDropdown<T>(
-    String label,
-    T? value,
-    List<DropdownMenuItem<T>> items,
-    void Function(T?) onChanged, {
-    String? Function(T?)? validator,
-  }) {
+  Widget _buildDropdown<T>(String label,
+      T? value,
+      List<DropdownMenuItem<T>> items,
+      void Function(T?) onChanged, {
+        String? Function(T?)? validator,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1932,7 +1978,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         ),
         SizedBox(height: 8),
         Container(
-          width: MediaQuery.of(context).size.width,
+          width: MediaQuery
+              .of(context)
+              .size
+              .width,
           height: 150,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),

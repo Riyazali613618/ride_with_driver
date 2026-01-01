@@ -12,6 +12,7 @@ import '../api/api_model/rating_and_reviews_model/indicar_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/become_driver_registration_service.dart';
+import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
@@ -621,7 +622,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       final langProvider =
           Provider.of<LocationProvider>(context, listen: false);
       currentCountry =
-          langProvider.selectedCountry ?? '68dabd590b3041213387d616';
+          langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
       final languageProvider =
           Provider.of<LanguageProvider>(context, listen: false);
       langData = languageProvider.language??[];

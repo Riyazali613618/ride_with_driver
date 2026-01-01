@@ -10,6 +10,8 @@ import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 
 import '../../constants/token_manager.dart';
+import '../../features/vehicles/presentation/pages/add_vehicle_screen.dart';
+import '../../features/vehicles/presentation/pages/vehicles_list_page.dart';
 import '../../utils/color.dart';
 import '../layout.dart';
 
@@ -94,8 +96,6 @@ class VehicleRegistrationProvider extends ChangeNotifier {
 
       http.StreamedResponse response = await request.send();
       print('Success: ${response.statusCode}');
-
-
 
       if (response.statusCode == 201) {
         String responseBody = await response.stream.bytesToString();
@@ -305,7 +305,7 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
     return urls;
   }
 
-  bool isLoading=false;
+  bool isLoading = false;
 
   Future<void> _submitForm(VehicleRegistrationProvider provider) async {
     if (!_formKey.currentState!.validate()) {
@@ -343,10 +343,9 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
       return;
     }
 
-    try{
-    isLoading=true;
-    setState(() {
-    });
+    try {
+      isLoading = true;
+      setState(() {});
       List<String> imageUrls = [];
       for (var images in _vehicleImages) {
         final String? url = await MediaService().uploadFileAndGetUrl(
@@ -372,7 +371,7 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
       String? rcBackUrl =
           _shouldShowRCPhotos && rcUrls.length > 1 ? rcUrls[1] : null;
 
-     /* final provider =
+      /* final provider =
           Provider.of<VehicleRegistrationProvider>(context, listen: false);*/
       await provider.getToken();
 
@@ -393,20 +392,20 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
         rcBookFrontPhoto: rcFrontUrl,
         rcBookBackPhoto: rcBackUrl,
       );
-    isLoading=false;
+      isLoading = false;
 
       if (success) {
         _showSuccessSnackBar('Vehicle registration submitted successfully!');
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const Layout()),
-              (route) => false,
-        );
+        Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context) {
+            return const AddNewVehicleScreen(userType: "TRANSPORTER");
+          },
+        ));
       } else if (provider.error != null) {
         _showErrorSnackBar(provider.error!);
       }
     } catch (e) {
-      isLoading=false;
+      isLoading = false;
       _showErrorSnackBar('An error occurred: $e');
     }
   }
@@ -587,10 +586,11 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                               return SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
-                                  onPressed:() {
-                                    (provider.isLoading|| isLoading) ? null : _submitForm(provider);
-                                  }
-                                      ,
+                                  onPressed: () {
+                                    (provider.isLoading || isLoading)
+                                        ? null
+                                        : _submitForm(provider);
+                                  },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: gradientFirst,
                                     padding: const EdgeInsets.symmetric(
@@ -600,7 +600,7 @@ class _VehicleRegistrationFormState extends State<VehicleRegistrationForm> {
                                     ),
                                     elevation: 0,
                                   ),
-                                  child: (provider.isLoading|| isLoading)
+                                  child: (provider.isLoading || isLoading)
                                       ? const SizedBox(
                                           height: 20,
                                           width: 20,

@@ -127,9 +127,9 @@ class _AutoRickshawProgressCardState extends State<AutoRickshawProgressCard> {
   @override
   Widget build(BuildContext context) {
     // Return empty container if card shouldn't be shown
-    if (!_shouldShowCard) {
+    /*if (!_shouldShowCard) {
       return SizedBox.shrink();
-    }
+    }*/
 
     final localization = AppLocalizations.of(context)!;
 
@@ -284,16 +284,16 @@ class _AutoRickshawProgressCardState extends State<AutoRickshawProgressCard> {
   void _navigateToApplication() {
     Widget? destination;
 
-    print("_navigateToApplication:${whoReg}");
-    if (whoReg == 'Auto') {
+    String userType = (whoReg ?? "").toUpperCase();
+    if (userType.contains("RICKSHAW")) {
       destination = AutoRickshawDriverFlow();
-    } else if (whoReg == 'Driver') {
+    } else if (userType == "DRIVER") {
       destination = DriverRegistrationFlow();
-    } else if (whoReg == 'ER') {
+    } else if (userType == "E_RICKSHAW") {
       destination = ERickshawDriverFlow();
-    } else if (whoReg == 'Transporter') {
+    } else if (userType == "TRANSPORTER") {
       destination = TransporterRegistrationFlow();
-    } else if (whoReg == 'Indi') {
+    } else if (userType == "INDEPENDENT_CAR_OWNER") {
       destination = IndependentTaxiOwnerFlow();
     }
 

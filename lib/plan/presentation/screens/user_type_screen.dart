@@ -57,7 +57,7 @@ class _UserTypeScreenState extends State<UserTypeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => PlanSelectionScreen(category: selectType,title: title,currentCategory: "",),
+        builder: (_) => PlanSelectionScreen(category: selectType,title: title,currentCategory: "",count: 1,),
       ),
     );
   }

@@ -22,16 +22,18 @@ class ProfileProvider with ChangeNotifier {
 
   /// Getters
   TransporterDriverProfileModel? get profileModel => _profileModel;
+
   UserProfileData? get profileData => _profileModel?.data;
+
   Map<String, dynamic>? get rawProfileData => _rawProfileData;
 
   bool get isLoading => _isLoading;
+
   String? get error => _error;
 
   String? get userType => profileData?.usertype ?? _rawProfileData?['userType'];
+
   String? get userId => profileData?.userId ?? _rawProfileData?['userId'];
-
-
 
   String? get fullName {
     return profileData?.firstName ??
@@ -66,26 +68,34 @@ class ProfileProvider with ChangeNotifier {
       profileData?.profilePhoto ??
       _rawProfileData?['image'] ??
       _rawProfileData?['profilePhoto'];
+
   String? get companyName =>
       profileData?.companyName ?? _rawProfileData?['companyName'];
+
   String? get contactPersonName =>
       profileData?.companyName ?? _rawProfileData?['contactPersonName'];
+
   Address? get address => profileData?.address;
 
   String? get firstName => _rawProfileData?['firstName'];
+
   String? get lastName => _rawProfileData?['lastName'];
+
   String? get displayName => _rawProfileData?['displayName'];
-  Map<String, dynamic> ? get language => _rawProfileData?['language'];
+
+  Map<String, dynamic>? get language => _rawProfileData?['language'];
+
   String? get id => profileData?.id ?? _rawProfileData?['id'];
 
   Future<void> loadProfile(BuildContext context) async {
     _isLoading = true;
     notifyListeners();
 
-
     try {
-      final _locationProvider=Provider.of<LocationProvider>(context, listen: false);
-      final _languageProvider=Provider.of<LanguageProvider>(context, listen: false);
+      final _locationProvider =
+          Provider.of<LocationProvider>(context, listen: false);
+      final _languageProvider =
+          Provider.of<LanguageProvider>(context, listen: false);
       final token = await TokenManager.getToken();
       print("token:${token}");
       if (token == null) throw Exception('Authentication token not found');
@@ -98,14 +108,9 @@ class ProfileProvider with ChangeNotifier {
         },
       );
 
-
-
-
-
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['success'] == true) {
-
           // Store both raw data and parsed model
           _rawProfileData =
               data['data'] ?? data; // Handle different response structures
@@ -116,10 +121,16 @@ class ProfileProvider with ChangeNotifier {
             // If model parsing fails, we still have raw data as fallback
             print('Model parsing failed: $modelError');
           }
-          await TokenManager.saveUserType(_profileModel?.data.usertype??"USER");
+
+          await TokenManager.saveUserType(
+              _profileModel?.data.usertype ?? "USER");
+          await TokenManager.saveVehicleLimit(
+              _profileModel?.data.vehicleLimit ?? 1);
           _languageProvider.setLangCode(_profileModel!.data.language!.id!);
-          _locationProvider.setSelectedCountry(_profileModel!.data.country!.id!);
-          print("load profile: ${_languageProvider.langCode} ${_locationProvider.selectedCountry}");
+          _locationProvider
+              .setSelectedCountry(_profileModel!.data.country!.id!);
+          print(
+              "load profile: ${_languageProvider.langCode} ${_locationProvider.selectedCountry}");
           _error = null;
         } else {
           _error = data['message'] ?? 'Failed to load profile';
@@ -274,8 +285,9 @@ class ProfileProvider with ChangeNotifier {
   bool _hasDialogBeenShown = false;
 
   bool get hasDialogBeenShown => _hasDialogBeenShown;
+
   void showDialogBox(BuildContext context) {
-    if(_hasDialogBeenShown)return;
+    if (_hasDialogBeenShown) return;
     _isDialogVisible = true;
     _hasDialogBeenShown = true;
     notifyListeners();
@@ -288,14 +300,17 @@ class ProfileProvider with ChangeNotifier {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 16,),
+              SizedBox(
+                height: 16,
+              ),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Color(0xFF641BB4),
                   foregroundColor: Colors.white,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(9), // Less round: 4 px radius
+                    borderRadius:
+                        BorderRadius.circular(9), // Less round: 4 px radius
                   ),
                 ),
                 onPressed: () {
@@ -313,7 +328,8 @@ class ProfileProvider with ChangeNotifier {
                   foregroundColor: Colors.white,
                   minimumSize: Size(double.infinity, 50),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(9), // Less round: 4 px radius
+                    borderRadius:
+                        BorderRadius.circular(9), // Less round: 4 px radius
                   ),
                 ),
                 onPressed: () {
@@ -322,15 +338,15 @@ class ProfileProvider with ChangeNotifier {
                   Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                          builder: (context) =>
-                              PartnerRegistrationWidget()
-                      ));
+                          builder: (context) => PartnerRegistrationWidget()));
                   notifyListeners();
                   // Handle "Become Partner"
                 },
                 child: Text('Become Partner'),
               ),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
             ],
           ),
         );
@@ -340,7 +356,6 @@ class ProfileProvider with ChangeNotifier {
       notifyListeners();
     });
   }
-
 }
 
 /// Universal utility for pre-filling user data across all categories
@@ -435,6 +450,9 @@ class UserPrefillUtility {
         final data = json.decode(response.body);
         if (data['status'] == true && data['data'] != null) {
           _cachedUserData = data['data'];
+          if(_cachedUserData!['vehicleLimit']!=null){
+            await TokenManager.saveVehicleLimit(_cachedUserData!['vehicleLimit']??1);
+          }
           return _cachedUserData;
         }
       }

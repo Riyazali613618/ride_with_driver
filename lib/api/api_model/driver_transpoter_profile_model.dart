@@ -27,6 +27,7 @@ class TransporterDriverProfileModel {
 }
 
 class UserProfileData {
+  final int? vehicleLimit;
   final String? id;
   final String? mobileNumber;
   final DateTime? otpExpiry;
@@ -83,6 +84,7 @@ class UserProfileData {
   final String? transportationPermit;
 
   UserProfileData({
+    this.vehicleLimit,
     this.id,
     this.mobileNumber,
     this.otpExpiry,
@@ -141,6 +143,7 @@ class UserProfileData {
 
   factory UserProfileData.fromJson(Map<String, dynamic> json) {
     return UserProfileData(
+      vehicleLimit: json['vehicleLimit']??1,
       id: json['_id'],
       mobileNumber: json['mobileNumber'],
       otpExpiry: json['otpExpiry'] != null
@@ -237,6 +240,7 @@ class UserProfileData {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
 
+    if (vehicleLimit != null) data['vehicleLimit'] = vehicleLimit;
     if (id != null) data['_id'] = id;
     if (mobileNumber != null) data['mobileNumber'] = mobileNumber;
     if (otpExpiry != null) data['otpExpiry'] = otpExpiry!.toIso8601String();

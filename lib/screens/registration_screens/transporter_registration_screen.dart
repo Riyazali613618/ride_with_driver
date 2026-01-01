@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/api_model/language/language_model.dart';
 import '../../api/api_model/registrations/transporter_model.dart';
 import '../../api/api_service/registration_services/transporter_service.dart';
+import '../../api/api_service/user_service/user_profile_service.dart';
 import '../../bloc/driver/driver_bloc.dart';
 import '../../bloc/driver/driver_event.dart';
 import '../../bloc/driver/driver_state.dart';
@@ -169,6 +170,7 @@ class _TransporterScreenState extends State<TransporterScreen> {
       );
     }
   }
+
   Future<void> _verifyGST(String gstNumber) async {
     if (gstNumber.trim().isEmpty) return;
 
@@ -603,7 +605,7 @@ class _TransporterScreenState extends State<TransporterScreen> {
       return;
     }
 
-    final accepted = await showModalBottomSheet<bool>(
+    /* final accepted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       builder: (context) => TermsConditionsBottomSheet(
@@ -613,9 +615,11 @@ class _TransporterScreenState extends State<TransporterScreen> {
 
     if (accepted != true) {
       return;
-    }
+    }*/
 
     if (!mounted) return;
+
+    bool isUpgrade = await getUserProfile();
 
     context.read<DriverBloc>().add(
           TransporterRegistrationEvent(
@@ -629,7 +633,7 @@ class _TransporterScreenState extends State<TransporterScreen> {
 
     try {
       final response = await TransporterService()
-          .submitTransporterApplication(_transporterModel, context);
+          .submitTransporterApplication(_transporterModel, context,isUpgrade?"become-upgradable":"become-transporter");
 
       if (response['success'] == true) {
         if (!mounted) return;
@@ -640,7 +644,10 @@ class _TransporterScreenState extends State<TransporterScreen> {
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const RegistrationSuccessfulScreen(userType: "TRANSPORTER",)),
+          MaterialPageRoute(
+              builder: (context) => const RegistrationSuccessfulScreen(
+                    userType: "TRANSPORTER",
+                  )),
         );
       } else {
         if (!mounted) return;
@@ -1004,7 +1011,6 @@ class _TransporterScreenState extends State<TransporterScreen> {
               }
             },
           ),
-
           CustomTextField(
             label: 'State',
             controller: _stateController,
@@ -1017,23 +1023,6 @@ class _TransporterScreenState extends State<TransporterScreen> {
             enabled: false,
             validator: (value) => _validateRequired(value, 'City'),
           ),
-          // StateCityDropdownWidget(
-          //   baseUrl: ApiConstants.baseUrl,
-          //   stateController: _stateController,
-          //   cityController: _cityController,
-          //   stateValidator: (value) {
-          //     if (value == null || value.isEmpty) {
-          //       return 'Please select a state';
-          //     }
-          //     return null;
-          //   },
-          //   cityValidator: (value) {
-          //     if (value == null || value.isEmpty) {
-          //       return 'Please select a city';
-          //     }
-          //     return null;
-          //   },
-          // ),
         ],
       ),
     );
@@ -1522,5 +1511,22 @@ class _TransporterScreenState extends State<TransporterScreen> {
     }
 
     return issues;
+  }
+
+  Future<bool> getUserProfile() async {
+    final data = await UserProfileService().getUserProfile();
+    final prefs = await SharedPreferences.getInstance();
+    if (data!= null &&
+        data!.subscriptions != null &&
+        data!.subscriptions!.isNotEmpty) {
+      for (var sub in data!.subscriptions!) {
+        if ((sub.status ?? "").toLowerCase() == "active" && (sub.isUpgrade??false)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return false;
+    }
   }
 }

@@ -17,7 +17,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     print('[PaymentBloc] Constructor called');
     print('[PaymentBloc] ProfileProvider injected: ${profileProvider != null}');
     if (profileProvider != null) {
-      print('[PaymentBloc] ProfileProvider phone: ${profileProvider?.phoneNumber}');
+      print(
+          '[PaymentBloc] ProfileProvider phone: ${profileProvider?.phoneNumber}');
       print('[PaymentBloc] ProfileProvider email: ${profileProvider?.email}');
     }
 
@@ -45,7 +46,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     print('[PaymentBloc] Razorpay payment success: ${response.paymentId}');
     // Trigger payment success event with stored payment info
     if (_currentInitiatePaymentEvent != null) {
-      print('[PaymentBloc] Processing payment success for plan: ${_currentInitiatePaymentEvent!.plan.name}');
+      print(
+          '[PaymentBloc] Processing payment success for plan: ${_currentInitiatePaymentEvent!.plan.name}');
       add(PaymentSuccess(
         response: response,
         currentCategory: _currentInitiatePaymentEvent!.currentCategory,
@@ -69,7 +71,10 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     // Handle external wallet
   }
 
-  Future<void> _onInitiatePayment(InitiatePayment event, Emitter<PaymentState> emit,) async {
+  Future<void> _onInitiatePayment(
+    InitiatePayment event,
+    Emitter<PaymentState> emit,
+  ) async {
     print('[PaymentBloc] Initiating payment for plan: ${event.plan.name}');
     emit(PaymentLoading());
 
@@ -79,23 +84,28 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
       switch (event.paymentType) {
         case PaymentType.subscriptionRenewal:
-          orderResponse = await PaymentService.createOrderForSubscriptionRenewal(
+          orderResponse =
+              await PaymentService.createOrderForSubscriptionRenewal(
             planId: event.plan.id,
           );
           break;
         case PaymentType.registrationOnly:
           orderResponse = await PaymentService.createOrderForRegistrationOnly(
             category: event.category ?? event.planType,
-            currentCategory: event.currentCategory??"",
+            currentCategory: event.currentCategory ?? "",
             planId: event.plan.id,
           );
           break;
         case PaymentType.registrationWithSubscription:
-          orderResponse = await PaymentService.createOrderForRegistrationWithSubscription(
-            category: event.category ?? event.planType,
-            currentCategory: event.currentCategory??"",
-            planId: event.plan.id,
-          );
+          orderResponse =
+              await PaymentService.createOrderForRegistrationWithSubscription(
+                  category: event.category ?? event.planType,
+                  currentCategory: event.currentCategory ?? "",
+                  planId: event.plan.id,
+                  maxvehicles: event.maxvehicles ?? 1,
+                  durationInMonths: event.duration ?? 0,
+                  earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
+                  pay_amount: event.finalPrice ?? 0);
           break;
       }
 
@@ -120,7 +130,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           'key': orderData.razorpayKey,
           'amount': orderData.amount,
           'name': 'Ride with Driver',
-          'description': _getPaymentDescription(event.paymentType),
+          'description':(event.currentCategory ?? "").isEmpty? _getPaymentDescription(event.paymentType):"SUBSCRIPTION_UPGRADE",
           'order_id': orderData.orderId,
           'prefill': {
             'contact': profileProvider?.phoneNumber ?? '',
@@ -130,7 +140,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             'wallets': ['paytm']
           }
         };
-        
+
         print('[PaymentBloc] Created payment options: ${options.toString()}');
         print('[PaymentBloc] Order ID: ${orderData.orderId}');
         print('[PaymentBloc] Amount: ${orderData.amount}');
@@ -138,24 +148,26 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
         // Store the event for later use when payment succeeds
         _currentInitiatePaymentEvent = event;
-        
+
         print('[PaymentBloc] Emitting PaymentOrderCreated state');
         emit(PaymentOrderCreated(
           orderData: options,
           registrationFeeId: _currentRegistrationFeeId,
         ));
       } else {
-        emit(PaymentError("Failed to create order: ${createOrderResponse.message}"));
+        emit(PaymentError(
+            "Failed to create order: ${createOrderResponse.message}"));
       }
     } catch (e) {
-      emit(PaymentError("Error: Please complete another process or they have bought plan"));
+      emit(PaymentError(
+          "Error: Please complete another process or they have bought plan"));
     }
   }
 
   Future<void> _onPaymentSuccess(
-      PaymentSuccess event,
-      Emitter<PaymentState> emit,
-      ) async {
+    PaymentSuccess event,
+    Emitter<PaymentState> emit,
+  ) async {
     emit(PaymentProcessing());
 
     try {
@@ -166,7 +178,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             planId: event.plan.id,
-            currentCategory: event.currentCategory??"",
+            currentCategory: event.currentCategory ?? "",
           );
           break;
         case PaymentType.registrationOnly:
@@ -175,7 +187,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             category: event.category ?? event.planType,
-            currentCategory: event.currentCategory??"",
+            currentCategory: event.currentCategory ?? "",
             registrationFeeId: event.registrationFeeId ?? '',
           );
           break;
@@ -185,7 +197,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             category: event.category ?? event.planType,
-            currentCategory: event.currentCategory??"",
+            currentCategory: event.currentCategory ?? "",
             planId: event.plan.id,
             registrationFeeId: event.registrationFeeId ?? '',
           );
@@ -199,69 +211,73 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   }
 
   void _onPaymentFailed(
-      PaymentFailed event,
-      Emitter<PaymentState> emit,
-      ) {
+    PaymentFailed event,
+    Emitter<PaymentState> emit,
+  ) {
     emit(PaymentError(event.error));
   }
 
   void _onResetPayment(
-      ResetPayment event,
-      Emitter<PaymentState> emit,
-      ) {
+    ResetPayment event,
+    Emitter<PaymentState> emit,
+  ) {
     emit(PaymentInitial());
   }
 
   String _getPaymentDescription(PaymentType paymentType) {
     switch (paymentType) {
       case PaymentType.subscriptionRenewal:
-        return 'Subscription Renewal';
+        return 'Subscription';
       case PaymentType.registrationOnly:
-        return 'Registration Fee';
+        return 'Subscription';
       case PaymentType.registrationWithSubscription:
-        return 'Registration + Subscription';
+        return 'Subscription';
     }
   }
 
   void openRazorpayCheckout(Map<String, dynamic> options) {
     try {
       print('[PaymentBloc] Opening Razorpay checkout with options: $options');
-      print('[PaymentBloc] Razorpay instance status: ${_razorpay != null ? "initialized" : "null"}');
-      
+      print(
+          '[PaymentBloc] Razorpay instance status: ${_razorpay != null ? "initialized" : "null"}');
+
       // Validate essential options
       if (options['key'] == null || options['key'].toString().isEmpty) {
         print('[PaymentBloc] ERROR: Razorpay key is missing or empty');
         add(PaymentFailed('Invalid Razorpay key'));
         return;
       }
-      
+
       if (options['amount'] == null) {
         print('[PaymentBloc] ERROR: Amount is missing');
         add(PaymentFailed('Invalid payment amount'));
         return;
       }
-      
-      if (options['order_id'] == null || options['order_id'].toString().isEmpty) {
+
+      if (options['order_id'] == null ||
+          options['order_id'].toString().isEmpty) {
         print('[PaymentBloc] ERROR: Order ID is missing or empty');
         add(PaymentFailed('Invalid order ID'));
         return;
       }
-      
+
       print('[PaymentBloc] All required options are present:');
       print('[PaymentBloc] - Key: ${options['key']}');
       print('[PaymentBloc] - Amount: ${options['amount']}');
       print('[PaymentBloc] - Order ID: ${options['order_id']}');
       print('[PaymentBloc] - Contact: ${options['prefill']?['contact']}');
       print('[PaymentBloc] - Email: ${options['prefill']?['email']}');
-      
+
       // Try opening Razorpay immediately first
       print('[PaymentBloc] About to call _razorpay.open() immediately');
       try {
         _razorpay.open(options);
-        print('[PaymentBloc] _razorpay.open() called successfully, waiting for callbacks');
+        print(
+            '[PaymentBloc] _razorpay.open() called successfully, waiting for callbacks');
       } catch (immediateError) {
-        print('[PaymentBloc] Immediate call failed: $immediateError, trying with delay');
-        
+        print(
+            '[PaymentBloc] Immediate call failed: $immediateError, trying with delay');
+
         // If immediate call fails, try with a small delay
         Future.delayed(const Duration(milliseconds: 300), () {
           try {
@@ -269,13 +285,13 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             _razorpay.open(options);
             print('[PaymentBloc] Delayed _razorpay.open() called successfully');
           } catch (delayedError, delayedStackTrace) {
-            print('[PaymentBloc] Error in delayed Razorpay open: $delayedError');
+            print(
+                '[PaymentBloc] Error in delayed Razorpay open: $delayedError');
             print('[PaymentBloc] Delayed stack trace: $delayedStackTrace');
             add(PaymentFailed('Failed to open payment gateway: $delayedError'));
           }
         });
       }
-      
     } catch (e, stackTrace) {
       print('[PaymentBloc] Error opening Razorpay checkout: $e');
       print('[PaymentBloc] Stack trace: $stackTrace');

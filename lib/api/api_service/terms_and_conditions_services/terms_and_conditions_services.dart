@@ -18,7 +18,7 @@ class TermsService {
       final token = await TokenManager.getToken();
 
       final currentLanguage = await _languageRepository.getCurrentLanguage();
-      final language = (_languageProvider.langCode!.isNotEmpty)?_languageProvider.langCode:'68d4052ce5417ced85c8b0fd';
+      final language = (_languageProvider.langCode!.isNotEmpty)?_languageProvider.langCode:ApiConstants.defaultLanguageCodeEng;
       final response = await http.get(
         Uri.parse('$baseUrl/public/legal/${type}/${language}'),
         headers: {
@@ -44,7 +44,7 @@ class TermsService {
       final token = await TokenManager.getToken();
 
       final currentLanguage = await _languageRepository.getCurrentLanguage();
-      final language = (_languageProvider.langCode!.isNotEmpty)?_languageProvider.langCode:'68d4052ce5417ced85c8b0fd';
+      final language = (_languageProvider.langCode!.isNotEmpty)?_languageProvider.langCode:ApiConstants.defaultLanguageCodeEng;
       final response = await http.get(
         Uri.parse('$baseUrl/public/legal/${type}/${language}'),
         headers: {

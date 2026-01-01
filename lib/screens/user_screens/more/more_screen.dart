@@ -144,7 +144,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
     String displayName = profileProvider.fullName ?? "User";
     String userId = profileProvider.profileData?.id?.toString() ?? "";
 
-    return GestureDetector(
+    return InkWell(
       onTap: () async {
         if (profileProvider.isLoading) return;
 
@@ -241,14 +241,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-                  if (userId.isNotEmpty)
-                    Text(
-                      'ID: $userId',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.9),
-                      ),
-                    ),
+
                 ],
               ),
             ),

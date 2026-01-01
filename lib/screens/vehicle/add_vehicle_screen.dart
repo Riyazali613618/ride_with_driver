@@ -203,11 +203,13 @@ class AddVehicleModel {
     return data;
   }
 }
+/*
 
 class AddVehicleScreen extends StatefulWidget {
   final bool? removeAutoRikshaw = true;
+  final String? userType;
 
-  const AddVehicleScreen({super.key, required bool removeAutoRikshaw});
+  const AddVehicleScreen({super.key, required this.userType,required bool removeAutoRikshaw});
 
   @override
   State<AddVehicleScreen> createState() => _AddVehicleScreenState();
@@ -1394,6 +1396,7 @@ class _AddVehicleScreenState extends State<AddVehicleScreen> {
     );
   }
 }
+*/
 
 // Custom Dropdown Widget
 class CustomDropdown<T> extends StatelessWidget {

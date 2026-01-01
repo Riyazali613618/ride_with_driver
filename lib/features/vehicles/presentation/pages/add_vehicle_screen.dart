@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -10,10 +11,13 @@ import 'package:r_w_r/api/api_service/media_service.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/features/vehicles/domain/entities/vehicle_entity.dart';
+import 'package:r_w_r/features/vehicles/presentation/bloc/profile_repository.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_added_successfully_screen.dart';
 
 import '../../../../constants/token_manager.dart';
 import '../../../../screens/layout.dart';
 import '../../../../utils/color.dart';
+import '../bloc/profile_bloc.dart';
 
 class AddVehicleProvider extends ChangeNotifier {
   bool _isLoading = false;
@@ -419,10 +423,14 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
       if (success) {
         _showSuccessSnackBar('Vehicle registration submitted successfully!');
-        Navigator.pushAndRemoveUntil(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Layout()),
-          (route) => false,
+          MaterialPageRoute(
+              builder: (context) => BlocProvider(
+                    create: (_) => ProfileBloc(ProfileRepository()),
+                    child: VehicleAddedSuccessfullyScreen(
+                        userType: widget.userType),
+                  )),
         );
       } else if (provider.error != null) {
         _showErrorSnackBar(provider.error!);
@@ -1065,7 +1073,10 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                               ? const Icon(Icons.video_file, size: 40)
                               : ClipRRect(
                                   borderRadius: BorderRadius.circular(8),
-                                  child:CachedNetworkImage(imageUrl: filesServer[index],fit: BoxFit.cover,),
+                                  child: CachedNetworkImage(
+                                    imageUrl: filesServer[index],
+                                    fit: BoxFit.cover,
+                                  ),
                                 ),
                         ),
                         Positioned(
@@ -1267,7 +1278,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: CachedNetworkImage(
-                            imageUrl:   _rcImagesServer[index],
+                              imageUrl: _rcImagesServer[index],
                               fit: BoxFit.cover,
                             ),
                           ),

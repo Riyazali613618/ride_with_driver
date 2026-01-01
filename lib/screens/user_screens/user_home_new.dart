@@ -20,7 +20,9 @@ import 'package:r_w_r/utils/color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../api/api_model/VehicleType.dart';
 import '../../api/api_model/location_model/location_model.dart';
+import '../../api/api_model/user_model/user_eligibility_model.dart';
 import '../../api/api_service/location_service/location_service.dart';
+import '../../api/api_service/user_service/user_profile_service.dart';
 import '../../constants/GoogleLocationSearchService.dart';
 import '../../constants/api_constants.dart';
 import '../../constants/assets_constant.dart';
@@ -29,13 +31,18 @@ import '../../constants/token_manager.dart';
 import '../../plan/data/repositories/plan_repository.dart';
 import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../auth_screens/select_language_screen.dart';
+import '../autoRikshawDriverRegistration.dart';
 import '../block/home/home_provider.dart';
 import '../block/language/language_provider.dart';
 import '../block/provider/profile_provider.dart';
+import '../driverRegistrationScreen.dart';
+import '../eRickshawRegistration.dart';
+import '../independentCarOwnerRegistration.dart';
 import '../notification/notification.dart';
 import 'package:r_w_r/api/api_model/language/language_model.dart';
 import 'package:r_w_r/l10n/app_localizations.dart';
 import '../other/category_view.dart';
+import '../transporterRegistration.dart' show TransporterRegistrationFlow;
 import 'AutoRickshawProgressCard.dart';
 import 'LocationSearchScreen.dart';
 import 'owners.dart';
@@ -65,7 +72,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     final statusString = prefs.getString('auto_rickshaw_status');
     if (statusString != null) {
       return ApplicationStatus.values.firstWhere(
-            (e) => e.toString() == statusString,
+        (e) => e.toString() == statusString,
         orElse: () => ApplicationStatus.notStarted,
       );
     }
@@ -76,12 +83,11 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     final prefs = await SharedPreferences.getInstance();
     final statusString = prefs.getString(type);
     if (statusString != null) {
-      setState(() {
-        _status = ApplicationStatus.values.firstWhere(
-              (e) => e.toString() == statusString,
-          orElse: () => ApplicationStatus.notStarted,
-        );
-      });
+      _status = ApplicationStatus.values.firstWhere(
+        (e) => e.toString() == statusString,
+        orElse: () => ApplicationStatus.notStarted,
+      );
+      return _status;
     }
     return ApplicationStatus.notStarted;
   }
@@ -90,72 +96,53 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     final prefs = await SharedPreferences.getInstance();
     final statusString = prefs.getString('driver_status');
     if (statusString != null) {
-      setState(() {
-        _status = ApplicationStatus.values.firstWhere(
-              (e) => e.toString() == statusString,
-          orElse: () => ApplicationStatus.notStarted,
-        );
-      });
+      _status = ApplicationStatus.values.firstWhere(
+        (e) => e.toString() == statusString,
+        orElse: () => ApplicationStatus.notStarted,
+      );
+      return _status;
     }
     return ApplicationStatus.notStarted;
   }
+
   Future<ApplicationStatus> _loadApplicationStatusER() async {
     final prefs = await SharedPreferences.getInstance();
     final statusString = prefs.getString('er_status');
     if (statusString != null) {
-      setState(() {
-        _status = ApplicationStatus.values.firstWhere(
-              (e) => e.toString() == statusString,
-          orElse: () => ApplicationStatus.notStarted,
-        );
-      });
+      _status = ApplicationStatus.values.firstWhere(
+        (e) => e.toString() == statusString,
+        orElse: () => ApplicationStatus.notStarted,
+      );
+      return _status;
     }
     return ApplicationStatus.notStarted;
   }
+
   Future<ApplicationStatus> _loadApplicationStatusTrans() async {
     final prefs = await SharedPreferences.getInstance();
     final statusString = prefs.getString('transporter_status');
     if (statusString != null) {
-      setState(() {
-        _status = ApplicationStatus.values.firstWhere(
-              (e) => e.toString() == statusString,
-          orElse: () => ApplicationStatus.notStarted,
-        );
-      });
+      _status = ApplicationStatus.values.firstWhere(
+        (e) => e.toString() == statusString,
+        orElse: () => ApplicationStatus.notStarted,
+      );
+      return _status;
     }
     return ApplicationStatus.notStarted;
   }
+
   Future<ApplicationStatus> _loadApplicationStatusIndi() async {
     final prefs = await SharedPreferences.getInstance();
     final statusString = prefs.getString('indi_status');
     if (statusString != null) {
-      setState(() {
-        _status = ApplicationStatus.values.firstWhere(
-              (e) => e.toString() == statusString,
-          orElse: () => ApplicationStatus.notStarted,
-        );
-      });
+      _status = ApplicationStatus.values.firstWhere(
+        (e) => e.toString() == statusString,
+        orElse: () => ApplicationStatus.notStarted,
+      );
+      return _status;
     }
     return ApplicationStatus.notStarted;
   }
-
-  Future<void> _loadWhoReg() async {
-    final prefs = await SharedPreferences.getInstance();
-    whoReg = prefs.getString('who_reg');
-
-    if (whoReg == "Auto") {
-      _loadApplicationStatus("auto_rickshaw_status");
-    }else if(whoReg == "Driver"){
-      _loadApplicationStatusDriver();
-    }else if(whoReg == "ER"){
-      _loadApplicationStatusER();
-    }else if(whoReg == "Transporter"){
-      _loadApplicationStatusTrans();
-    }else if(whoReg == "Indi"){
-      _loadApplicationStatusIndi();
-    }
-  }
-
 
 /*  Future<ApplicationStatus> _loadApplicationStatus(String key) async {
     final prefs = await SharedPreferences.getInstance();
@@ -178,17 +165,17 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   /// 🔹 Wrapper to decide which status to load based on whoReg
   Future<ApplicationStatus> _loadWhoRegAndStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    whoReg = prefs.getString('who_reg');
-
-    if (whoReg == "Auto") {
+    whoReg = prefs.getString('who_reg') ?? "";
+    String userType = (whoReg ?? "").toUpperCase();
+    if (userType.contains("RICKSHAW")) {
       return _loadApplicationStatus('auto_rickshaw_status');
-    } else if (whoReg == "Driver") {
+    } else if (userType == "DRIVER") {
       return _loadApplicationStatus('driver_status');
-    } else if (whoReg == "ER") {
+    } else if (userType == "E_RICKSHAW") {
       return _loadApplicationStatus('er_status');
-    } else if (whoReg == "Transporter") {
+    } else if (userType == "TRANSPORTER") {
       return _loadApplicationStatus('transporter_status');
-    } else if (whoReg == "Indi") {
+    } else if (userType == "INDEPENDENT_CAR_OWNER") {
       return _loadApplicationStatus('indi_status');
     }
     return ApplicationStatus.notStarted;
@@ -404,6 +391,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProfileData();
+      getEligibilityData();
     });
   }
 
@@ -1216,7 +1204,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                 CupertinoPageRoute(
                                   builder: (context) => MoreScreen(
                                     showDriverSubscription:
-                                        widget.showDriverSubscription??false,
+                                        widget.showDriverSubscription ?? false,
                                   ),
                                 ),
                               );
@@ -1716,83 +1704,129 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                           ),
                         ),
                       ),
-                      Consumer<HomeDataProvider>(
-                        builder: (context, provider, child) {
-                          return provider.showDashboard == false
-                              ? Column(
-                                  children: [
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 10),
-                                      child: SizedBox(
-                                        height: 54,
-                                        child: ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          12), // ✅ works fine
-                                                ),
-                                                elevation: 0,
-                                                backgroundColor:
-                                                    Color(0xff0064E0)),
-                                            onPressed: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) => BlocProvider(
-                                                    create: (context) =>
-                                                        PlanBloc(
-                                                      RepositoryProvider.of<
-                                                              PlanRepository>(
-                                                          context),
-                                                    ),
-                                                    child:
-                                                        PartnerRegistrationWidget(),
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              children: [
-                                                Image.asset(
-                                                  AssetsConstant.partnerIcon,
-                                                  height: 40,
-                                                  width: 40,
-                                                ),
-                                                SizedBox(
-                                                  width: 10,
-                                                ),
-                                                Text(
-                                                  localizations.become_partner,
-                                                  style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      color: Colors.white),
-                                                )
-                                              ],
-                                            )),
-                                      ),
-                                    ),
-                                  ],
-                                )
-                              : SizedBox.shrink();
-                        },
-                      ),
-                      // Consumer<HomeDataProvider>(
-                      //   builder: (context, provider, child) {
-                      //     return provider.showDashboard == false
-                      //         ? JoinPartnerContainer()
-                      //         : SizedBox.shrink();
-                      //   },
-                      // ),
 
+                      if ((whoReg ?? "").toLowerCase() == "user")
+                        Consumer<HomeDataProvider>(
+                          builder: (context, provider, child) {
+                            return provider.showDashboard == false
+                                ? Column(
+                                    children: [
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 10),
+                                        child: SizedBox(
+                                          height: 54,
+                                          child: ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12), // ✅ works fine
+                                                  ),
+                                                  elevation: 0,
+                                                  backgroundColor:
+                                                      Color(0xff0064E0)),
+                                              onPressed: () {
+                                                if (_status !=
+                                                        ApplicationStatus
+                                                            .submitted ||
+                                                    _status !=
+                                                        ApplicationStatus
+                                                            .notStarted) {
+                                                  Widget? destination =
+                                                      PartnerRegistrationWidget();
+
+                                                  String userType =
+                                                      (whoReg ?? "")
+                                                          .toUpperCase();
+                                                  if (userType
+                                                      .contains("RICKSHAW")) {
+                                                    destination =
+                                                        AutoRickshawDriverFlow();
+                                                  } else if (userType ==
+                                                      "DRIVER") {
+                                                    destination =
+                                                        DriverRegistrationFlow();
+                                                  } else if (userType ==
+                                                      "E_RICKSHAW") {
+                                                    destination =
+                                                        ERickshawDriverFlow();
+                                                  } else if (userType ==
+                                                      "TRANSPORTER") {
+                                                    destination =
+                                                        TransporterRegistrationFlow();
+                                                  } else if (userType ==
+                                                      "INDEPENDENT_CAR_OWNER") {
+                                                    destination =
+                                                        IndependentTaxiOwnerFlow();
+                                                  }
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          BlocProvider(
+                                                        create: (context) =>
+                                                            PlanBloc(
+                                                          RepositoryProvider.of<
+                                                                  PlanRepository>(
+                                                              context),
+                                                        ),
+                                                        child: destination,
+                                                      ),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) =>
+                                                          BlocProvider(
+                                                        create: (context) =>
+                                                            PlanBloc(
+                                                          RepositoryProvider.of<
+                                                                  PlanRepository>(
+                                                              context),
+                                                        ),
+                                                        child:
+                                                            PartnerRegistrationWidget(),
+                                                      ),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Image.asset(
+                                                    AssetsConstant.partnerIcon,
+                                                    height: 40,
+                                                    width: 40,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 10,
+                                                  ),
+                                                  Text(
+                                                    localizations
+                                                        .become_partner,
+                                                    style: TextStyle(
+                                                        fontSize: 18,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: Colors.white),
+                                                  )
+                                                ],
+                                              )),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : SizedBox.shrink();
+                          },
+                        ),
                       FutureBuilder<ApplicationStatus>(
                         future: _loadWhoRegAndStatus(),
                         builder: (context, snapshot) {
@@ -1801,8 +1835,11 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             if (status != ApplicationStatus.notStarted &&
                                 status != ApplicationStatus.submitted &&
                                 status != ApplicationStatus.approved &&
+                                status != ApplicationStatus.fareAndCitiesComplete &&
                                 status != ApplicationStatus.rejected) {
                               return AutoRickshawProgressCard();
+                            } else if (isRegistrationIncomplete && whoReg?.toLowerCase()!="user") {
+                              return _buildActionButton();
                             }
                             return const SizedBox.shrink();
                           }
@@ -1950,4 +1987,103 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       ),
     );
   }
+
+  bool isRegistrationIncomplete = false;
+
+  Future<UserEligibilityModel> getEligibilityData() async {
+    final data = await UserProfileService().getEligibility();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(AppConstants.planEligibilityKey, jsonEncode(data.data));
+    if (data.data != null &&
+        data.data?.paymentPhase.toString() == AppConstants.preRegistration) {
+      setState(() {
+        isRegistrationIncomplete = true;
+      });
+    } else {
+      setState(() {
+        isRegistrationIncomplete = false;
+      });
+    }
+    return data;
+  }
+
+  Widget _buildActionButton() {
+    String buttonText;
+    Color buttonColor;
+    VoidCallback? onPressed;
+
+    switch (_status) {
+      case ApplicationStatus.notStarted:
+        buttonText = 'Start Application';
+        buttonColor = ColorConstants.primaryColor;
+        onPressed = () => _navigateToApplication();
+        break;
+      case ApplicationStatus.submitted:
+        buttonText = 'Application Submitted';
+        buttonColor = Colors.green;
+        onPressed = null;
+        break;
+      default:
+        buttonText = 'Complete your Application';
+        buttonColor = ColorConstants.primaryColorNew;
+        onPressed = () => _navigateToApplication();
+    }
+
+    return Container(
+      width: double.infinity,
+      height: 48,
+      margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+      child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12), // ✅ works fine
+              ),
+              elevation: 0,
+              backgroundColor: Color(0xff0064E0)),
+          onPressed: onPressed,
+          child: Text(
+            buttonText,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
+          )),
+    );
+  }
+  void _navigateToApplication() {
+    Widget? destination;
+
+    String userType = (whoReg ?? "").toUpperCase();
+    if (userType.contains("RICKSHAW")) {
+      destination = AutoRickshawDriverFlow();
+    } else if (userType == "DRIVER") {
+      destination = DriverRegistrationFlow();
+    } else if (userType == "E_RICKSHAW") {
+      destination = ERickshawDriverFlow();
+    } else if (userType == "TRANSPORTER") {
+      destination = TransporterRegistrationFlow();
+    } else if (userType == "INDEPENDENT_CAR_OWNER") {
+      destination = IndependentTaxiOwnerFlow();
+    }
+
+    if (destination != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => destination!),
+      ).then((_) {
+        // Load status based on whoReg
+        String userType = (whoReg ?? "").toUpperCase();
+        if (userType.contains("RICKSHAW")) {
+          _loadWhoRegAndStatus();
+        } else if (userType == "DRIVER") {
+          _loadApplicationStatusDriver();
+        } else if (userType == "E_RICKSHAW") {
+          _loadApplicationStatusER();
+        } else if (userType == "TRANSPORTER") {
+          _loadApplicationStatusTrans();
+        } else if (userType == "INDEPENDENT_CAR_OWNER") {
+          _loadApplicationStatusIndi();
+        }
+      });
+    }
+  }
+
 }

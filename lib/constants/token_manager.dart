@@ -1,12 +1,15 @@
 import 'dart:convert';
 
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+import 'package:r_w_r/api/api_model/user_model/user_profile_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenManager {
   static const String _tokenKey = 'auth_token';
-  static const String _accessToken='access_token';
+  static const String _accessToken = 'access_token';
   static const String _phoneNumberKey = 'phone_number';
   static const String _userTypeKey = 'user_type';
+  static const String _userVehicleLimitKey = 'user_vehicle_limit';
   static const String _userDataKey = 'user_data';
   static const String _isFirstTimeKey = 'is_first_time'; // Added missing key
 
@@ -35,12 +38,13 @@ class TokenManager {
   static Future<String?> getToken() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
-      return prefs.getString(_tokenKey)??"";
+      return prefs.getString(_tokenKey) ?? "";
     } catch (e) {
       print("Error getting token: $e");
       return null;
     }
   }
+
   static Future<String?> getRefreshToken() async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -90,8 +94,6 @@ class TokenManager {
     }
   }
 
-
-
   // Get saved phone number with error handling
   static Future<String?> getPhoneNumber() async {
     try {
@@ -113,6 +115,7 @@ class TokenManager {
       return null;
     }
   }
+
   static Future<bool> saveUserType(String type) async {
     try {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -120,6 +123,26 @@ class TokenManager {
     } catch (e) {
       print("Error saving user type: $e");
       return false;
+    }
+  }
+
+  static Future<bool> saveVehicleLimit(int type) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return await prefs.setInt(_userVehicleLimitKey, type);
+    } catch (e) {
+      print("Error saving user vehicle limit: $e");
+      return false;
+    }
+  }
+
+  static Future<int> getUserVehicleLimit() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return prefs.getInt(_userVehicleLimitKey) ?? 1;
+    } catch (e) {
+      print("Error getting user vehicle limit: $e");
+      return 1;
     }
   }
 
@@ -144,6 +167,28 @@ class TokenManager {
         return jsonDecode(userDataString) as Map<String, dynamic>;
       }
       return null;
+    } catch (e) {
+      print("Error parsing user data: $e");
+      return null;
+    }
+  }
+
+  static Future<bool> saveProfile(MyProfileData data) async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      return await prefs.setString("userProfileNew", jsonEncode(data));
+    } catch (e) {
+      print("Error saving user data: $e");
+      return false;
+    }
+  }
+
+  // IMPROVED: Get saved user data with better error handling
+  static Future<MyProfileData?> getProfile() async {
+    try {
+      final SharedPreferences prefs = await SharedPreferences.getInstance();
+      final String? userDataString = prefs.getString("userProfileNew");
+      return MyProfileData.fromJson(jsonDecode(userDataString ?? "{}"));
     } catch (e) {
       print("Error parsing user data: $e");
       return null;
@@ -224,5 +269,4 @@ class TokenManager {
       return false;
     }
   }
-
 }

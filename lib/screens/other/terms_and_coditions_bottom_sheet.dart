@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 
 import '../../api/api_model/term_and_conditions_model/terms_and_conditions_model.dart';
 import '../../api/api_service/terms_and_conditions_services/terms_and_conditions_services.dart';
 import '../../l10n/app_localizations.dart';
+import '../block/provider/profile_provider.dart';
 
 class TermsConditionsBottomSheet extends StatefulWidget {
   final String type;
@@ -44,7 +46,9 @@ class _TermsConditionsBottomSheetState
     });
   }
 
-  void _retryFetch() {
+  Future<void> _retryFetch() async {
+    await context.read<ProfileProvider>().loadProfile(context);
+
     setState(() {
       _termsFuture =
           TermsService.fetchTermsAndConditions(widget.type).then((value) {

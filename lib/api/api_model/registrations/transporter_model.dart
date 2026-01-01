@@ -222,6 +222,7 @@
 // }
 class TransporterModel {
   final String? firstName;
+  final String? lastName;
   final String? companyName;
   final String? phoneNumber;
   final Address address;
@@ -235,6 +236,7 @@ class TransporterModel {
   final String? contactPersonName;
 
   TransporterModel({
+    required this.lastName,
     required this.firstName,
     required this.companyName,
     required this.phoneNumber,
@@ -250,6 +252,7 @@ class TransporterModel {
   });
 
   factory TransporterModel.empty() => TransporterModel(
+    lastName: null,
         firstName: null,
         companyName: null,
         phoneNumber: null,
@@ -259,6 +262,7 @@ class TransporterModel {
 
   factory TransporterModel.fromJson(Map<String, dynamic> json) {
     return TransporterModel(
+      lastName: json['lastName'],
       firstName: json['firstName'],
       companyName: json['companyName'],
       phoneNumber: json['phoneNumber'],
@@ -280,6 +284,7 @@ class TransporterModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {
+      'lastName': lastName,
       'firstName': firstName,
       'companyName': companyName,
       'phoneNumber': phoneNumber,
@@ -300,6 +305,7 @@ class TransporterModel {
   }
 
   TransporterModel copyWith({
+    String? lastName,
     String? firstName,
     String? companyName,
     String? phoneNumber,
@@ -314,6 +320,7 @@ class TransporterModel {
     String? contactPersonName,
   }) {
     return TransporterModel(
+      lastName: lastName ?? this.lastName,
       firstName: firstName ?? this.firstName,
       companyName: companyName ?? this.companyName,
       phoneNumber: phoneNumber ?? this.phoneNumber,

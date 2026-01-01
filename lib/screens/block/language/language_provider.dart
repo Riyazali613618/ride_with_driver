@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:r_w_r/api/api_model/language/language_model.dart';
 import 'package:r_w_r/api/api_model/languageModel.dart';
@@ -66,7 +68,7 @@ class LanguageProvider extends ChangeNotifier {
 
       final languageModel = await LanguageService.getLanguages();
 
-      print("languageModel.success:${languageModel.success}--${languageModel.data}");
+      print("languageModel.success:${languageModel.success}--${jsonEncode(languageModel.data)}");
 
       if (languageModel.success == true && languageModel.data != null) {
          _langApi = languageModel.data!;

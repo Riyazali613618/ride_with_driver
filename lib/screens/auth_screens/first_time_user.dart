@@ -262,7 +262,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
 
   void _initializeLocation() {
     final langProvider = Provider.of<LocationProvider>(context, listen: false);
-    currentCountry = langProvider.selectedCountry ?? '68dabd590b3041213387d616';
+    currentCountry = langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
 
     langProvider.fetchStates(currentCountry!).then((_) {
       if (mounted) {
@@ -418,6 +418,8 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
             // Update stored user data with new name
             final userData = await TokenManager.getUserData();
             if (userData != null) {
+              userData['firstName'] =_firstNameController.text.trim();
+              userData['lastName'] =_lastNameController.text.trim();
               userData['name'] =
                   '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
               await TokenManager.saveUserData(userData);

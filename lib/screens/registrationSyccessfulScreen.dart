@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_service/user_service/user_profile_service.dart';
+import '../features/vehicles/presentation/pages/add_vehicle_screen.dart';
 import '../utils/color.dart';
 import 'layout.dart';
 
@@ -145,6 +146,7 @@ class _RegistrationSuccessfulScreenState
   Widget _buildContinueButton(BuildContext context) {
     return Container(
       width: double.infinity,
+      margin: EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton(
         onPressed: () {
           if (widget.userType != 'DRIVER') {
@@ -184,7 +186,7 @@ class _RegistrationSuccessfulScreenState
         context,
         MaterialPageRoute(
             builder: (context) =>
-                VehicleRegistrationForm(userType: widget.userType)));
+                AddNewVehicleScreen(userType: widget.userType)));
 
     // For now, just pop back to previous screens
     // Navigator.popUntil(context, (route) => route.isFirst);
@@ -193,7 +195,7 @@ class _RegistrationSuccessfulScreenState
   Future<void> updateProfile() async {
     final data = await UserProfileService().getUserProfile();
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('who_reg', data.data?.userType ?? "");
+    prefs.setString('who_reg', data.usertype ?? "");
   }
 }
 

@@ -82,11 +82,11 @@ class _VehicleDetailScreenTransPorterState
     try {
       final profileProvider =
       Provider.of<ProfileProvider>(context, listen: false);
-      final userId = profileProvider.userId;
+      final userId = profileProvider.profileData?.userId?.id??"";
       final token = await TokenManager.getToken();
 
       final submitResponse = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/user/communication'),
+        Uri.parse('${ApiConstants.baseUrl}/user/communications'),
         headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId ?? '',

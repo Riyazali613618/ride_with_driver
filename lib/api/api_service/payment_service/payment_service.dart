@@ -29,11 +29,17 @@ class PaymentService {
     required String category,
     required String planId,
     required String currentCategory,
+    int durationInMonths = 1,
+    double pay_amount = 1,
+    double earlyBirdDiscountPrice = 1,
   }) async {
     if (currentCategory.isNotEmpty) {
       return _createUpgradeOrder({
         'chosen_category': category,
         'subscriptionPlanId': planId,
+        'durationInMonths': durationInMonths,
+        'pay_amount': pay_amount,
+        'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
       });
     } else {
       return _createOrder({
@@ -51,11 +57,19 @@ class PaymentService {
     required String currentCategory,
     required String category,
     required String planId,
+    int durationInMonths = 1,
+    int maxvehicles = 1,
+    double pay_amount = 1,
+    double earlyBirdDiscountPrice = 1,
   }) async {
     if (currentCategory.isNotEmpty) {
       return _createUpgradeOrder({
         'chosen_category': category,
         'subscriptionPlanId': planId,
+        'max_vehicles': maxvehicles,
+        'durationInMonths': durationInMonths,
+        'pay_amount': pay_amount,
+        'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
       });
     } else {
       return _createOrder({
@@ -134,7 +148,7 @@ class PaymentService {
         'razorpay_order_id': razorpayOrderId,
         'razorpay_payment_id': razorpayPaymentId,
         'razorpay_signature': razorpaySignature,
-        'paymentType': 'SUBSCRIPTION',
+        'paymentType': 'SUBSCRIPTION_UPGRADE',
         'subscriptionPlanId': planId,
         'paymentGatewayType': "razorpay",
       });
@@ -144,7 +158,7 @@ class PaymentService {
           'razorpay_order_id': razorpayOrderId,
           'razorpay_payment_id': razorpayPaymentId,
           'razorpay_signature': razorpaySignature,
-          'paymentType': 'SUBSCRIPTION',
+          'paymentType': 'SUBSCRIPTION_UPGRADE',
           'subscriptionPlanId': planId,
           'paymentGatewayType': "razorpay",
         });
@@ -175,7 +189,7 @@ class PaymentService {
         'razorpay_order_id': razorpayOrderId,
         'razorpay_payment_id': razorpayPaymentId,
         'razorpay_signature': razorpaySignature,
-        'paymentType': 'SUBSCRIPTION',
+        'paymentType': 'SUBSCRIPTION_UPGRADE',
         'currentCategory': currentCategory,
         'category': category,
         'subscriptionPlanId': registrationFeeId,
@@ -210,7 +224,7 @@ class PaymentService {
         'razorpay_order_id': razorpayOrderId,
         'razorpay_payment_id': razorpayPaymentId,
         'razorpay_signature': razorpaySignature,
-        'paymentType': 'SUBSCRIPTION',
+        'paymentType': 'SUBSCRIPTION_UPGRADE',
         'category': category,
         'currentCategory': currentCategory,
         'subscriptionPlanId': planId,

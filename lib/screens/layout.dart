@@ -604,8 +604,17 @@ class _LayoutState extends State<Layout> {
   Future<void> getUserProfile() async {
     final data = await UserProfileService().getUserProfile();
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString('who_reg', data.data?.userType??"");
-    if (data.data != null && data.data!.userType.toLowerCase() != "client") {
+    if (data != null && data!.subscriptions != null &&data!.subscriptions!.isNotEmpty) {
+      for (var sub in data!.subscriptions!) {
+        if ((sub.status ?? "").toLowerCase() == "active") {
+          prefs.setString('who_reg', sub.category ?? "");
+          break;
+        }
+      }
+    }else{
+      prefs.setString('who_reg',"USER");
+    }
+    if (data != null && data!.usertype!.toLowerCase() != "user") {
       _showDashboard = true;
       setState(() {});
     }

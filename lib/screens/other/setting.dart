@@ -289,6 +289,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           await prefs.remove(_whatsappKey);
           await prefs.remove(_phoneKey);
           await prefs.clear();
+          await prefs.clear();
 
            final tempDir = await getTemporaryDirectory();
                     if (tempDir.existsSync()) {

@@ -1,12 +1,15 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 
+import '../../../api/api_service/countryStateProviderService.dart';
 import '../../../api/api_service/payment_service/payment_service.dart';
 import '../../../bloc/payment/payment_bloc.dart';
 import '../../../components/custom_activity.dart';
+import '../../../constants/api_constants.dart';
 import '../../../screens/driver_screens/payment_bottom_sheet.dart';
 import '../../data/models/plan_model.dart';
 import '../bloc/plan_bloc.dart';
@@ -17,9 +20,14 @@ class PlanSelectionScreen extends StatefulWidget {
   final String currentCategory;
   final String category;
   final String title;
+  final int count;
 
   const PlanSelectionScreen(
-      {super.key, required this.title,required this.currentCategory, required this.category});
+      {super.key,
+      required this.title,
+      required this.count,
+      required this.currentCategory,
+      required this.category});
 
   @override
   State<PlanSelectionScreen> createState() => _PlanSelectionScreenState();
@@ -32,11 +40,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<PlanBloc>().add(FetchPlansEvent(
-          widget.category,
-          "68dabd590b3041213387d616",
-          "68e7bd9c20a588293b4cbd0a",
-        ));
+    fetchPlansList();
   }
 
   @override
@@ -134,8 +138,13 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       itemCount: plans.length,
                       itemBuilder: (context, index, realIdx) {
                         final plan = state.plans![index];
-                        return _planCard(plan, index == currentIndex, context,
-                            widget.category,widget.currentCategory);
+                        return _planCard(
+                            widget.count,
+                            plan,
+                            index == currentIndex,
+                            context,
+                            widget.category,
+                            widget.currentCategory);
                       },
                       options: CarouselOptions(
                         height: 400,
@@ -169,10 +178,30 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       ),
     );
   }
+
+  void fetchPlansList() {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final langProvider =
+          Provider.of<LocationProvider>(context, listen: false);
+      final currentCountry =
+          langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
+      final selectedState =
+          langProvider.selectedState ?? ApiConstants.defaultStateCodeDel;
+      if (selectedState.isEmpty) {
+        await langProvider.fetchStates(currentCountry);
+      }
+
+      context.read<PlanBloc>().add(FetchPlansEvent(
+            widget.category,
+            currentCountry,
+            selectedState,
+          ));
+    }); // context.read<PlanBloc>().add(FetchPlansEvent(widget.category));
+  }
 }
 
-Widget _planCard(
-    PlanModel data, bool isActive, BuildContext context, String category,String currentCategory) {
+Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
+    String category, String currentCategory) {
   final features = data.features;
   final discount = data.earlyBirdDiscountPercentage;
   final price = data.finalPrice;
@@ -262,7 +291,7 @@ Widget _planCard(
           child: GestureDetector(
             onTap: () {
               if (category == UserType.TRANSPORTER.name) {
-                showAddVehicleQtyPopup(context, data, category,currentCategory,
+                showAddVehicleQtyPopup(context, data, category, currentCategory,
                     PaymentType.registrationWithSubscription, 2);
               } else {
                 showModalBottomSheet(
@@ -274,6 +303,7 @@ Widget _planCard(
                     child: PaymentBottomSheetBlocView(
                       plan: data,
                       planType: category,
+                      finalPrice: count * data.finalPrice,
                       currentCategory: currentCategory,
                       paymentType: PaymentType.registrationWithSubscription,
                       category: category,
@@ -306,20 +336,22 @@ Widget _planCard(
 }
 
 void showAddVehicleQtyPopup(BuildContext context, PlanModel plan,
-    String category,String currentCategory, PaymentType planType, int count) {
+    String category, String currentCategory, PaymentType planType, int count) {
   showDialog(
     context: context,
     builder: (_) => NumberOfVehiclesPopup(
       initialValue: count,
+      plan: plan,
       onConfirm: (count) {
-        showShortTermPlanBottomSheet(context, plan, category,currentCategory, planType, count);
+        showShortTermPlanBottomSheet(
+            context, plan, category, currentCategory, planType, count);
       },
     ),
   );
 }
 
 void showShortTermPlanBottomSheet(BuildContext context, PlanModel plan,
-    String category,String currentCategory, PaymentType planType, int count) {
+    String category, String currentCategory, PaymentType planType, int count) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -339,11 +371,13 @@ void showShortTermPlanBottomSheet(BuildContext context, PlanModel plan,
 
 class NumberOfVehiclesPopup extends StatefulWidget {
   final int initialValue;
+  final PlanModel plan;
   final Function(int) onConfirm;
 
   const NumberOfVehiclesPopup({
     super.key,
     this.initialValue = 1,
+    required this.plan,
     required this.onConfirm,
   });
 
@@ -419,12 +453,65 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
                 _circleButton(
                   icon: Icons.add,
                   onTap: () {
-                    setState(() => count++);
+                    if (count < 10) {
+                      setState(() => count++);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(
+                          "Maximum ${widget.plan.maxVehicles} vehicles allowed for this plan",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.red,
+                      ));
+                    } /* if (count < widget.plan.maxVehicles) {
+                      setState(() => count++);
+                    }else{
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Maximum ${widget.plan.maxVehicles} vehicles allowed for this plan",style: TextStyle(color: Colors.white),),backgroundColor: Colors.red,));
+                    }*/
                   },
                 ),
               ],
             ),
-
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Text(
+                  "Total: ",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12),
+                ),
+                Spacer(),
+                Text(
+                  (count*widget.plan.finalPrice).toStringAsFixed(2),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12),
+                )
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Text(
+                  "Discount Applied: ",
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12),
+                ),
+                Spacer(),
+                Text(
+                  (count*widget.plan.earlyBirdDiscountPrice).toStringAsFixed(2),
+                  style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 12),
+                )
+              ],
+            ),
             const SizedBox(height: 30),
 
             // Confirm Button
@@ -588,17 +675,21 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
               const SizedBox(height: 30),
 
               // Pricing Summary
-              _priceRow("Total Subscription Amount-", "₹ 3000.00"),
-              _priceRow("Discount (80%)-", "₹ 2400.00"),
+              _priceRow("Total Subscription Amount-",
+                  "₹ ${widget.count * widget.plan.grossPrice}"),
+              _priceRow(
+                  "Discount (${widget.plan.earlyBirdDiscountPercentage}%)-",
+                  "₹ ${widget.count * widget.plan.earlyBirdDiscountPrice}"),
               const Divider(),
-              _priceRow("Payable Amount-", "₹ 600.00"),
-              _priceRow("Tax (18%)", "₹ 108.00"),
+              _priceRow("Payable Amount-",
+                  "₹ ${widget.count * widget.plan.finalPrice}"),
+              _priceRow("Tax (18%)", "₹ 0"),
               const SizedBox(height: 25),
 
               // Green Banner
-              const Center(
+              Center(
                 child: Text(
-                  "You have got 80% discount",
+                  "You have got ${widget.plan.earlyBirdDiscountPercentage}% discount",
                   style: TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.w600,
@@ -622,6 +713,7 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                         value: context.read<PaymentBloc>(),
                         child: PaymentBottomSheetBlocView(
                           plan: widget.plan,
+                          finalPrice: widget.count * widget.plan.finalPrice,
                           planType: widget.category,
                           currentCategory: widget.currentCategory,
                           paymentType: PaymentType.registrationWithSubscription,

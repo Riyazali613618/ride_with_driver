@@ -34,7 +34,7 @@ class PartnerRegistrationWidget extends StatefulWidget {
 }
 
 class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
-  String currentCategory="";
+  String currentCategory = "";
   String? whoReg;
   bool isLoading = true;
   ApplicationStatus applicationStatus = ApplicationStatus.notStarted;
@@ -94,6 +94,8 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       try {
         final prefs = await SharedPreferences.getInstance();
         whoReg = prefs.getString('who_reg');
+        setState(() {
+        });
       } catch (_) {}
       context
           .read<UpgradeablePlansBloc>()
@@ -132,6 +134,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             child: planNew.PlanSelectionScreen(
               category: category,
               title: title,
+              count: 1,
               currentCategory: currentCategory,
             ),
           ),
@@ -174,11 +177,16 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (whoReg == "TRANSPORTER") {
-      return Center(
-        child: Text(
-          "You are already registered as Transporter",
-          style: TextStyle(color: Colors.black),
+    if (whoReg == "Transporter") {
+
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(),
+        body: Center(
+          child: Text(
+            "You are already registered as Transporter",
+            style: TextStyle(color: Colors.black),
+          ),
         ),
       );
     }
@@ -212,6 +220,18 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             backgroundColor: Colors.transparent,
             surfaceTintColor: Colors.transparent,
             elevation: 0,
+            leading: InkWell(
+              onTap: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.of(context).pop();
+                }
+              },
+              child: Icon(
+                Icons.arrow_back,
+                size: 24,
+                color: Colors.white,
+              ),
+            ),
             actionsPadding: EdgeInsets.zero,
             iconTheme: const IconThemeData(color: Colors.white),
             centerTitle: false,
@@ -269,7 +289,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
           filteredOptions = options
               .where((option) => allowedCategories.contains(option['key']))
               .toList();
-         currentCategory= state.data.data?.currentCategory??"";
+          currentCategory = state.data.data?.currentCategory ?? "";
         } else {
           filteredOptions = List<Map<String, dynamic>>.from(options);
         }
@@ -300,7 +320,9 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
   Widget _buildOptionCard(Map<String, dynamic> option) {
     return GestureDetector(
       onTap: () {
-        context.read<PlanBloc>().add(FetchUserStatusEvent(option['key'],currentCategory));
+        context
+            .read<PlanBloc>()
+            .add(FetchUserStatusEvent(option['key'], currentCategory));
       },
       child: Container(
         padding: const EdgeInsets.all(16),

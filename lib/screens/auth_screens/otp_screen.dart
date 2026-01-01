@@ -12,6 +12,7 @@ import '../../api/api_service/verify_otp_service.dart';
 import '../../components/app_appbar.dart';
 import '../../components/app_button.dart';
 import '../../components/app_snackbar.dart';
+import '../../constants/api_constants.dart';
 import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
 import '../../l10n/app_localizations.dart';
@@ -90,7 +91,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           enteredOtp,
           (langProvider.langCode != null && langProvider.langCode!.isNotEmpty)
               ? '${langProvider.langCode}'
-              : '68d4052ce5417ced85c8b0fd',
+              : ApiConstants.defaultLanguageCodeEng,
           '${widget.countryId}');
       print("verifyOtp${langProvider.langCode!.isEmpty} ${widget.countryId}");
       if (response.success == true && response.data != null) {
@@ -114,6 +115,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         await TokenManager.saveRefreshToken(response.data!.refreshToken!);
         await TokenManager.savePhoneNumber(widget.phoneNumber);
         final userDataMap = {
+          'firstName': response.data!.firstName,
+          'lastName': response.data!.lastName,
           'name': response.data!.name,
           // 'isRegisteredAsDriver': response.data!.is,
           // 'isRegisteredAsTransporter': response.data!.isRegisteredAsTransporter,

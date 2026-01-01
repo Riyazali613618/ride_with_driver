@@ -37,6 +37,8 @@ class OtpVerificationResponse {
 class OtpVerificationData {
   String? userId;
   String? name;
+  String? firstName;
+  String? lastName;
   bool? isFirstTimeUser;
   String? usertype;
   bool? isAllowed;
@@ -51,6 +53,8 @@ class OtpVerificationData {
 
   OtpVerificationData(
       {this.userId,
+        this.firstName,
+        this.lastName,
         this.name,
         this.isFirstTimeUser,
         this.usertype,
@@ -66,6 +70,8 @@ class OtpVerificationData {
 
   OtpVerificationData.fromJson(Map<String, dynamic> json) {
     userId = json['userId'];
+    firstName = json['firstName'];
+    lastName = json['lastName'];
     name = json['name'];
     isFirstTimeUser = json['isFirstTimeUser'];
     usertype = json['usertype'];
@@ -86,6 +92,8 @@ class OtpVerificationData {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['userId'] = this.userId;
+    data['firstName'] = this.firstName;
+    data['lastName'] = this.lastName;
     data['name'] = this.name;
     data['isFirstTimeUser'] = this.isFirstTimeUser;
     data['usertype'] = this.usertype;
