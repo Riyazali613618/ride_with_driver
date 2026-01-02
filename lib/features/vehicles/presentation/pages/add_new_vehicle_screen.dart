@@ -8,11 +8,13 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_service/media_service.dart';
+import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/features/vehicles/domain/entities/vehicle_entity.dart';
 import 'package:r_w_r/features/vehicles/presentation/bloc/profile_repository.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_added_successfully_screen.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_type_model.dart';
 
 import '../../../../constants/token_manager.dart';
 import '../../../../screens/layout.dart';
@@ -163,7 +165,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   final _minimumChargeController = TextEditingController();
 
   // Form Data
-  String? _selectedVehicleType;
+  Categories? _selectedVehicleType;
   String? _selectedSeatingCapacity;
   String _selectedAirConditioning = 'Non-AC';
   bool _isNegotiable = false;
@@ -177,30 +179,6 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   List<String> _rcImagesServer = [];
 
   final Map<String, double> _currentLocation = {'lat': 28.6139, 'lng': 77.209};
-
-  final List<String> _vehicleTypes = [
-    'CAR',
-    'SUV',
-    'VAN',
-    'BUS',
-    'TRUCK',
-    'MOTORCYCLE',
-    'RICKSHAW'
-  ];
-
-  final List<String> _seatingCapacities = [
-    '2',
-    '3',
-    '4',
-    '5',
-    '7',
-    '9',
-    '12',
-    '15',
-    '20',
-    '25',
-    '30'
-  ];
 
   final List<String> _serviceLocations = [
     'New Delhi',
@@ -242,7 +220,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   @override
   void initState() {
     if (widget.vehicle != null) {
-      _selectedVehicleType = widget.vehicle?.vehicleType;
+      // _selectedVehicleType = widget.vehicle?.vehicleType;
       _vehicleNameController.text = widget.vehicle?.vehicleName ?? "";
       _vehicleNumberController.text = widget.vehicle?.vehicleNumber ?? "";
       _selectedSeatingCapacity = widget.vehicle?.seatingCapacity.toString();
@@ -260,7 +238,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
           widget.vehicle!.rcBookBackPhoto,
       ];
     }
+
     super.initState();
+    getVehicleTypeList();
   }
 
   @override
@@ -404,7 +384,11 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
       bool success = await provider.submitVehicleRegistration(
         userType: widget.userType,
-        vehicleType: _shouldShowVehicleType ? _selectedVehicleType : null,
+        vehicleType: _shouldShowVehicleType
+            ? _selectedVehicleType != null
+                ? _selectedVehicleType!.code!
+                : ""
+            : null,
         vehicleName:
             _shouldShowVehicleName ? _vehicleNameController.text.trim() : null,
         vehicleNumber: _vehicleNumberController.text.trim().toUpperCase(),
@@ -512,13 +496,22 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                         children: [
                           // Vehicle Type - Only for Transporter and Taxi Owner
                           if (_shouldShowVehicleType)
-                            _buildDropdownField(
+                            _buildDropdownVehicleTypeField(
                               label: 'Vehicle Type',
                               value: _selectedVehicleType,
                               items: _vehicleTypes,
                               onChanged: (value) {
                                 setState(() {
                                   _selectedVehicleType = value;
+                                  final min = _selectedVehicleType
+                                          ?.seatingLimits?.min ??
+                                      1;
+                                  final max = _selectedVehicleType
+                                          ?.seatingLimits?.max ??
+                                      2;
+                                  _seatingCapacities = List.generate(
+                                      max - min + 1,
+                                      (index) => (min + index).toString());
                                 });
                               },
                               isRequired: true,
@@ -752,6 +745,67 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
               return DropdownMenuItem<String>(
                 value: item,
                 child: Text(item),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropdownVehicleTypeField({
+    required String label,
+    required Categories? value,
+    required List<Categories> items,
+    required Function(Categories?) onChanged,
+    bool isRequired = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<Categories>(
+            value: value,
+            decoration: InputDecoration(
+              hintText: 'Select Type',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isRequired && value == null
+                      ? Colors.grey
+                      : Colors.grey.shade300,
+                  width: isRequired && value == null ? 2 : 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(
+                  color: isRequired && value == null
+                      ? Colors.grey
+                      : Colors.grey.shade300,
+                  width: isRequired && value == null ? 2 : 1,
+                ),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+            ),
+            items: items.map((Categories item) {
+              return DropdownMenuItem<Categories>(
+                value: item,
+                child: Text(item.code ?? ""),
               );
             }).toList(),
             onChanged: onChanged,
@@ -1311,6 +1365,22 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
           ],
         ],
       ),
+    );
+  }
+
+  List<Categories> _vehicleTypes = [];
+  List<String> _seatingCapacities = [];
+
+  Future<void> getVehicleTypeList() async {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        final data = await UserProfileService().getVehicleTypeList();
+        if (data.data != null) {
+          _vehicleTypes = data.data?.categories ?? [];
+
+          setState(() {});
+        }
+      },
     );
   }
 }

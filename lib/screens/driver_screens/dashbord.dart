@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_w_r/constants/token_manager.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/add_vehicle_screen.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/driver_screens/erikshaw_rikshaw_profile_screen.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
 import 'package:r_w_r/screens/driver_screens/vehicle_details.dart';

@@ -22,7 +22,7 @@ import '../bloc/vehicle_list_bloc.dart';
 import '../bloc/vehicle_list_event.dart';
 import '../bloc/vehicle_list_state.dart';
 import '../widgets/vehicle_card.dart';
-import 'add_vehicle_screen.dart';
+import 'add_new_vehicle_screen.dart';
 
 class VehiclesListingPage extends StatefulWidget {
   const VehiclesListingPage({super.key});

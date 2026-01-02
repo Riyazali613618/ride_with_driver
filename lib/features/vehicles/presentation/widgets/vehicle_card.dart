@@ -7,7 +7,7 @@ import '../../../../components/app_loader.dart';
 import '../../../../constants/color_constants.dart';
 import '../../../../utils/color.dart';
 import '../../domain/entities/vehicle_entity.dart';
-import '../pages/add_vehicle_screen.dart';
+import '../pages/add_new_vehicle_screen.dart';
 
 class VehicleCard extends StatefulWidget {
   final VehicleEntity vehicle;

@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_type_model.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/token_manager.dart';
 import '../../api_model/user_model/my_profile_model.dart';
@@ -105,11 +106,11 @@ class UserProfileService {
         // Cache the updated user data
         if (data['status'] == true) {
           final currentData = await TokenManager.getUserData();
-          try{
-            if(data['data']!=null && data['data']['vehicleLimit']!=null){
+          try {
+            if (data['data'] != null && data['data']['vehicleLimit'] != null) {
               await TokenManager.saveVehicleLimit(data['data']['vehicleLimit']);
             }
-          }catch(e){}
+          } catch (e) {}
           if (currentData != null) {
             final updatedData = {...currentData, ...requestBody};
             await TokenManager.saveUserData(updatedData);
@@ -193,6 +194,37 @@ class UserProfileService {
     } catch (e) {
       print('Error uploading profile photo: $e');
       rethrow;
+    }
+  }
+
+  Future<VehicleTypeModel> getVehicleTypeList() async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/user/vehicle-categories'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+
+        VehicleTypeModel model = VehicleTypeModel.fromJson(data);
+
+        return model;
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized access. Please login again.');
+      } else {
+        throw Exception('Failed to update profile: ${response.statusCode}');
+      }
+    } on SocketException catch (_) {
+      throw Exception('No internet connection. Please check your network.');
     }
   }
 }

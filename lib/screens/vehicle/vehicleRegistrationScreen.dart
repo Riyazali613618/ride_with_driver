@@ -10,7 +10,7 @@ import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 
 import '../../constants/token_manager.dart';
-import '../../features/vehicles/presentation/pages/add_vehicle_screen.dart';
+import '../../features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import '../../features/vehicles/presentation/pages/vehicles_list_page.dart';
 import '../../utils/color.dart';
 import '../layout.dart';

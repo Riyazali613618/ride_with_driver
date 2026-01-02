@@ -13,7 +13,7 @@ import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart'
     hide Counts;
 import 'package:r_w_r/api/api_model/user_model/user_profile_model.dart';
 import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/add_vehicle_screen.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/layout.dart';
 import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
 import 'package:r_w_r/screens/widgets/gradient_button.dart';
@@ -163,6 +163,7 @@ class _TransporterRegistrationFlowState
           String data = prefs.getString('transporter_data') ?? '';
           if (data.isNotEmpty) {
             _transporterModel = TransporterModel.fromJson(jsonDecode(data));
+            _transporterModel=  _transporterModel.copyWith(photo: "");
           } else {
             MyProfileData? profile = await TokenManager.getProfile();
             if (profile != null) {

@@ -24,7 +24,7 @@ import 'package:r_w_r/bloc/payment/payment_bloc.dart';
 // Screen and service imports
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_bloc.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/add_vehicle_screen.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/firebase_options.dart';
 import 'package:r_w_r/plan/data/repositories/plan_repository.dart';
 import 'package:r_w_r/plan/presentation/bloc/plan_bloc.dart';

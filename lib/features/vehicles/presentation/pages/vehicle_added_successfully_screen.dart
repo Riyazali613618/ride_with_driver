@@ -13,7 +13,7 @@ import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/features/vehicles/domain/entities/vehicle_entity.dart';
 import 'package:r_w_r/features/vehicles/presentation/bloc/profile_state.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/add_vehicle_screen.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/vehicle/add_vehicle_screen.dart';
 import 'package:r_w_r/utils/common_utils.dart';
 
