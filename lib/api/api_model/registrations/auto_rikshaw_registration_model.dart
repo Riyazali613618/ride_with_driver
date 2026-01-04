@@ -1,5 +1,9 @@
 class AutoRickshawModel {
   String? firstName;
+  String? chosen_category;
+  String? subscriptionPlanId;
+  String? paymentId;
+  String? orderId;
   String? lastName;
   String? businessMobileNumber;
   String? profilePhoto;
@@ -21,6 +25,10 @@ class AutoRickshawModel {
   List<String>? servicesCities;
 
   AutoRickshawModel({
+    this.chosen_category,
+    this.subscriptionPlanId,
+    this.paymentId,
+    this.orderId,
     this.firstName,
     this.lastName,
     this.businessMobileNumber,
@@ -45,6 +53,10 @@ class AutoRickshawModel {
 
   factory AutoRickshawModel.fromJson(Map<String, dynamic> json) {
     return AutoRickshawModel(
+      chosen_category: json['chosen_category'],
+      subscriptionPlanId: json['subscriptionPlanId'],
+      paymentId: json['paymentId'],
+      orderId: json['orderId'],
       firstName: json['firstName'],
       lastName: json['lastName'],
       businessMobileNumber: json['businessMobileNumber'],
@@ -81,6 +93,10 @@ class AutoRickshawModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
+    if (chosen_category != null) data['chosen_category'] = chosen_category;
+    if (subscriptionPlanId != null) data['subscriptionPlanId'] = subscriptionPlanId;
+    if (paymentId != null) data['paymentId'] = paymentId;
+    if (orderId != null) data['orderId'] = orderId;
     if (firstName != null) data['firstName'] = firstName;
     if (lastName != null) data['lastName'] = lastName;
     if (businessMobileNumber != null) {
@@ -117,6 +133,10 @@ class AutoRickshawModel {
   }
 
   AutoRickshawModel copyWith({
+    String? chosen_category,
+    String? subscriptionPlanId,
+    String? paymentId,
+    String? orderId,
     String? firstName,
     String? lastName,
     String? businessMobileNumber,
@@ -139,6 +159,10 @@ class AutoRickshawModel {
     List<String>? servicesCities,
   }) {
     return AutoRickshawModel(
+      chosen_category: chosen_category ?? this.chosen_category,
+      subscriptionPlanId: subscriptionPlanId ?? this.subscriptionPlanId,
+      paymentId: paymentId ?? this.paymentId,
+      orderId: orderId ?? this.orderId,
       firstName: firstName ?? this.firstName,
       lastName: lastName ?? this.lastName,
       businessMobileNumber: businessMobileNumber ?? this.businessMobileNumber,
@@ -164,7 +188,7 @@ class AutoRickshawModel {
 
   @override
   String toString() {
-    return 'AutoRickshawModel(firstName: $firstName, lastName: $lastName, businessMobileNumber: $businessMobileNumber, vehicleNumber: $vehicleNumber, negotiable: $negotiable)';
+    return 'AutoRickshawModel(firstName: $firstName, chosen_category:$chosen_category lastName: $lastName, businessMobileNumber: $businessMobileNumber, vehicleNumber: $vehicleNumber, negotiable: $negotiable)';
   }
 }
 

@@ -2045,55 +2045,12 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     return data;
   }
 
-  Widget _buildActionButton() {
-    String buttonText;
-    Color buttonColor;
-    VoidCallback? onPressed;
-
-    switch (_status) {
-      case ApplicationStatus.notStarted:
-        buttonText = 'Start Application';
-        buttonColor = ColorConstants.primaryColor;
-        onPressed = () => _navigateToApplication("");
-        break;
-      case ApplicationStatus.submitted:
-        buttonText = 'Application Submitted';
-        buttonColor = Colors.green;
-        onPressed = null;
-        break;
-      default:
-        buttonText = 'Complete your Application';
-        buttonColor = ColorConstants.primaryColorNew;
-        onPressed = () => _navigateToApplication("");
-    }
-
-    return Container(
-      width: double.infinity,
-      height: 48,
-      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12), // ✅ works fine
-              ),
-              elevation: 0,
-              backgroundColor: Color(0xff0064E0)),
-          onPressed: onPressed,
-          child: Text(
-            buttonText,
-            style: TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white),
-          )),
-    );
-  }
 
   Future<void> _navigateToApplication(String type) async {
-    final prefs = await SharedPreferences.getInstance();
-    whoReg = prefs.getString('who_reg') ?? "";
     Widget? destination;
 
-    String userType =type.isNotEmpty?type: (whoReg ?? "").toUpperCase();
-    if (userType.contains("RICKSHAW")) {
+    String userType =type;
+    if (userType=="RICKSHAW") {
       destination = AutoRickshawDriverFlow();
     } else if (userType == "DRIVER") {
       destination = DriverRegistrationFlow();

@@ -10,6 +10,7 @@ import 'package:r_w_r/features/vehicles/presentation/bloc/profile_event.dart'
 import 'package:r_w_r/features/vehicles/presentation/bloc/profile_state.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../api/api_model/user_model/user_eligibility_model.dart';
 import '../../../../api/api_service/user_service/user_profile_service.dart';
 import '../../../../components/app_loader.dart';
 import '../../../../constants/api_constants.dart';
@@ -33,6 +34,7 @@ class VehiclesListingPage extends StatefulWidget {
 
 class _VehiclesListingPageState extends State<VehiclesListingPage> {
   SharedPreferences? pref;
+  UserEligibilityModel? eligibilityModel;
 
   @override
   void initState() {
@@ -40,8 +42,8 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     initPref();
     context.read<VehicleListBloc>().add(FetchVehicles());
     WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) {
-        getEligibilityData();
+      (timeStamp) async {
+        eligibilityModel = await getEligibilityData();
       },
     );
   }
@@ -123,7 +125,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                     }
 
                                     if (state is VehicleLimitExceededState) {
-                                      showUpgradeDialog(context);
+                                      showUpgradeDialog(context, "");
                                     }
 
                                     if (state is ProfileErrorState) {
@@ -137,9 +139,22 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                     return InkWell(
                                       onTap: state is ProfileLoading
                                           ? null
-                                          : () {
-                                              context.read<ProfileBloc>().add(
-                                                  CheckVehicleLimitEvent());
+                                          : () async {
+                                              final profile =
+                                                  await getEligibilityData();
+                                              if (eligibilityModel != null &&
+                                                  eligibilityModel?.data !=
+                                                      null &&
+                                                  eligibilityModel
+                                                          ?.data?.category
+                                                          .toLowerCase() ==
+                                                      "driver") {
+                                                showUpgradeDialog(
+                                                    context, "DRIVER");
+                                              } else {
+                                                context.read<ProfileBloc>().add(
+                                                    CheckVehicleLimitEvent());
+                                              }
                                             },
                                       child: Container(
                                         padding: EdgeInsets.symmetric(
@@ -214,13 +229,15 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     pref = await SharedPreferences.getInstance();
   }
 
-  void showUpgradeDialog(BuildContext context) {
+  void showUpgradeDialog(BuildContext context, String type) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Limit Exceeded"),
-        content: const Text(
-          "You have exceed your vehicle adding limit, please upgrade to transporter to add more vehicle.",
+        title: Text(type.isEmpty ? "Limit Exceeded" : "Upgrade Limit"),
+        content: Text(
+          type.isEmpty
+              ? "You have exceed your vehicle adding limit, please upgrade to your partner type to add more vehicle."
+              : "Please upgrade your partner type to add more vehicle.",
         ),
         actions: [
           TextButton(
@@ -249,15 +266,10 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     );
   }
 
-  Future<bool> getEligibilityData() async {
+  Future<UserEligibilityModel> getEligibilityData() async {
     final data = await UserProfileService().getEligibility();
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(AppConstants.planEligibilityKey, jsonEncode(data.data));
-    if (data.data != null &&
-        data.data?.paymentPhase == AppConstants.preRegistration) {
-      return true;
-    } else {
-      return false;
-    }
+    return data;
   }
 }

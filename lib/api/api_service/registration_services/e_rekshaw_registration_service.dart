@@ -27,6 +27,8 @@ class BecomeErickshawService {
         };
       }
 
+      developer.log('Submitting E_RICKSHAW application request to ${jsonEncode(model)}',
+          name: _logTag);
       developer.log('Submitting E_RICKSHAW application request to $_baseUrl',
           name: _logTag);
 

@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
@@ -6,15 +10,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
 import '../api/api_model/registrations/auto_rikshaw_registration_model.dart';
+import '../api/api_model/user_model/user_eligibility_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
+import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/e_rekshaw_registration_service.dart';
 import '../api/api_service/user_service/user_profile_service.dart';
+import '../components/app_loader.dart';
 import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import 'block/language/language_provider.dart';
 import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
+
+import 'multi_step_progress_bar.dart';
 
 class ERickshawDriverFlow extends StatefulWidget {
   @override
@@ -36,6 +45,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   final _stateController = TextEditingController();
   final _aadharCardController = TextEditingController();
   final _aboutController = TextEditingController();
+  final _drivingLicenseController = TextEditingController();
+  final _vehicleNumberController = TextEditingController();
 
   String? _selectedLanguage;
   final List<String> _languages = [
@@ -78,7 +89,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     });
   }
 
-  void _initializeLocation() {
+  Future<void> _initializeLocation() async {
     final langProvider = Provider.of<LocationProvider>(context, listen: false);
     currentCountry =
         langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
@@ -90,6 +101,11 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
         });
       }
     });
+
+    final profile = await UserProfileService().getUserProfile();
+    _selfNameController.text =
+    "${profile.firstName ?? ""} ${profile.lastName ?? ""}";
+    _phoneNumberController.text = profile.mobileNumber ?? "";
   }
 
   List<lm.Data> langData = [];
@@ -97,16 +113,23 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   Future<void> _initializeSelectedLanguage() async {
     final languageProvider =
         Provider.of<LanguageProvider>(context, listen: false);
-    languageProvider.fetchLanguagesFromApi();
+    await languageProvider.fetchLanguagesFromApi();
+    langData = languageProvider.language ?? [];
     if (mounted) {
       setState(() {});
     }
   }
 
-  List<String> _selectedLangs = [];
 
   // Document selection methods
   void _showDocumentPickerBottomSheet(String from) {
+    print(from);
+    print((adhaar.length));
+    if (from == "AADHAAR" && adhaar.length == 2) {
+      return;
+    } else if (from == "DRIVING LICENSE" && drivingLicense.length == 1) {
+      return;
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -237,7 +260,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       );
 
       if (image != null) {
-        if (from == 'ADHAAR') {
+        if (from == 'AADHAAR') {
           adhaar.add(image);
           image = null;
         } else {
@@ -260,7 +283,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       );
 
       if (image != null) {
-        if (from == 'ADHAAR') {
+        if (from == 'AADHAAR') {
           adhaar.add(image);
           image = null;
         } else {
@@ -474,13 +497,96 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   }
 
   void nextStep() {
-    if (currentStep < 4) {
-      setState(() {
-        currentStep++;
-      });
-      _pageController.nextPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
+    bool isValid = false;
+    String? errorMessage;
+
+    //_saveTransporterData();
+
+    switch (currentStep) {
+      case 0: // Company Detail
+        isValid = false;
+        if (_selectedImage == null) {
+          errorMessage = 'Profile photo is required';
+          isValid = false;
+        } else if (_selfNameController.text.trim().isEmpty) {
+          errorMessage = 'Profile photo is required';
+        } else if (_phoneNumberController.text.trim().isEmpty) {
+          errorMessage = 'Phone number is required';
+        } else {
+          isValid = true;
+          _updateSelfDetailsModel();
+        }
+
+        break;
+
+      case 1: // Address
+        if (_addressController.text.trim().isEmpty ||
+            _pinCodeController.text.trim().isEmpty ||
+            _selectedCity == null ||
+            _selectedCity!.isEmpty ||
+            _selectedState == null ||
+            _selectedState!.isEmpty) {
+          errorMessage = 'Please fill all address fields';
+          isValid = false;
+        } else {
+          final addressError = _validateAddressLine(_addressController.text);
+          final pincodeError = _validatePinCode(_pinCodeController.text);
+          if (addressError != null) {
+            errorMessage = addressError;
+            isValid = false;
+          } else if (pincodeError != null) {
+            errorMessage = pincodeError;
+            isValid = false;
+          } else {
+            _updateAddressDetailsModel();
+            isValid = true;
+          }
+        }
+        break;
+
+      case 2: // Document
+        if (_aadharCardController.text.toString().trim().isEmpty) {
+          errorMessage = 'Please enter Aadhar Number';
+          isValid = false;
+        } else if (adhaar.length < 2) {
+          errorMessage = 'Please add aadhar both front and back photo';
+          isValid = false;
+        } else if (_drivingLicenseController.text.toString().trim().isEmpty) {
+          errorMessage = 'Please enter Driving License Number';
+          isValid = false;
+        } else if (drivingLicense.isEmpty) {
+          errorMessage = 'Please add Driving License photo';
+          isValid = false;
+        } else if (_vehicleNumberController.text.toString().trim().isEmpty) {
+          errorMessage = 'Please enter Vehicle Number';
+          isValid = false;
+        } else {
+          isValid = true;
+          _updateDocumentDetailsModel();
+        }
+        break;
+
+      case 3: // About/Fleet
+        if ((_selectedLanguages ?? []).isEmpty) {
+          errorMessage = 'Please select language';
+          isValid = false;
+        } else {
+          isValid = true;
+          _submitAboutDetailsModel();
+        }
+        break;
+
+      case 4: // Submit
+        _submitApplication();
+        return;
+    }
+
+    if (!isValid && errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -499,56 +605,76 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.15, 0.30, .90],
+    return PopScope(canPop: false, // Prevents default pop behavior
+      onPopInvoked: (didPop) {
+        if (didPop) {
+          return;
+        }
+        // Call your existing logic
+        previousStep();
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                gradientFirst,
+                gradientSecond,
+                gradientThird,
+                Colors.white,
+                Colors.white,
+                Colors.white,
+                Colors.white,
+                Colors.white,
+                Colors.white,
+                Colors.white,
+              ],
+
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildProgressBar(),
-              Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(top: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(),
+                MultiStepProgressBar(
+                  currentStep: currentStep,
+                  stepTitles: stepTitles,
+                  inactiveColor: Colors.grey.shade200,
+                  gradientColors: [Colors.green, Colors.green],
+                ),
+                Expanded(
+                  child: Container(
+                    margin: EdgeInsets.only(top: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(20),
+                        topRight: Radius.circular(20),
+                      ),
+                    ),
+                    child: PageView(
+                      controller: _pageController,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildSelfDetailStep(),
+                        _buildAddressStep(),
+                        _buildDocumentStep(),
+                        _buildAboutStep(),
+                        _buildPreviewStep(),
+                      ],
                     ),
                   ),
-                  child: PageView(
-                    controller: _pageController,
-                    physics: NeverScrollableScrollPhysics(),
-                    children: [
-                      _buildSelfDetailStep(),
-                      _buildAddressStep(),
-                      _buildDocumentStep(),
-                      _buildAboutStep(),
-                      _buildPreviewStep(),
-                    ],
-                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
-
   Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.all(16),
@@ -563,18 +689,21 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
             ),
           ),
           SizedBox(width: 16),
-          Text(
-            'Become E-Rickshaw Driver',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              'Become E-Rickshaw Driver',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildProgressBar() {
     return Container(
@@ -715,75 +844,85 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       padding: EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Self Detail',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 40),
-          Center(
-            child: Column(
-              children: [
-                GestureDetector(
-                  onTap: _showImagePickerBottomSheet,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.grey[300],
-                      border: _selectedImage != null
-                          ? Border.all(color: Color(0xFF8B5CF6), width: 3)
-                          : null,
-                    ),
-                    child: _selectedImage != null
-                        ? ClipOval(
-                            child: Image.file(
-                              _selectedImage!,
-                              width: 80,
-                              height: 80,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Icon(
-                            Icons.camera_alt,
-                            size: 32,
-                            color: Colors.grey[600],
+        children:[
+          Expanded(child: ListView(
+            children:  [
+              Text(
+                'Self Detail',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 40),
+              Center(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: _showImagePickerBottomSheet,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey[300],
+                          border: _selectedImage != null
+                              ? Border.all(color: Color(0xFF8B5CF6), width: 3)
+                              : null,
+                        ),
+                        child: _selectedImage != null
+                            ? ClipOval(
+                          child: Image.file(
+                            _selectedImage!,
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.cover,
                           ),
-                  ),
-                ),
-                SizedBox(height: 12),
-                GestureDetector(
-                  onTap: _showImagePickerBottomSheet,
-                  child: Text(
-                    _selectedImage != null
-                        ? 'Tap to change image'
-                        : 'Profile Image / Logo',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: _selectedImage != null
-                          ? Color(0xFF8B5CF6)
-                          : Colors.black87,
-                      decoration: _selectedImage != null
-                          ? TextDecoration.underline
-                          : null,
+                        )
+                            : Icon(
+                          Icons.camera_alt,
+                          size: 32,
+                          color: Colors.grey[600],
+                        ),
+                      ),
                     ),
-                  ),
+                    SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _showImagePickerBottomSheet,
+                      child: Text(
+                        _selectedImage != null
+                            ? 'Tap to change image'
+                            : 'Profile Image / Logo',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _selectedImage != null
+                              ? Color(0xFF8B5CF6)
+                              : Colors.black87,
+                          decoration: _selectedImage != null
+                              ? TextDecoration.underline
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          SizedBox(height: 40),
-          _buildTextField('Self Name *', _selfNameController),
-          SizedBox(height: 20),
-          _buildTextField('Phone Number*', _phoneNumberController),
-          Spacer(),
+              ),
+              SizedBox(height: 40),
+              _buildTextField('Self Name *', _selfNameController,textLength: 50),
+              SizedBox(height: 20),
+              _buildTextField(
+                'Phone Number*',
+                _phoneNumberController,
+                keyboardType: TextInputType.phone,
+                textLength: 10,
+                inputFormatter: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ],
+              ),            ],
+          )),
           _buildContinueButton(),
-        ],
+        ]
       ),
     );
   }
@@ -794,70 +933,79 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Address',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 40),
-          _buildTextField('Address*', _addressController,
-              placeholder: '12 house no., XYZ STREET, Opp ABC Mall'),
-          SizedBox(height: 20),
-          _buildTextField('Pin Code*', _pinCodeController,
-              placeholder: '788799'),
-          SizedBox(height: 20),
-          _buildDropdown(
-            'City',
-            _selectedCity,
-            _cityList
-                .map((city) => DropdownMenuItem(
-                      value: city.sId,
-                      child: Text(city.name.toString()),
-                    ))
-                .toList(),
-            (newValue) {
-              setState(() {
-                _selectedCity = newValue;
-                _cityController.text = newValue ?? '';
-              });
-            },
-            validator: (value) => value == null ? 'Please select a city' : null,
-          ),
-          SizedBox(height: 20),
-          _buildDropdown(
-            'State',
-            _selectedState,
-            _stateList
-                .map((state) => DropdownMenuItem(
-                      value: state.sId,
-                      child: Text(state.name.toString()),
-                    ))
-                .toList(),
-            (newValue) {
-              setState(() {
-                _selectedState = newValue;
-                _stateController.text = newValue ?? '';
-                if (newValue != null) {
-                  final locProvider =
+          Expanded(child: ListView(
+            children:[
+              Text(
+                'Address',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 40),
+              _buildTextField('Address*', _addressController,
+                  placeholder: '12 house no., XYZ STREET, Opp ABC Mall', keyboardType: TextInputType.text),
+              SizedBox(height: 20),
+              _buildTextField('Pin Code*', _pinCodeController,
+                  placeholder: '788799',
+                  keyboardType: TextInputType.phone,
+                  inputFormatter: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  textLength: 6),
+              SizedBox(height: 20),
+              _buildDropdown(
+                'State',
+                _selectedState,
+                _stateList
+                    .map((state) => DropdownMenuItem(
+                  value: state.sId,
+                  child: Text(state.name.toString()),
+                ))
+                    .toList(),
+                    (newValue) {
+                  setState(() {
+                    _selectedState = newValue;
+                    _stateController.text = newValue ?? '';
+                    if (newValue != null) {
+                      final locProvider =
                       Provider.of<LocationProvider>(context, listen: false);
-                  locProvider.fetchCity(newValue).then((_) {
-                    setState(() {
-                      _cityList = locProvider.cities;
-                      _selectedCity = null; // Reset city when state changes
-                    });
+                      locProvider.fetchCity(newValue).then((_) {
+                        setState(() {
+                          _cityList = locProvider.cities;
+                          _selectedCity = null; // Reset city when state changes
+                        });
+                      });
+                    }
                   });
-                }
-              });
-            },
-            validator: (value) =>
+                },
+                validator: (value) =>
                 value == null ? 'Please select a state' : null,
+              ),
+              _buildDropdown(
+                'City',
+                _selectedCity,
+                _cityList
+                    .map((city) => DropdownMenuItem(
+                  value: city.sId,
+                  child: Text(city.name.toString()),
+                ))
+                    .toList(),
+                    (newValue) {
+                  setState(() {
+                    _selectedCity = newValue;
+                    _cityController.text = newValue ?? '';
+                  });
+                },
+                validator: (value) => value == null ? 'Please select a city' : null,
+              ),
+              SizedBox(height: 20),
+            ],
           ),
-          Spacer(),
+          ),
           _buildContinueButton(),
-        ],
+        ]
       ),
     );
   }
@@ -902,173 +1050,546 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
+
   Widget _buildDocumentStep() {
     return Padding(
       padding: EdgeInsets.all(24),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Document',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: 40),
-            // Aadhar Card Container with both field and verify button
-            Container(
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 5.0),
-                    child: Text(
-                      'Aadhar Card No.*',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
-                    ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+            child: ListView(
+              children: [
+                Text(
+                  'Document',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black,
                   ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
+                ),
+                SizedBox(height: 40),
+                // Aadhar Card Container with both field and verify button
+                SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Container(
-                          height: 40,
-                          padding: EdgeInsets.symmetric(horizontal: 5),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[400]!),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: TextField(
-                            controller: _aadharCardController,
-                            decoration: InputDecoration.collapsed(
-                              hintText: 'Enter Aadhar Card Number',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 16,
-                              ),
-                            ),
-                            onChanged: (value) {
-                              if (value.length == 12) {
-                                _verifyAadhaar(value);
-                              }
-                            },
+                      Padding(
+                        padding: const EdgeInsets.only(left: 5.0),
+                        child: Text(
+                          'Aadhar Card No.*',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
                           ),
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Container(
-                        height: 40,
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.green),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: Center(
-                          child: _isAadhaarVerifying
-                              ? SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(
-                                  _isAadhaarVerified ? 'Verified' : 'Verify',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.w500,
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 35,
+                              alignment: Alignment.center,
+                              padding: EdgeInsets.symmetric(horizontal: 5),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey[400]!),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: TextField(
+                                textAlign: TextAlign.start,
+                                maxLength: 12,
+                                buildCounter: (
+                                    context, {
+                                      required int currentLength,
+                                      required bool isFocused,
+                                      required int? maxLength,
+                                    }) {
+                                  return null; // 👈 hides the counter
+                                },
+                                controller: _aadharCardController,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                keyboardType: TextInputType.phone,
+                                decoration: InputDecoration.collapsed(
+                                  hintText: 'Enter Aadhar Card Number',
+                                  hintStyle: TextStyle(
+                                    color: Colors.grey[400],
+                                    fontSize: 14,
                                   ),
                                 ),
-                        ),
+                                onChanged: (value) {
+                                  if (value.length == 12) {
+                                    _verifyAadhaar(value);
+                                  }
+                                },
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Container(
+                            height: 30,
+                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.green),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: Center(
+                              child: _isAadhaarVerifying
+                                  ? SizedBox(
+                                width: 16,
+                                height: 16,
+                                child:
+                                CircularProgressIndicator(strokeWidth: 2),
+                              )
+                                  : Text(
+                                _isAadhaarVerified ? 'Verified' : 'Verify',
+                                style: TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
-            Container(
-              width: double.infinity,
-              child: _buildFileUploadSection(
-                  'Upload Aadhar Card (Front & Back)', "ADHAAR"),
-            ),
-            SizedBox(height: 40),
-            _buildContinueButton(),
-          ],
+                ),
+                SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: _buildAadhaarFileUploadSection(
+                      'Upload Aadhar Card (Front & Back)', "AADHAAR"),
+                ),
+                SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: _buildTextField(
+                      'Driving License Number', _drivingLicenseController,
+                      textCapitalization: TextCapitalization.characters),
+                ),
+                SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: _buildFileUploadSection(
+                      'Upload Driving License', 'DRIVING LICENSE'),
+                ),
+                SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: _buildTextField('Vehicle Number', _vehicleNumberController,
+                      placeholder: "Enter vehicle number",
+                      textCapitalization: TextCapitalization.characters),
+                ),
+                SizedBox(height: 40),
+              ],
+            )),
+        _buildContinueButton(),
+      ]),
+    );
+  }
+  Widget _buildAadhaarFileUploadSection(String title, String from) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
         ),
+        SizedBox(height: 8),
+        Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showDocumentPickerBottomSheet("AADHAAR"),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientFirst,
+                        gradientSecond,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'browse',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (adhaar.isNotEmpty) _showAadharCardImages()
+              else
+                SizedBox(height: 12),
+
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileUploadSection(String title, String from) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          height: 240,
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showDocumentPickerBottomSheet(from),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientFirst,
+                        gradientSecond,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'browse',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (drivingLicense.isNotEmpty) _showDLImages(),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  Widget _showDLImages() {
+    return Stack(
+      children: [
+        Container(
+            clipBehavior: Clip.hardEdge,
+            margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.grey.shade400,
+              border: Border.all(color: AppColors.blue, width: 1),
+            ),
+            child: Image.file(
+              File(drivingLicense[0].path),
+              width: 50,
+              fit: BoxFit.cover,
+              height: 50,
+            )),
+        Positioned(
+            right: 5,
+            top: 12,
+            child: GestureDetector(
+              onTap: () {
+                drivingLicense.clear();
+                updateState();
+              },
+              child: SvgPicture.asset(
+                "assets/svg/cross.svg",
+                width: 15,
+                height: 15,
+              ),
+            ))
+      ],
+    );
+  }
+
+  Widget _showAadharCardImages() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      height: 100,
+      width: double.infinity,
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: adhaar.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Container(
+                  clipBehavior: Clip.hardEdge,
+                  margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: Colors.grey.shade400,
+                    border: Border.all(color: AppColors.blue, width: 1),
+                  ),
+                  child: Image.file(
+                    File(adhaar[index].path),
+                    width: 50,
+                    fit: BoxFit.cover,
+                    height: 50,
+                  )),
+              Positioned(
+                  right: 5,
+                  top: 12,
+                  child: GestureDetector(
+                    onTap: () {
+                      adhaar.removeAt(index);
+                      updateState();
+                    },
+                    child: SvgPicture.asset(
+                      "assets/svg/cross.svg",
+                      width: 15,
+                      height: 15,
+                    ),
+                  ))
+            ],
+          );
+        },
       ),
     );
   }
 
+
+  List<String> langIds=[];
   Widget _buildAboutStep() {
     return Padding(
       padding: EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'About',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+          child: ListView(
+            children: [
+              Text(
+                'About',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 40),
+              Text(
+                'Select Languages',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              _languageMultiSelectDropdown(),
+              SizedBox(height: 24),
+              Text(
+                'About',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 8),
+              Container(
+                height: 120,
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: TextField(
+                  controller: _aboutController,
+                  maxLines: null,
+                  decoration: InputDecoration.collapsed(
+                    hintText: 'Tell us about yourself...',
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+            ],
           ),
-          SizedBox(height: 40),
-          Text(
-            'Select Languages',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 8),
-          _buildDropdownFieldForLanguage(
-              'Spoken Languages', _selectedLanguage, langData, (value) {
+        ),
+        _buildContinueButton(),
+      ]),
+    );
+  }
+
+  bool _isDropdownOpen = false;
+
+  final List<String> _selectedLanguages = [];
+
+  Widget _languageMultiSelectDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
             setState(() {
-              _selectedLanguage = value;
-              _selectedLangs.add(_selectedLanguage!);
+              _isDropdownOpen = !_isDropdownOpen;
             });
-          }),
-          SizedBox(height: 24),
-          Text(
-            'About',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 8),
-          Container(
-            height: 120,
-            padding: EdgeInsets.all(16),
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
+              border: Border.all(color: Colors.grey.shade400),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: TextField(
-              controller: _aboutController,
-              maxLines: null,
-              decoration: InputDecoration.collapsed(
-                hintText: 'Tell us about yourself...',
-              ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedLanguages.isEmpty
+                        ? 'Select languages'
+                        : '${_selectedLanguages.length} selected',
+                    style: TextStyle(
+                      color: _selectedLanguages.isEmpty
+                          ? Colors.grey
+                          : Colors.black,
+                    ),
+                  ),
+                ),
+                Icon(
+                  _isDropdownOpen
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                ),
+              ],
             ),
           ),
-          Spacer(),
-          _buildContinueButton(),
-        ],
-      ),
+        ),
+
+        if (_isDropdownOpen)
+          Container(
+            height: 300,
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+            ),
+            child: ListView(
+              shrinkWrap: true,
+              children: langData.map((language) {
+                final isSelected = _selectedLanguages.contains(language.name);
+                return CheckboxListTile(
+                  contentPadding:
+                  EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  value: isSelected,
+                  title: Text(language.name!),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (checked) {
+                    setState(() {
+                      if (checked == true) {
+                        _selectedLanguages.add(language.name!);
+                        langIds.add(language.id!);
+                      } else {
+                        _selectedLanguages.remove(language.name);
+                        langIds.remove(language.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+
+        const SizedBox(height: 12),
+
+        /// Selected Chips
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _selectedLanguages.map((language) {
+            return Chip(
+              label: Text(language),
+              deleteIcon: const Icon(Icons.close, size: 18),
+              onDeleted: () {
+                setState(() {
+                  _selectedLanguages.remove(language);
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -1243,7 +1764,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          _submitForm();
+          if(!isSubmitting) _submitForm();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF8B5CF6),
@@ -1253,7 +1774,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
           ),
           elevation: 0,
         ),
-        child: Text(
+        child:isSubmitting?SizedBox(width: 20,height: 20,child: CircularProgressIndicator(color: Colors.white,strokeWidth: 2,)): Text(
           'Submit',
           style: TextStyle(
             color: Colors.white,
@@ -1422,64 +1943,116 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     address: Address(),
   );
 
+  bool isSubmitting=false;
   Future<void> _proceedToFinalStep() async {
-    _erickshawModel = _erickshawModel.copyWith(
-      firstName: _selfNameController.text ?? "",
-      languageSpoken: ['68bad78fe814b9f56ef22bba'],
-      lastName: _selfNameController.text,
-      address: _erickshawModel.address?.copyWith(
-          addressLine: _addressController.text,
-          pincode: int.parse(_pinCodeController.text),
-          state: _selectedState,
-          city: _selectedCity),
-      aadharCardNumber: _aadharCardController.text,
-      aadharCardPhotoFront:
-          (adhaar != null && adhaar.isNotEmpty) ? adhaar[0].path : '',
-      aadharCardPhotoBack:
-          (adhaar != null && adhaar.isNotEmpty && adhaar.length >= 2)
-              ? adhaar[1].path
-              : '',
-      profilePhoto: _selectedImage?.path ?? '',
-      bio: _aboutController.text,
-      drivingLicencePhoto: '',
-      drivingLicenceNumber: '',
-      vehicleNumber: '',
-      businessMobileNumber: _phoneNumberController.text,
-    );
-    bool isUpgrade = await getUserProfile();
+    Navigator.of(context).pop();
+    isSubmitting = true;
+    updateState();
+    try {
+      if (adhaar.isNotEmpty && adhaar[0].path.isNotEmpty) {
+        final XFile xFileAadhaarFront = XFile(adhaar[0].path);
+        final imageUrl = await MediaService()
+            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+        _erickshawModel = _erickshawModel.copyWith(
+          aadharCardPhotoFront: imageUrl.url,
+        );
+      }
+      if (adhaar.isNotEmpty && adhaar[1].path.isNotEmpty) {
+        final XFile xFileAadhaarFront = XFile(adhaar[1].path);
+        final imageUrl = await MediaService()
+            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+        _erickshawModel = _erickshawModel.copyWith(
+          aadharCardPhotoBack: imageUrl.url,
+        );
+      }
+      String orderId = "";
+      String paymentId = "";
+      String subscriptionPlanId = "";
 
-    final response = await BecomeErickshawService().submitErickshawApplication(
-        _erickshawModel, isUpgrade ? "become-upgradable" : "become-e-rickshaw");
-    if (response['success'] == true) {
-      if (!mounted) return;
-      BecomeErickshawService.showSuccessSnackBar(
-          context, 'Application submitted successfully!');
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const RegistrationSuccessfulScreen(
-                userType: 'E-Rickshaw Driver')),
+      bool isUpgrade = await getUserProfile();
+      if (isUpgrade) {
+        final data = await getEligibilityData();
+        if (data.data != null) {
+          subscriptionPlanId = data.data?.subscriptionId ?? "";
+          paymentId = data.data?.paymentId ?? "";
+          orderId = data.data?.orderId ?? "";
+        }
+      }
+      if (drivingLicense.isNotEmpty) {
+        final XFile xFileAadhaarFront = XFile(drivingLicense[0].path);
+        final imageUrl = await MediaService()
+            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+        _erickshawModel = _erickshawModel.copyWith(
+          drivingLicencePhoto: imageUrl.url,
+        );
+      }
+      if (_selectedImage != null) {
+        final XFile xFileAadhaarFront = XFile(_selectedImage!.path ?? "");
+        final imageUrl = await MediaService()
+            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
+        _erickshawModel = _erickshawModel.copyWith(
+          profilePhoto: imageUrl.url,
+        );
+      }
+      _erickshawModel = _erickshawModel.copyWith(
+        firstName: _selfNameController.text ?? "",
+        subscriptionPlanId: subscriptionPlanId,
+        paymentId: paymentId,
+        orderId: orderId,
+        chosen_category: "E-RICKSHAW",
+        languageSpoken: langIds,
+        lastName: _selfNameController.text,
+        address: _erickshawModel.address?.copyWith(
+            addressLine: _addressController.text,
+            pincode: int.parse(_pinCodeController.text),
+            state: _selectedState,
+            city: _selectedCity),
+        aadharCardNumber: _aadharCardController.text,
+        bio: _aboutController.text,
+        drivingLicenceNumber: _drivingLicenseController.text.toString(),
+        vehicleNumber: _vehicleNumberController.text.toString(),
+        businessMobileNumber: _phoneNumberController.text,
       );
-    } else {
-      if (!mounted) return;
-      BecomeErickshawService.showApiErrorSnackBar(
-        context,
-        response['message'] ?? 'Submission failed',
+
+      final response = await BecomeErickshawService().submitErickshawApplication(
+          _erickshawModel, isUpgrade ? "become-upgradable" : "become-e-rickshaw");
+      isSubmitting=false;
+      updateState();
+      if (response['success'] == true) {
+        if (!mounted) return;
+        BecomeErickshawService.showSuccessSnackBar(
+            context, 'Application submitted successfully!');
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const RegistrationSuccessfulScreen(
+                  userType: 'E-Rickshaw Driver')),
+        );
+      } else {
+        if (!mounted) return;
+        BecomeErickshawService.showApiErrorSnackBar(
+          context,
+          response['message'] ?? 'Submission failed',
+        );
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Agreement accepted! Registration completed.'),
+          backgroundColor: Colors.green,
+        ),
       );
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => RegistrationSuccessfulScreen(
+                userType: 'E-Rickshaw',
+              )));
+    }catch(e){
+      isSubmitting=false;
+      updateState();
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Agreement accepted! Registration completed.'),
-        backgroundColor: Colors.green,
-      ),
-    );
-    Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => RegistrationSuccessfulScreen(
-                  userType: 'E-Rickshaw',
-                )));
+
   }
 
   Widget _buildPreviewItem(String label, String value) {
@@ -1529,7 +2102,11 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   }
 
   Widget _buildTextField(String label, TextEditingController controller,
-      {String? placeholder}) {
+      {String? placeholder,
+        TextInputType keyboardType = TextInputType.text,
+        int textLength = 50,
+        TextCapitalization textCapitalization = TextCapitalization.sentences,
+        List<TextInputFormatter>? inputFormatter}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1549,7 +2126,19 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
+            textCapitalization: textCapitalization,
+            maxLength: textLength,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatter,
             controller: controller,
+            buildCounter: (
+              context, {
+                required int currentLength,
+                required bool isFocused,
+                required int? maxLength,
+              }) {
+            return null; // 👈 hides the counter
+          },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
               hintStyle: TextStyle(
@@ -1563,84 +2152,9 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
-  Widget _buildFileUploadSection(String title, String from) {
-    return Column(
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: 8),
-        Container(
-          width: MediaQuery.of(context).size.width,
-          height: 150,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.cloud_upload_outlined,
-                size: 32,
-                color: Color(0xFF8B5CF6),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
-              ),
-              SizedBox(height: 4),
-              Text(
-                'png, pdf, jpg, docx accepted',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
-              SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet(from),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildContinueButton() {
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: nextStep,
@@ -1678,5 +2192,117 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     } else {
       return false;
     }
+  }
+
+  void _updateSelfDetailsModel() {
+    _erickshawModel = _erickshawModel.copyWith(
+        firstName: _selfNameController.text.toString(),
+        profilePhoto: _selectedImage?.path ?? "",
+        businessMobileNumber: _phoneNumberController.text.toString());
+    if (currentStep < 4) {
+      currentStep++;
+      _pageController.nextPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    updateState();
+  }
+
+  void _updateAddressDetailsModel() {
+    _erickshawModel = _erickshawModel.copyWith(
+        address: Address(
+            addressLine: _addressController.text.toString(),
+            city: _selectedCity!,
+            country: "india",
+            pincode: int.parse(_pinCodeController.text.toString()),
+            state: _selectedState!));
+    if (currentStep < 4) {
+      currentStep++;
+      _pageController.nextPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    updateState();
+  }
+
+  updateState() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _updateDocumentDetailsModel() {
+    _erickshawModel = _erickshawModel.copyWith(
+        aadharCardNumber: _aadharCardController.text.toString(),
+        aadharCardPhotoFront: adhaar[0].path,
+        aadharCardPhotoBack: adhaar[1].path,
+        drivingLicenceNumber: _drivingLicenseController.text.toString(),
+        drivingLicencePhoto: drivingLicense[0].path,
+        vehicleNumber: _vehicleNumberController.text.toString());
+    if (currentStep < 4) {
+      currentStep++;
+      _pageController.nextPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    updateState();
+  }
+
+  void _submitAboutDetailsModel() {
+    List<String> ids=[];
+    langData.forEach((element) {
+      if(_selectedLanguages.contains(element.name)){
+        ids.add(element.id??"");
+      }
+    },);
+    _erickshawModel = _erickshawModel.copyWith(
+        languageSpoken: ids, bio: _aboutController.text.toString());
+    if (currentStep < 4) {
+      currentStep++;
+      _pageController.nextPage(
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+    updateState();
+  }
+
+  String? _validatePinCode(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'PinCode is required';
+    }
+    if (value.length != 6 || !RegExp(r'^[0-9]{6}$').hasMatch(value)) {
+      return 'Enter a valid 6-digit pin code';
+    }
+    try {
+      int.parse(value);
+    } catch (e) {
+      return "Invalid Pin Code";
+    }
+    return null;
+  }
+
+  String? _validateAddressLine(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Address line is required';
+    }
+    if (value.trim().length < 5) {
+      return 'Address line must be at least 5 characters';
+    }
+    if (value.trim().length > 300) {
+      return 'Address line must be less than 300 characters';
+    }
+    return null;
+  }
+
+  void _submitApplication() {}
+  Future<UserEligibilityModel> getEligibilityData() async {
+    final data = await UserProfileService().getEligibility();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(AppConstants.planEligibilityKey, jsonEncode(data.data));
+    return data;
   }
 }

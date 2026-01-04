@@ -34,6 +34,7 @@ class UserData {
   final String? paymentRestrictionId;
   final String paymentId;
   final String orderId;
+  final String category;
   final String paymentPhase;
 
   UserData({
@@ -41,6 +42,7 @@ class UserData {
     required this.subscriptionId,
     this.paymentRestrictionId,
     required this.paymentId,
+    required this.category,
     required this.orderId,
     required this.paymentPhase,
   });
@@ -52,6 +54,7 @@ class UserData {
         paymentRestrictionId: json['paymentRestrictionId'],
         paymentId: json['paymentId'] ?? '',
         orderId: json['orderId'] ?? '',
+        category: json['category'] ?? '',
         paymentPhase:
             json['paymentPhase'] ?? "");
   }
@@ -62,6 +65,7 @@ class UserData {
       'subscriptionId': subscriptionId,
       if (paymentRestrictionId != null)
         'paymentRestrictionId': paymentRestrictionId,
+      'category': category,
       'orderId': orderId,
       'paymentId': paymentId,
       'paymentPhase': paymentPhase,
@@ -73,6 +77,7 @@ class UserData {
     String? subscriptionId,
     String? paymentRestrictionId,
     String? orderId,
+    String? category,
     String? paymentId,
     String? paymentPhase,
   }) {
@@ -81,6 +86,7 @@ class UserData {
       subscriptionId: subscriptionId ?? this.subscriptionId,
       paymentRestrictionId: paymentRestrictionId ?? this.paymentRestrictionId,
       paymentId: paymentId ?? this.paymentId,
+      category: category ?? this.category,
       orderId: orderId ?? this.orderId,
       paymentPhase: paymentPhase ?? this.paymentPhase,
     );

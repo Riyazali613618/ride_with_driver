@@ -55,7 +55,7 @@ class _RegistrationSuccessfulScreenState
           child: Column(
             children: [
               // Header with back button
-              Padding(
+              /*Padding(
                 padding: EdgeInsets.all(16),
                 child: Row(
                   children: [
@@ -79,7 +79,7 @@ class _RegistrationSuccessfulScreenState
                     ),
                   ],
                 ),
-              ),
+              ),*/
               // Main content
               Expanded(
                 child: Column(
@@ -190,7 +190,7 @@ class _RegistrationSuccessfulScreenState
 
   void _navigateToVehicleListingScreen(BuildContext context) {
     // Navigate to vehicle listing screen
-    Navigator.push(
+    Navigator.pushReplacement(
         context,
         MaterialPageRoute(
             builder: (context) =>

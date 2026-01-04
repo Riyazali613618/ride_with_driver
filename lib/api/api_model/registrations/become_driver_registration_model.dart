@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 class BecomeDriverModel {
+String? coverImage;
 String? profilePhoto;
 String? firstName;
 String? lastName;
@@ -17,6 +18,7 @@ FleetSize? independentCarOwnerFleetSize;
 
 BecomeDriverModel({
 this.profilePhoto,
+this.coverImage,
 this.firstName,
 this.lastName,
 this.businessMobileNumber,
@@ -33,6 +35,7 @@ this.independentCarOwnerFleetSize,
 
 BecomeDriverModel copyWith({
 String? profilePhoto,
+String? coverImage,
 String? firstName,
 String? lastName,
 String? businessMobileNumber,
@@ -48,6 +51,7 @@ FleetSize? independentCarOwnerFleetSize,
 }) {
 return BecomeDriverModel(
 profilePhoto: profilePhoto ?? this.profilePhoto,
+  coverImage: coverImage ?? this.coverImage,
 firstName: firstName ?? this.firstName,
 lastName: lastName ?? this.lastName,
 businessMobileNumber:
@@ -68,6 +72,7 @@ independentCarOwnerFleetSize ?? this.independentCarOwnerFleetSize,
 
 Map<String, dynamic> toJson() {
 return {
+'coverImage': coverImage,
 'profilePhoto': profilePhoto,
 'firstName': firstName,
 'lastName': lastName,
@@ -87,6 +92,7 @@ independentCarOwnerFleetSize?.toJson(),
 
 factory BecomeDriverModel.fromJson(Map<String, dynamic> json) {
 return BecomeDriverModel(
+  coverImage: json['coverImage'] as String?,
 profilePhoto: json['profilePhoto'] as String?,
 firstName: json['firstName'] as String?,
 lastName: json['lastName'] as String?,

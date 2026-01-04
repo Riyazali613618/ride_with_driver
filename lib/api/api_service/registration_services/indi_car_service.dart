@@ -48,43 +48,78 @@ class BecomeDriverServiceIndi {
       final url = Uri.parse('${ApiConstants.baseUrl}/user/$method');
       developer.log('Submitting driver application to: $url', name: _logTag);
       print(jsonEncode(model.toJson()));
+      String image = AppConstants.dummyImageUrl;
+    /*  print(jsonEncode({
+        "profilePhoto": *//*model.profilePhoto*//* image,
+        "firstName": model.firstName,
+        "lastName": model.lastName,
+        "chosen_category": "INDEPENDENT_CAR_OWNER",
+        "orderId": orderId,
+        "paymentId": paymentId,
+        "subscriptionPlanId": subscriptionPlanId,
+        "businessMobileNumber": model.businessMobileNumber,
+        "bio": model.bio,
+        "address": {
+          "addressLine": model.address?.addressLine ?? "",
+          "pincode": model.address?.pincode ?? "123456",
+          "city": model.address?.city ?? "",
+          "state": model.address?.state ?? ""
+        },
+        "aadharCardNumber": model.aadharCardNumber,
+        "aadharCardPhotoFront": *//*model.aadharCardPhotoFront*//* image,
+        "aadharCardPhotoBack": *//*model.aadharCardPhotoBack*//* image,
+        "drivingLicenceNumber": model.drivingLicenceNumber,
+        "drivingLicencePhoto": *//* model.drivingLicencePhoto*//* image,
+        "transportationPermitPhoto": *//* model.transportationPermitPhoto*//* image,
+        "independentCarOwnerFleetSize": {
+          "cars": model.independentCarOwnerFleetSize?.cars ?? 1,
+          "minivans": model.independentCarOwnerFleetSize?.minivans ?? 1,
+          "buses": model.independentCarOwnerFleetSize?.buses ?? 1,
+          "suvs": model.independentCarOwnerFleetSize?.suvs ?? 1
+        }
+      }));*/
+
+      final Map<String, dynamic> payload = orderId.isEmpty
+          ? model.toJson()
+          : {
+        "profilePhoto": model.profilePhoto,
+        "firstName": model.firstName,
+        "lastName": model.lastName,
+        "chosen_category": "INDEPENDENT_CAR_OWNER",
+        "coverImage": model.coverImage,
+        "orderId": orderId,
+        "paymentId": paymentId,
+        "subscriptionPlanId": subscriptionPlanId,
+        "businessMobileNumber": model.businessMobileNumber,
+        "bio": model.bio,
+        "address": {
+          "addressLine": model.address?.addressLine ?? "",
+          "pincode": model.address?.pincode ?? "123456",
+          "city": model.address?.city ?? "",
+          "state": model.address?.state ?? ""
+        },
+        "aadharCardNumber": model.aadharCardNumber,
+        "aadharCardPhotoFront": model.aadharCardPhotoFront,
+        "aadharCardPhotoBack": model.aadharCardPhotoBack,
+        "drivingLicenceNumber": model.drivingLicenceNumber,
+        "drivingLicencePhoto": model.drivingLicencePhoto,
+        "transportationPermitPhoto": model.transportationPermitPhoto,
+        "independentCarOwnerFleetSize": {
+          "cars": model.independentCarOwnerFleetSize?.cars ?? 1,
+          "minivans": model.independentCarOwnerFleetSize?.minivans ?? 1,
+          "buses": model.independentCarOwnerFleetSize?.buses ?? 1,
+          "suvs": model.independentCarOwnerFleetSize?.suvs ?? 1
+        }
+      };
+      final String body = jsonEncode(payload);
+
       final response = await http.post(
         url,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: orderId.isEmpty
-            ? jsonEncode(model.toJson())
-            : {
-                "profilePhoto": model.profilePhoto,
-                "firstName": model.firstName,
-                "lastName": model.lastName,
-                "chosen_category": "INDEPENDENT_CAR_OWNER",
-                "orderId": orderId,
-                "paymentId": paymentId,
-                "subscriptionPlanId": subscriptionPlanId,
-                "businessMobileNumber": model.businessMobileNumber,
-                "bio": model.bio,
-                "address": {
-                  "addressLine": model.address?.addressLine ?? "",
-                  "pincode": model.address?.pincode ?? "123456",
-                  "city": model.address?.city ?? "",
-                  "state": model.address?.state ?? ""
-                },
-                "aadharCardNumber": model.aadharCardNumber,
-                "aadharCardPhotoFront": model.aadharCardPhotoFront,
-                "aadharCardPhotoBack": model.aadharCardPhotoBack,
-                "drivingLicenceNumber": model.drivingLicenceNumber,
-                "drivingLicencePhoto": model.drivingLicencePhoto,
-                "transportationPermitPhoto": model.transportationPermitPhoto,
-                "independentCarOwnerFleetSize": {
-                  "cars": model.independentCarOwnerFleetSize?.cars ?? 1,
-                  "minivans": model.independentCarOwnerFleetSize?.minivans ?? 1,
-                  "buses": model.independentCarOwnerFleetSize?.buses ?? 1,
-                  "suvs": model.independentCarOwnerFleetSize?.suvs ?? 1
-                }
-              },
+        body: body,
       );
 
       developer.log('Response status code: ${response.statusCode}',

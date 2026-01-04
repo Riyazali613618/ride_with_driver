@@ -25,4 +25,7 @@ class ApiConstants {
 class AppConstants {
   static const String planEligibilityKey = 'plan_eligibility_key';
   static const String preRegistration = "PRE_REGISTRATION";
+
+  static const String dummyImageUrl =
+      "https://media.ridewithdriver.s3.ap-south-1.amazonaws.com/profile/695a64266b7c3a198e8dc03b/1767554947519-77e51c11.jpg";
 }

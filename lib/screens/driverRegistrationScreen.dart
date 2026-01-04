@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +14,7 @@ import '../api/api_model/rating_and_reviews_model/indicar_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/become_driver_registration_service.dart';
+import '../components/app_loader.dart';
 import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
@@ -45,7 +48,6 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
 
   DateTime? _selectedDate;
   String? _selectedGender;
-  String? _selectedLanguage;
   List<String> _selectedLangs = [];
   String? _selectedVehicleType;
   List<String> vehicleType = [];
@@ -100,6 +102,13 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
 
   // Document selection methods
   void _showDocumentPickerBottomSheet(String from) {
+    print(from);
+    print((adhaar.length));
+    if (from == "AADHAAR" && adhaar.length == 2) {
+      return;
+    } else if (from == "DRIVING LICENSE" && drivingLicense.length == 1) {
+      return;
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -230,7 +239,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       );
 
       if (image != null) {
-        if (from == 'ADHAAR') {
+        if (from == 'AADHAAR') {
           adhaar.add(image);
           image = null;
         } else {
@@ -253,7 +262,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       );
 
       if (image != null) {
-        if (from == 'ADHAAR') {
+        if (from == 'AADHAAR') {
           adhaar.add(image);
           image = null;
         } else {
@@ -265,15 +274,6 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       }
     } catch (e) {
       _showErrorSnackBar('Failed to pick document from gallery');
-    }
-  }
-
-  Future<void> _pickDocumentFromFiles() async {
-    try {
-      _showSuccessSnackBar(
-          'File picker functionality - requires file_picker package');
-    } catch (e) {
-      _showErrorSnackBar('Failed to access files');
     }
   }
 
@@ -481,17 +481,6 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
     }
   }
 
-  /*void nextStep() {
-    if (currentStep < 4) {
-      setState(() {
-        currentStep++;
-      });
-      _pageController.nextPage(
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
-  }*/
   void nextStep() {
     bool isValid = false;
     String? errorMessage;
@@ -906,7 +895,11 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             SizedBox(height: 40),
             _buildTextField('Name *', _nameController),
             SizedBox(height: 20),
-            _buildTextField('Phone Number*', _phoneNumberController,textInputType: TextInputType.phone),
+            _buildTextField('Phone Number*', _phoneNumberController,keyboardType: TextInputType.phone,
+              textLength: 10,
+              inputFormatter: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],),
             SizedBox(height: 20),
             _buildDateField('Date of Birth *'),
             SizedBox(height: 20),
@@ -943,7 +936,11 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               placeholder: '12 house no., XYZ STREET, Opp ABC Mall'),
           SizedBox(height: 20),
           _buildTextField('Pin Code*', _pinCodeController,
-              placeholder: '788799',textInputType: TextInputType.phone),
+              placeholder: '788799',keyboardType: TextInputType.phone,
+            textLength: 6,
+            inputFormatter: [
+              FilteringTextInputFormatter.digitsOnly,
+            ],),
           SizedBox(height: 20),
           _buildDropdown(
             'State',
@@ -1088,6 +1085,17 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                           child: TextField(
                             controller: _aadharCardController,
                             keyboardType: TextInputType.phone,
+                            maxLength: 12,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],buildCounter: (
+                              context, {
+                                required int currentLength,
+                                required bool isFocused,
+                                required int? maxLength,
+                              }) {
+                            return null; // 👈 hides the counter
+                          },
                             decoration: InputDecoration.collapsed(
                               hintText: 'Enter Aadhar Card Number',
                               hintStyle: TextStyle(
@@ -1134,10 +1142,10 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               ),
             ),
             SizedBox(height: 24),
-            Container(
+            SizedBox(
               width: double.infinity,
-              child: _buildFileUploadSection(
-                  'Upload Aadhar Card (Front & Back)', "ADHAAR"),
+              child: _buildAadhaarFileUploadSection(
+                  'Upload Aadhar Card (Front & Back)', "AADHAAR"),
             ),
             SizedBox(height: 24),
             Container(
@@ -1214,40 +1222,46 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             ),
             SizedBox(height: 40),
             _buildTextField('Experience', _experienceController,
-                placeholder: 'Years of experience',textInputType: TextInputType.phone),
+                placeholder: 'Years of experience', keyboardType: TextInputType.phone,
+              textLength: 4,
+              inputFormatter: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],),
             SizedBox(height: 20),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
-                  flex: 2,
                   child: _buildTextField(
                       'Minimum Charge', _minimumChargeController,
-                      placeholder: '₹100',textInputType: TextInputType.phone),
+                      placeholder: '₹100', keyboardType: TextInputType.phone,
+                    textLength: 10,
+                    inputFormatter: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],),
                 ),
                 SizedBox(width: 16),
-                Expanded(
-                  flex: 1,
-                  child: Row(
-                    children: [
-                      Radio<bool>(
-                        activeColor: Colors.green,
-                        value: true,
-                        groupValue: _isNegotiable,
-                        onChanged: (value) {
-                          setState(() {
-                            _isNegotiable = value ?? false;
-                          });
-                        },
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Radio<bool>(
+                      activeColor: Colors.green,
+                      value: true,
+                      groupValue: _isNegotiable,
+                      onChanged: (value) {
+                        setState(() {
+                          _isNegotiable = value ?? false;
+                        });
+                      },
+                    ),
+                    Text(
+                      'Negotiable',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
                       ),
-                      Text(
-                        'Negotiable',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1270,13 +1284,16 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               });
             }),
             SizedBox(height: 20),
-            _buildDropdownFieldForLanguage(
+           // _buildLanguagePreviewItem('Spoken Languages', _selectedLangs ?? []),
+            _languageMultiSelectDropdown(),
+
+            /*_buildDropdownFieldForLanguage(
                 'Spoken Languages', _selectedLanguage, langData, (value) {
               setState(() {
                 _selectedLanguage = value;
                 _selectedLangs.add(_selectedLanguage!);
               });
-            }),
+            }),*/
             /*_buildDropdownField(
                 'Spoken Languages', _selectedLanguage, _languages, (value) {
               setState(() {
@@ -1313,6 +1330,137 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           ],
         ),
       ),
+    );
+  }
+  _buildLanguagePreviewItem(String label, List<String> langs) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text(
+              langs.join(","),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  bool _isDropdownOpen = false;
+  List<String> langIds=[];
+
+  Widget _languageMultiSelectDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isDropdownOpen = !_isDropdownOpen;
+            });
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    _selectedLangs.isEmpty
+                        ? 'Select languages'
+                        : '${_selectedLangs.length} selected',
+                    style: TextStyle(
+                      color: _selectedLangs.isEmpty
+                          ? Colors.grey
+                          : Colors.black,
+                    ),
+                  ),
+                ),
+                Icon(
+                  _isDropdownOpen
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        if (_isDropdownOpen)
+          Container(
+            height: 300,
+            margin: const EdgeInsets.only(top: 8),
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+              color: Colors.white,
+            ),
+            child: ListView(
+              shrinkWrap: true,
+              children: langData.map((language) {
+                final isSelected = _selectedLangs.contains(language.name);
+                return CheckboxListTile(
+                  contentPadding:
+                  EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                  value: isSelected,
+                  title: Text(language.name!),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (checked) {
+                    setState(() {
+                      if (checked == true) {
+                        _selectedLangs.add(language.name!);
+                        langIds.add(language.id!);
+                      } else {
+                        _selectedLangs.remove(language.name);
+                        langIds.remove(language.id);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+
+        const SizedBox(height: 12),
+
+        /// Selected Chips
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _selectedLangs.map((language) {
+            return Chip(
+              label: Text(language),
+              deleteIcon: const Icon(Icons.close, size: 18),
+              onDeleted: () {
+                setState(() {
+                  _selectedLangs.remove(language);
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 
@@ -1434,8 +1582,35 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                     _selectedVehicleType ?? 'Lorem Ipsum'),
                 _buildPreviewItem('Service Location',
                     _selectedServiceLocation ?? 'Lorem Ipsum'),
-                _buildPreviewItem(
-                    'Spoken Languages', _selectedLanguage ?? 'Lorem Ipsum'),
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Spoken English',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          _selectedLangs.join(","),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1814,7 +1989,11 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
   }
 
   Widget _buildTextField(String label, TextEditingController controller,
-      {String? placeholder,TextInputType? textInputType}) {
+      {String? placeholder,
+        TextInputType keyboardType = TextInputType.text,
+        int textLength = 50,
+        TextCapitalization textCapitalization = TextCapitalization.sentences,
+        List<TextInputFormatter>? inputFormatter}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1834,8 +2013,18 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: TextField(
-            controller: controller,
-            keyboardType: textInputType,
+            textCapitalization: textCapitalization,
+            maxLength: textLength,
+            keyboardType: keyboardType,
+            inputFormatters: inputFormatter,
+            controller: controller,buildCounter: (
+              context, {
+                required int currentLength,
+                required bool isFocused,
+                required int? maxLength,
+              }) {
+            return null; // 👈 hides the counter
+          },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
               hintStyle: TextStyle(
@@ -1987,7 +2176,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
     );
   }
 
-  Widget _buildFileUploadSection(String title, String from) {
+  Widget _buildAadhaarFileUploadSection(String title, String from) {
     return Column(
       children: [
         Text(
@@ -2001,7 +2190,86 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
         SizedBox(height: 8),
         Container(
           width: MediaQuery.of(context).size.width,
-          height: 150,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showDocumentPickerBottomSheet("AADHAAR"),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientFirst,
+                        gradientSecond,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'browse',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (adhaar.isNotEmpty) _showAadharCardImages()
+              else
+                SizedBox(height: 12),
+
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFileUploadSection(String title, String from) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          height: 240,
+          width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(8),
@@ -2056,13 +2324,94 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                   ),
                 ),
               ),
+              if (drivingLicense.isNotEmpty) _showDLImages(),
             ],
           ),
         ),
       ],
     );
   }
+  Widget _showDLImages() {
+    return Stack(
+      children: [
+        Container(
+            clipBehavior: Clip.hardEdge,
+            margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.grey.shade400,
+              border: Border.all(color: AppColors.blue, width: 1),
+            ),
+            child: Image.file(
+              File(drivingLicense[0].path),
+              width: 50,
+              fit: BoxFit.cover,
+              height: 50,
+            )),
+        Positioned(
+            right: 5,
+            top: 12,
+            child: GestureDetector(
+              onTap: () {
+                drivingLicense.clear();
+                updateState();
+              },
+              child: SvgPicture.asset(
+                "assets/svg/cross.svg",
+                width: 15,
+                height: 15,
+              ),
+            ))
+      ],
+    );
+  }
 
+  Widget _showAadharCardImages() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      height: 100,
+      width: double.infinity,
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: adhaar.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Container(
+                  clipBehavior: Clip.hardEdge,
+                  margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: Colors.grey.shade400,
+                    border: Border.all(color: AppColors.blue, width: 1),
+                  ),
+                  child: Image.file(
+                    File(adhaar[index].path),
+                    width: 50,
+                    fit: BoxFit.cover,
+                    height: 50,
+                  )),
+              Positioned(
+                  right: 5,
+                  top: 12,
+                  child: GestureDetector(
+                    onTap: () {
+                      adhaar.removeAt(index);
+                      updateState();
+                    },
+                    child: SvgPicture.asset(
+                      "assets/svg/cross.svg",
+                      width: 15,
+                      height: 15,
+                    ),
+                  ))
+            ],
+          );
+        },
+      ),
+    );
+  }
   Widget _buildContinueButton() {
     return Container(
       width: double.infinity,
@@ -2095,5 +2444,11 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
         _selectedCity = null; // Reset city when state changes
       });
     });
+  }
+
+  void updateState() {
+    if(mounted)
+      setState(() {
+      });
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -14,6 +15,7 @@ import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_model/registrations/auto_rikshaw_registration_model.dart';
+import '../api/api_model/user_model/user_eligibility_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/e_rekshaw_registration_service.dart';
@@ -1713,8 +1715,38 @@ List<String> langIds=[];
         vehicleNumber: _vehicleNumberController.text,
         businessMobileNumber: _phoneNumberController.text,
       );
+      String orderId = "";
+      String paymentId = "";
+      String subscriptionPlanId = "";
 
       bool isUpgrade = await getUserProfile();
+      if (isUpgrade) {
+        final data = await getEligibilityData();
+        if (data.data != null) {
+          subscriptionPlanId = data.data?.subscriptionId ?? "";
+          paymentId = data.data?.paymentId ?? "";
+          orderId = data.data?.orderId ?? "";
+        }
+      }
+      _erickshawModel = _erickshawModel.copyWith(
+        firstName: _selfNameController.text ?? "",
+        subscriptionPlanId: subscriptionPlanId,
+        paymentId: paymentId,
+        orderId: orderId,
+        chosen_category: "RICKSHAW",
+        languageSpoken: langIds,
+        lastName: _selfNameController.text,
+        address: _erickshawModel.address?.copyWith(
+            addressLine: _addressController.text,
+            pincode: int.parse(_pinCodeController.text),
+            state: _selectedState,
+            city: _selectedCity),
+        aadharCardNumber: _aadharCardController.text,
+        bio: _aboutController.text,
+        drivingLicenceNumber: _drivingLicenseController.text.toString(),
+        vehicleNumber: _vehicleNumberController.text.toString(),
+        businessMobileNumber: _phoneNumberController.text,
+      );
 
       final response = await BecomeErickshawService()
           .submitErickshawApplication(_erickshawModel,isUpgrade?"become-upgradable":"become-rickshaw");
@@ -2236,6 +2268,12 @@ List<String> langIds=[];
     } else {
       return false;
     }
+  }
+  Future<UserEligibilityModel> getEligibilityData() async {
+    final data = await UserProfileService().getEligibility();
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(AppConstants.planEligibilityKey, jsonEncode(data.data));
+    return data;
   }
 
 }

@@ -654,7 +654,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
       case 3: // About
         isValid = _aboutFormKey.currentState?.validate() ?? false;
-        if (isValid && (_totalVehicleCountController.text.toString().isEmpty || int.parse(_totalVehicleCountController.text.toString())==0)) {
+        if (isValid &&
+            (_totalVehicleCountController.text.toString().isEmpty ||
+                int.parse(_totalVehicleCountController.text.toString()) == 0)) {
           errorMessage = 'You must have at least 1 vehicle';
           isValid = false;
         }
@@ -866,19 +868,16 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     });
     try {
       final XFile xFile = XFile(_selectedImage!.path);
-      final result = await MediaService()
+       final result = await MediaService()
           .uploadMedia(xFile, kind: "profilePhoto", type: "profilePhoto");
+       final coverImage = await MediaService()
+          .uploadMedia(xFile, kind: "coverImage", type: "coverImage");
       String aadhaarFrontUrl = "";
       String aadhaarBackUrl = "";
       String drivingLicencePhoto = "";
       String transportationPermitPhoto = "";
-      /*  if (permit.isNotEmpty ) {
-        final XFile xFileAadhaarFront = XFile(permit[0]!.path);
-        final permitPhoto = await MediaService()
-            .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
-        transportationPermitPhoto = permitPhoto.url!;
-      }*/
-      if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
+
+       if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
         final XFile xFileAadhaarFront = XFile(adhaar[0]!.path);
         final aadharCardPhotoFront = await MediaService()
             .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
@@ -910,6 +909,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       }
 
       _driverModel = _driverModel.copyWith(
+        coverImage: coverImage.url ?? '',
         profilePhoto: result.url ?? '',
         firstName: _selfNameController.text,
         lastName: _selfNameController.text,
@@ -926,8 +926,20 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         drivingLicenceNumber: _drivingLicenseController.text,
         drivingLicencePhoto: drivingLicencePhoto,
         transportationPermitPhoto: transportationPermitPhoto,
-        independentCarOwnerFleetSize:
-            FleetSize(cars: 1 ?? 0, minivans: 1 ?? 0, buses: 0, suvs: 0),
+        independentCarOwnerFleetSize: FleetSize(
+            cars: int.parse(_carCountController.text.toString().isNotEmpty
+                ? _carCountController.text.toString()
+                : "0"),
+            minivans: int.parse(
+                _miniVanCountController.text.toString().isNotEmpty
+                    ? _miniVanCountController.text.toString()
+                    : "0"),
+            buses: int.parse(_busCountController.text.toString().isNotEmpty
+                ? _busCountController.text.toString()
+                : "0"),
+            suvs: int.parse(_suvCountController.text.toString().isNotEmpty
+                ? _suvCountController.text.toString()
+                : "0")),
       );
       try {
         final response = await BecomeDriverServiceIndi()
