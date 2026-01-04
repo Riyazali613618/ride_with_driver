@@ -1,11 +1,14 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_service/user_service/user_profile_service.dart';
 import '../features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import '../utils/color.dart';
+import 'Eligibility/bloc/eligibility_bloc.dart';
+import 'Eligibility/bloc/eligibility_event.dart';
 import 'layout.dart';
 
 class RegistrationSuccessfulScreen extends StatefulWidget {
@@ -24,6 +27,11 @@ class _RegistrationSuccessfulScreenState
   void initState() {
     super.initState();
     updateProfile();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        context.read<EligibilityBloc>().add(RefreshEligibilityEvent());
+      },
+    );
   }
 
   @override

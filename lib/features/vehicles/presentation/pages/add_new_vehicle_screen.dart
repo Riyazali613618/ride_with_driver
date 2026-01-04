@@ -17,6 +17,8 @@ import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_added_success
 import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_type_model.dart';
 
 import '../../../../constants/token_manager.dart';
+import '../../../../screens/Eligibility/bloc/eligibility_bloc.dart';
+import '../../../../screens/Eligibility/bloc/eligibility_event.dart';
 import '../../../../screens/layout.dart';
 import '../../../../utils/color.dart';
 import '../bloc/profile_bloc.dart';
@@ -84,18 +86,24 @@ class AddVehicleProvider extends ChangeNotifier {
       };
 
       // Add vehicleType and vehicleName only if not auto-rickshaw or e-rickshaw
-      if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
+     /* if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
         if (vehicleType != null) requestBody["vehicleType"] = vehicleType;
         if (vehicleName != null) requestBody["vehicleName"] = vehicleName;
-      }
+      }*/
+      if (vehicleType != null) requestBody["vehicleType"] = vehicleType;
+      if (vehicleName != null) requestBody["vehicleName"] = vehicleName;
 
       // Add RC photos only if not auto-rickshaw or e-rickshaw
-      if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
+     /* if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
         if (rcBookFrontPhoto != null)
           requestBody["rcBookFrontPhoto"] = rcBookFrontPhoto;
         if (rcBookBackPhoto != null)
           requestBody["rcBookBackPhoto"] = rcBookBackPhoto;
-      }
+      }*/
+      if (rcBookFrontPhoto != null)
+        requestBody["rcBookFrontPhoto"] = rcBookFrontPhoto;
+      if (rcBookBackPhoto != null)
+        requestBody["rcBookBackPhoto"] = rcBookBackPhoto;
       print(requestBody);
       request.body = json.encode(requestBody);
       request.headers.addAll(headers);
@@ -205,17 +213,17 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   ];
 
   // Check if field should be shown based on user type
-  bool get _shouldShowVehicleType =>
-      widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver';
+  bool get _shouldShowVehicleType =>true
+    /*  widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver'*/;
 
-  bool get _shouldShowVehicleName =>
-      widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver';
+  bool get _shouldShowVehicleName =>true
+      /*widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver'*/;
 
-  bool get _shouldShowRCPhotos =>
-      widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver';
+  bool get _shouldShowRCPhotos =>true
+      /*widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver'*/;
 
   @override
   void initState() {
@@ -457,7 +465,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                 child: Row(
                   children: [
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
                       child: const Icon(
                         Icons.arrow_back,
                         color: Colors.white,

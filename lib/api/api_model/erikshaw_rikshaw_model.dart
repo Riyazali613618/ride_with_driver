@@ -101,11 +101,11 @@ class RickshawProfile {
   factory RickshawProfile.fromJson(Map<String, dynamic> json) {
     try {
       return RickshawProfile(
-        myId: json['myId']?.toString() ?? '',
+        myId: json['_id']?.toString() ?? '',
         id: json['id']?.toString() ?? '',
         userId: json['userId']?.toString() ?? '',
         fullName: json['fullName']?.toString() ?? '',
-        phoneNumber: json['phoneNumber']?.toString() ?? '',
+        phoneNumber: json['mobileNumber']?.toString() ?? '',
         address: RickshawAddress.fromJson(json['address'] ?? {}),
         bio: json['bio']?.toString() ?? '',
         photo: json['photo']?.toString() ?? '',
@@ -139,11 +139,11 @@ class RickshawProfile {
 
   Map<String, dynamic> toJson() {
     return {
-      'myId': myId,
+      '_id': myId,
       'id': id,
       'userId': userId,
       'fullName': fullName,
-      'phoneNumber': phoneNumber,
+      'mobileNumber': phoneNumber,
       'address': address.toJson(),
       'bio': bio,
       'photo': photo,
@@ -171,12 +171,12 @@ class RickshawProfile {
 }
 
 class RickshawApiResponse {
-  final bool status;
+  final bool success;
   final String message;
   final RickshawProfile? data;
 
   RickshawApiResponse({
-    required this.status,
+    required this.success,
     required this.message,
     this.data,
   });
@@ -184,7 +184,7 @@ class RickshawApiResponse {
   factory RickshawApiResponse.fromJson(Map<String, dynamic> json) {
     try {
       return RickshawApiResponse(
-        status: json['status'] ?? false,
+        success: json['success'] ?? false,
         message: json['message']?.toString() ?? '',
         data: json['data'] != null
             ? RickshawProfile.fromJson(json['data'])

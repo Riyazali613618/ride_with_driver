@@ -12,10 +12,10 @@ import '../../api_model/registrations/e-rikashaw_registration_model.dart';
 class BecomeErickshawService {
   static const String _logTag = 'BecomeErickshawService';
   static const String _baseUrl =
-      "${ApiConstants.baseUrl}/user/become-rickshaw";
+      "${ApiConstants.baseUrl}/user/";
 
   Future<Map<String, dynamic>> submitErickshawApplication(
-      AutoRickshawModel model) async {
+      AutoRickshawModel model,String methodName) async {
     try {
       final token = await TokenManager.getToken();
 
@@ -31,7 +31,7 @@ class BecomeErickshawService {
           name: _logTag);
 
       final response = await http.post(
-        Uri.parse(_baseUrl),
+        Uri.parse(_baseUrl+methodName),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

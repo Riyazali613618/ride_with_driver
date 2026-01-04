@@ -167,11 +167,6 @@ class _VehicleCardState extends State<VehicleCard> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          TextButton(
-                              onPressed: () {},
-                              child: SvgPicture.asset(
-                                  "assets/svg/edit_vehicle.svg")),
-                          const SizedBox(width: 2),
                           Container(
                             padding:
                                 EdgeInsets.symmetric(horizontal: 10, vertical: 6),

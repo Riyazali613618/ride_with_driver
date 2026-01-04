@@ -1,9 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/api/api_model/payment/payment_model.dart';
 import 'package:r_w_r/screens/transporterRegistration.dart';
-import '../../api/api_model/user_model/plan_model.dart';
+
 import '../../api/api_service/payment_service/payment_service.dart';
 import '../../bloc/payment/payment_bloc.dart';
 import '../../bloc/payment/payment_event.dart';
@@ -11,15 +10,12 @@ import '../../bloc/payment/payment_state.dart';
 import '../../constants/color_constants.dart';
 import '../../l10n/app_localizations.dart';
 import '../../plan/data/models/plan_model.dart';
+import '../Eligibility/bloc/eligibility_bloc.dart';
+import '../Eligibility/bloc/eligibility_event.dart';
 import '../autoRikshawDriverRegistration.dart';
 import '../driverRegistrationScreen.dart';
 import '../eRickshawRegistration.dart';
 import '../independentCarOwnerRegistration.dart';
-import '../registration_screens/auto_rikshaw_registration_screenn.dart';
-import '../registration_screens/become_driver_registration_screen.dart';
-import '../registration_screens/e_rikshaw_registration_screen.dart';
-import '../registration_screens/indipendent_car_owner_registration_screen.dart';
-import '../registration_screens/transporter_registration_screen.dart';
 
 class PaymentBottomSheetBlocView extends StatefulWidget {
   final PlanModel plan;
@@ -28,12 +24,14 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
   final PaymentType paymentType;
   final String? category;
   final String? currentCategory;
+  final String vehicleCount;
 
   const PaymentBottomSheetBlocView({
     Key? key,
     required this.finalPrice,
     required this.plan,
     required this.currentCategory,
+    this.vehicleCount = "",
     required this.planType,
     this.paymentType = PaymentType.subscriptionRenewal,
     this.category,
@@ -412,7 +410,9 @@ class _PaymentBottomSheetBlocViewState
                                 earlyBirdDiscountPrice:
                                     widget.plan.earlyBirdDiscountPrice,
                                 plan: widget.plan,
-                                maxvehicles: widget.plan.maxVehicles,
+                                maxvehicles: widget.vehicleCount.isNotEmpty
+                                    ? int.parse(widget.vehicleCount)
+                                    : widget.plan.maxVehicles,
                                 planType: widget.planType,
                                 paymentType: widget.paymentType,
                                 category: widget.category,
@@ -457,7 +457,10 @@ class _PaymentBottomSheetBlocViewState
 
 // Navigation utility function (remains the same)
 void navigateBasedOnPlanType(BuildContext context, String planType) {
+  context.read<EligibilityBloc>().add(RefreshEligibilityEvent());
   if (planType == 'DRIVER') {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -465,6 +468,8 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
       ),
     );
   } else if (planType == 'RICKSHAW') {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -472,6 +477,8 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
       ),
     );
   } else if (planType == 'E_RICKSHAW') {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -479,6 +486,8 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
       ),
     );
   } else if (planType == 'TRANSPORTER') {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -486,6 +495,8 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
       ),
     );
   } else if (planType == 'INDEPENDENT_CAR_OWNER') {
+    Navigator.of(context).pop();
+    Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(

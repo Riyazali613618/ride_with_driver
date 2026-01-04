@@ -6,16 +6,17 @@ import '../../constants/api_constants.dart';
 import '../../constants/token_manager.dart';
 import '../../screens/driver_screens/erikshaw_rikshaw_profile_screen.dart';
 import '../api_model/erikshaw_rikshaw_model.dart';
+import '../api_model/user_model/my_profile_model.dart';
 
 class RickshawService {
   static const String baseUrl = ApiConstants.baseUrl;
   static const Duration timeoutDuration = Duration(seconds: 30);
 
-  static Future<RickshawApiResponse> fetchRickshawProfile(String type) async {
+  static Future<MyProfileModel> fetchRickshawProfile(String type) async {
     try {
       final token = await TokenManager.getToken();
       final response = await http.get(
-        Uri.parse('$baseUrl/user/register/profile?TYPE=$type'),
+        Uri.parse('$baseUrl/user/profile'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -24,7 +25,7 @@ class RickshawService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
-        return RickshawApiResponse.fromJson(jsonData);
+        return MyProfileModel.fromJson(jsonData);
       } else {
         throw RickshawException(
           'Failed to load profile. Status code: ${response.statusCode}',

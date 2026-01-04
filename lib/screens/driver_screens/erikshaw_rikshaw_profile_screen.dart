@@ -1,6 +1,7 @@
 // lib/screens/rickshaw_profile_screen.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 
 import '../../api/api_model/erikshaw_rikshaw_model.dart';
@@ -23,7 +24,7 @@ class RickshawException implements Exception {
 }
 
 class RickshawProfileHeader extends StatelessWidget {
-  final RickshawProfile profile;
+  final MyProfileData profile;
 
   const RickshawProfileHeader({
     Key? key,
@@ -62,9 +63,9 @@ class RickshawProfileHeader extends StatelessWidget {
                 backgroundColor: Colors.white,
                 child: CircleAvatar(
                   radius: 47,
-                  backgroundImage: NetworkImage(profile.photo),
+                  backgroundImage: NetworkImage(profile.profilePhoto ?? ""),
                   onBackgroundImageError: (_, __) {},
-                  child: profile.photo.isEmpty
+                  child: (profile.profilePhoto ?? "").isEmpty
                       ? Icon(Icons.person,
                           size: 50, color: Colors.grey.shade600)
                       : null,
@@ -79,7 +80,7 @@ class RickshawProfileHeader extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            profile.fullName,
+                            profile.firstName ?? "",
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 24,
@@ -90,7 +91,7 @@ class RickshawProfileHeader extends StatelessWidget {
                       ],
                     ),
                     SizedBox(height: 4),
-                    if (profile.isVerifiedByAdmin)
+                    if (profile.isVerifiedByAdmin ?? false)
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -122,7 +123,7 @@ class RickshawProfileHeader extends StatelessWidget {
                       ),
                     const SizedBox(height: 8),
                     Text(
-                      profile.phoneNumber,
+                      profile.mobileNumber ?? "",
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 16,
@@ -147,8 +148,8 @@ class RickshawProfileHeader extends StatelessWidget {
                               size: 14.0, color: Colors.amber),
                           const SizedBox(width: 2),
                           Text(
-                            profile.rating > 0
-                                ? profile.rating.toStringAsFixed(1)
+                            (profile.rating ?? 0) > 0
+                                ? (profile.rating ?? 0).toStringAsFixed(1)
                                 : '4.9',
                             style: TextStyle(
                               fontSize: 12,
@@ -330,7 +331,7 @@ class RickshawProfileScreen extends StatefulWidget {
 }
 
 class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
-  RickshawProfile? _profile;
+  MyProfileData? _profile;
   bool _isLoading = true;
   String? _errorMessage;
 
@@ -350,14 +351,14 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
       final response =
           await RickshawService.fetchRickshawProfile(widget.userType);
 
-      if (response.status && response.data != null) {
+      if ((response.success ?? false) && response.data != null) {
         setState(() {
           _profile = response.data;
           _isLoading = false;
         });
       } else {
         setState(() {
-          _errorMessage = response.message.isNotEmpty
+          _errorMessage = response.message!.isNotEmpty
               ? response.message
               : 'Failed to load profile';
           _isLoading = false;
@@ -457,121 +458,130 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
           const SizedBox(height: 16),
 
           // Vehicle Information
-          RickshawInfoCard(
-            title: 'Vehicle Information',
-            icon: Icons.directions_car,
-            child: Column(
-              children: [
-                RickshawDetailRow(
-                  label: 'Vehicle Name',
-                  value: _profile!.vehicleName,
-                  icon: Icons.local_taxi,
-                ),
-                RickshawDetailRow(
-                  label: 'Vehicle Type',
-                  value: _profile!.vehicleType,
-                  icon: Icons.electric_rickshaw_outlined,
-                ),
-                RickshawDetailRow(
-                  label: 'Model',
-                  value: _profile!.vehicleModelName,
-                  icon: Icons.info_outline,
-                ),
-                RickshawDetailRow(
-                  label: 'Vehicle Number',
-                  value: _profile!.vehicleNumber,
-                  icon: Icons.confirmation_number,
-                ),
+          if ((_profile!.vehicles ?? []).isNotEmpty)
+            RickshawInfoCard(
+              title: 'Vehicle Information',
+              icon: Icons.directions_car,
+              child: Column(
+                children: [
+                  RickshawDetailRow(
+                    label: 'Vehicle Name',
+                    value: _profile!.vehicles[0].vehicleName ?? "",
+                    icon: Icons.local_taxi,
+                  ),
+                  RickshawDetailRow(
+                    label: 'Vehicle Type',
+                    value: _profile!.vehicles[0].vehicleType ?? "",
+                    icon: Icons.electric_rickshaw_outlined,
+                  ),
+                  RickshawDetailRow(
+                    label: 'Model',
+                    value: _profile!.vehicles[0].brandName ?? "",
+                    icon: Icons.info_outline,
+                  ),
+                  RickshawDetailRow(
+                    label: 'Vehicle Number',
+                    value: _profile!.vehicles[0].vehicleNumber ?? "",
+                    icon: Icons.confirmation_number,
+                  ),
+/*
                 RickshawDetailRow(
                   label: 'Manufacturing Year ',
-                  value: _profile!.manufacturing,
+                  value: _profile!.vehicles[0].,
                   icon: Icons.calendar_today,
                 ),
-                RickshawDetailRow(
-                  label: 'Fuel Type',
-                  value: _profile!.fuelType,
-                  icon: Icons.local_gas_station,
-                ),
-                RickshawDetailRow(
-                  label: 'Seating Capacity',
-                  value: '${_profile!.seatingCapacity} persons',
-                  icon: Icons.airline_seat_recline_normal,
-                ),
-                RickshawDetailRow(
-                  label: 'Air Conditioning',
-                  value: _profile!.airConditioning,
-                  icon: Icons.ac_unit,
-                ),
-                RickshawDetailRow(
-                  label: 'Ownership',
-                  value: _profile!.vehicleOwnership,
-                  icon: Icons.key,
-                ),
-              ],
+*/
+                  RickshawDetailRow(
+                    label: 'Fuel Type',
+                    value: "",
+                    icon: Icons.local_gas_station,
+                  ),
+                  RickshawDetailRow(
+                    label: 'Seating Capacity',
+                    value: '${_profile!.vehicles[0].seatingCapacity} persons',
+                    icon: Icons.airline_seat_recline_normal,
+                  ),
+                  RickshawDetailRow(
+                    label: 'Air Conditioning',
+                    value: _profile!.vehicles[0].airConditioning ?? "",
+                    icon: Icons.ac_unit,
+                  ),
+                  RickshawDetailRow(
+                    label: 'Ownership',
+                    value: "",
+                    icon: Icons.key,
+                  ),
+                ],
+              ),
             ),
-          ),
 
           // Pricing Information
-          RickshawInfoCard(
-            title: 'Pricing Information',
-            icon: Icons.currency_rupee,
-            child: Column(
-              children: [
-                RickshawDetailRow(
+          if ((_profile!.vehicles ?? []).isNotEmpty)
+            RickshawInfoCard(
+              title: 'Pricing Information',
+              icon: Icons.currency_rupee,
+              child: Column(
+                children: [
+                  /* RickshawDetailRow(
                   label: 'First 2 KM Charge',
                   value: '₹${_profile!.first2Km}',
                   icon: Icons.location_on,
-                ),
-                RickshawDetailRow(
-                  label: 'Minimum Charge/Hour',
-                  value: '₹${_profile!.minimumChargePerHour}',
-                  icon: Icons.access_time,
-                ),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.handshake,
-                      size: 18,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Price Negotiable',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w500,
+                ),*/
+                  RickshawDetailRow(
+                    label: 'Minimum Charge/Hour',
+                    value:
+                        '₹${_profile!.vehicles[0].minimumChargePerHour ?? ""}',
+                    icon: Icons.access_time,
+                  ),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.handshake,
+                        size: 18,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Price Negotiable',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _profile!.isPriceNegotiable
-                            ? ColorConstants.primaryColor.withAlpha(80)
-                            : Colors.red.shade100,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _profile!.isPriceNegotiable ? 'Yes' : 'No',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: _profile!.isPriceNegotiable
-                              ? ColorConstants.primaryColor
-                              : Colors.red.shade700,
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color:
+                              _profile!.vehicles[0].isPriceNegotiable ?? false
+                                  ? ColorConstants.primaryColor.withAlpha(80)
+                                  : Colors.red.shade100,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          (_profile!.vehicles[0].isPriceNegotiable ?? false)
+                              ? 'Yes'
+                              : 'No',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: (_profile!.vehicles[0].isPriceNegotiable ??
+                                    false)
+                                ? ColorConstants.primaryColor
+                                : Colors.red.shade700,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
 
           // Address Information
           RickshawInfoCard(
@@ -582,27 +592,27 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
               children: [
                 RickshawDetailRow(
                   label: 'Address',
-                  value: _profile!.address.addressLine,
+                  value: _profile!.address?.addressLine ?? "",
                   icon: Icons.home,
                 ),
                 RickshawDetailRow(
                   label: 'City',
-                  value: _profile!.address.city,
+                  value: _profile!.address?.city ?? "",
                   icon: Icons.location_city,
                 ),
                 RickshawDetailRow(
                   label: 'State',
-                  value: _profile!.address.state,
+                  value: _profile!.address?.state ?? "",
                   icon: Icons.map,
                 ),
                 RickshawDetailRow(
                   label: 'Pincode',
-                  value: _profile!.address.pincode.toString(),
+                  value: _profile!.address?.pincode.toString() ?? "",
                   icon: Icons.markunread_mailbox,
                 ),
                 RickshawDetailRow(
                   label: 'Country',
-                  value: _profile!.address.country,
+                  value: _profile!.country?.name ?? "",
                   icon: Icons.flag,
                 ),
               ],
@@ -610,34 +620,37 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
           ),
 
           // Service Areas
-          if (_profile!.servedLocation.isNotEmpty)
+          if (_profile!.serviceLocation != null)
+/*
             RickshawInfoCard(
               title: 'Service Areas',
               icon: Icons.map_outlined,
               child: RickshawChipList(
-                items: _profile!.servedLocation,
+                items: _profile!.serviceLocation!,
                 chipColor: Colors.blue,
               ),
             ),
+*/
 
-          // Vehicle Specifications
-          if (_profile!.vehicleSpecifications.isNotEmpty)
-            RickshawInfoCard(
-              title: 'Vehicle Specifications',
-              icon: Icons.build,
-              child: RickshawChipList(
-                items: _profile!.vehicleSpecifications,
-                chipColor: Colors.purple,
-              ),
-            ),
+            // Vehicle Specifications
+            if ((_profile!.vehicles ?? []).isNotEmpty)
+              if (_profile!.vehicles[0].vehicleSpecifications.isNotEmpty)
+                RickshawInfoCard(
+                  title: 'Vehicle Specifications',
+                  icon: Icons.build,
+                  child: RickshawChipList(
+                    items: _profile!.vehicles[0].vehicleSpecifications,
+                    chipColor: Colors.purple,
+                  ),
+                ),
 
           // Bio
-          if (_profile!.bio.isNotEmpty)
+          if ((_profile!.bio ?? "").isNotEmpty)
             RickshawInfoCard(
               title: 'About Driver',
               icon: Icons.person_outline,
               child: Text(
-                _profile!.bio,
+                _profile!.bio!,
                 style: const TextStyle(
                   fontSize: 14,
                   height: 1.5,
@@ -647,7 +660,7 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
             ),
 
           // Vehicle Images
-          if (_profile!.images.isNotEmpty)
+          if ((_profile!.vehicles ?? []).isNotEmpty)
             RickshawInfoCard(
               title: 'Vehicle Images',
               icon: Icons.photo_library,
@@ -655,7 +668,7 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
                 height: 120,
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
-                  itemCount: _profile!.images.length,
+                  itemCount: _profile!.vehicles[0].images.length,
                   itemBuilder: (context, index) {
                     return Container(
                       width: 160,
@@ -674,7 +687,7 @@ class _RickshawProfileScreenState extends State<RickshawProfileScreen> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          _profile!.images[index],
+                          _profile!.vehicles[0].images[index],
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return Container(

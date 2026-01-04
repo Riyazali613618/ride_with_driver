@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
 import '../api/api_model/registrations/auto_rikshaw_registration_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/registration_services/e_rekshaw_registration_service.dart';
+import '../api/api_service/user_service/user_profile_service.dart';
 import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import 'block/language/language_provider.dart';
@@ -16,12 +18,10 @@ import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 
 class ERickshawDriverFlow extends StatefulWidget {
   @override
-  _ERickshawDriverFlowState createState() =>
-      _ERickshawDriverFlowState();
+  _ERickshawDriverFlowState createState() => _ERickshawDriverFlowState();
 }
 
-class _ERickshawDriverFlowState
-    extends State<ERickshawDriverFlow> {
+class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   int currentStep = 0;
   PageController _pageController = PageController();
   File? _selectedImage;
@@ -36,7 +36,6 @@ class _ERickshawDriverFlowState
   final _stateController = TextEditingController();
   final _aadharCardController = TextEditingController();
   final _aboutController = TextEditingController();
-
 
   String? _selectedLanguage;
   final List<String> _languages = [
@@ -78,9 +77,11 @@ class _ERickshawDriverFlowState
       _initializeLocation();
     });
   }
+
   void _initializeLocation() {
     final langProvider = Provider.of<LocationProvider>(context, listen: false);
-    currentCountry = langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
+    currentCountry =
+        langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
 
     langProvider.fetchStates(currentCountry!).then((_) {
       if (mounted) {
@@ -90,16 +91,19 @@ class _ERickshawDriverFlowState
       }
     });
   }
-  List<lm.Data> langData=[];
+
+  List<lm.Data> langData = [];
+
   Future<void> _initializeSelectedLanguage() async {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
     languageProvider.fetchLanguagesFromApi();
     if (mounted) {
-      setState((){});
+      setState(() {});
     }
   }
 
-  List<String> _selectedLangs=[];
+  List<String> _selectedLangs = [];
 
   // Document selection methods
   void _showDocumentPickerBottomSheet(String from) {
@@ -221,8 +225,10 @@ class _ERickshawDriverFlowState
       ),
     );
   }
-  List<XFile> adhaar=[];
-  List<XFile> drivingLicense=[];
+
+  List<XFile> adhaar = [];
+  List<XFile> drivingLicense = [];
+
   Future<void> _pickDocumentFromCamera(String from) async {
     try {
       XFile? image = await _picker.pickImage(
@@ -231,12 +237,12 @@ class _ERickshawDriverFlowState
       );
 
       if (image != null) {
-        if(from=='ADHAAR'){
+        if (from == 'ADHAAR') {
           adhaar.add(image);
-          image=null;
-        }else{
+          image = null;
+        } else {
           drivingLicense.add(image);
-          image=null;
+          image = null;
         }
         setState(() {});
         _showSuccessSnackBar('Document captured successfully');
@@ -254,12 +260,12 @@ class _ERickshawDriverFlowState
       );
 
       if (image != null) {
-        if(from=='ADHAAR'){
+        if (from == 'ADHAAR') {
           adhaar.add(image);
-          image=null;
-        }else{
+          image = null;
+        } else {
           drivingLicense.add(image);
-          image=null;
+          image = null;
         }
         setState(() {});
         _showSuccessSnackBar('Document selected from gallery');
@@ -271,7 +277,8 @@ class _ERickshawDriverFlowState
 
   Future<void> _pickDocumentFromFiles() async {
     try {
-      _showSuccessSnackBar('File picker functionality - requires file_picker package');
+      _showSuccessSnackBar(
+          'File picker functionality - requires file_picker package');
     } catch (e) {
       _showErrorSnackBar('Failed to access files');
     }
@@ -498,7 +505,7 @@ class _ERickshawDriverFlowState
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors:[
+            colors: [
               gradientFirst,
               gradientSecond,
               gradientThird,
@@ -589,12 +596,13 @@ class _ERickshawDriverFlowState
                 alignment: Alignment.centerLeft,
                 child: Container(
                   height: 8,
-                  width: 30 + (MediaQuery.of(context).size.width * 0.25 * currentStep),
+                  width: 30 +
+                      (MediaQuery.of(context).size.width * 0.25 * currentStep),
                   decoration: BoxDecoration(
-                    gradient:  LinearGradient(
+                    gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors:[
+                      colors: [
                         gradientFirst,
                         gradientSecond,
                       ],
@@ -616,13 +624,12 @@ class _ERickshawDriverFlowState
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors:[
+                            colors: [
                               gradientFirst,
                               gradientSecond,
                             ],
                           ),
-                          color: Color(0xFF8B5CF6)
-                      ),
+                          color: Color(0xFF8B5CF6)),
                       child: Center(
                         child: Text(
                           '${index + 1}',
@@ -674,8 +681,10 @@ class _ERickshawDriverFlowState
     }
     return null;
   }
+
   bool _isAadhaarVerifying = false;
   bool _isAadhaarVerified = false;
+
   Future<void> _verifyAadhaar(String aadhaarNumber) async {
     if (aadhaarNumber.trim().isEmpty) return;
 
@@ -733,18 +742,18 @@ class _ERickshawDriverFlowState
                     ),
                     child: _selectedImage != null
                         ? ClipOval(
-                      child: Image.file(
-                        _selectedImage!,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                      ),
-                    )
+                            child: Image.file(
+                              _selectedImage!,
+                              width: 80,
+                              height: 80,
+                              fit: BoxFit.cover,
+                            ),
+                          )
                         : Icon(
-                      Icons.camera_alt,
-                      size: 32,
-                      color: Colors.grey[600],
-                    ),
+                            Icons.camera_alt,
+                            size: 32,
+                            color: Colors.grey[600],
+                          ),
                   ),
                 ),
                 SizedBox(height: 12),
@@ -803,11 +812,13 @@ class _ERickshawDriverFlowState
           _buildDropdown(
             'City',
             _selectedCity,
-            _cityList.map((city) => DropdownMenuItem(
-              value: city.sId,
-              child: Text(city.name.toString()),
-            )).toList(),
-                (newValue) {
+            _cityList
+                .map((city) => DropdownMenuItem(
+                      value: city.sId,
+                      child: Text(city.name.toString()),
+                    ))
+                .toList(),
+            (newValue) {
               setState(() {
                 _selectedCity = newValue;
                 _cityController.text = newValue ?? '';
@@ -819,16 +830,19 @@ class _ERickshawDriverFlowState
           _buildDropdown(
             'State',
             _selectedState,
-            _stateList.map((state) => DropdownMenuItem(
-              value: state.sId,
-              child: Text(state.name.toString()),
-            )).toList(),
-                (newValue) {
+            _stateList
+                .map((state) => DropdownMenuItem(
+                      value: state.sId,
+                      child: Text(state.name.toString()),
+                    ))
+                .toList(),
+            (newValue) {
               setState(() {
                 _selectedState = newValue;
                 _stateController.text = newValue ?? '';
                 if (newValue != null) {
-                  final locProvider = Provider.of<LocationProvider>(context, listen: false);
+                  final locProvider =
+                      Provider.of<LocationProvider>(context, listen: false);
                   locProvider.fetchCity(newValue).then((_) {
                     setState(() {
                       _cityList = locProvider.cities;
@@ -838,7 +852,8 @@ class _ERickshawDriverFlowState
                 }
               });
             },
-            validator: (value) => value == null ? 'Please select a state' : null,
+            validator: (value) =>
+                value == null ? 'Please select a state' : null,
           ),
           Spacer(),
           _buildContinueButton(),
@@ -848,13 +863,12 @@ class _ERickshawDriverFlowState
   }
 
   Widget _buildDropdown<T>(
-      String label,
-      T? value,
-      List<DropdownMenuItem<T>> items,
-      void Function(T?) onChanged, {
-        String? Function(T?)? validator,
-      }) {
-
+    String label,
+    T? value,
+    List<DropdownMenuItem<T>> items,
+    void Function(T?) onChanged, {
+    String? Function(T?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -907,7 +921,6 @@ class _ERickshawDriverFlowState
             // Aadhar Card Container with both field and verify button
             Container(
               width: double.infinity,
-
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -922,7 +935,9 @@ class _ERickshawDriverFlowState
                       ),
                     ),
                   ),
-                  SizedBox(height: 10,),
+                  SizedBox(
+                    height: 10,
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -942,7 +957,7 @@ class _ERickshawDriverFlowState
                                 fontSize: 16,
                               ),
                             ),
-                            onChanged: (value){
+                            onChanged: (value) {
                               if (value.length == 12) {
                                 _verifyAadhaar(value);
                               }
@@ -961,17 +976,18 @@ class _ERickshawDriverFlowState
                         child: Center(
                           child: _isAadhaarVerifying
                               ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
                               : Text(
-                            _isAadhaarVerified ? 'Verified' : 'Verify',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                                  _isAadhaarVerified ? 'Verified' : 'Verify',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
                         ),
                       ),
                     ],
@@ -982,7 +998,8 @@ class _ERickshawDriverFlowState
             SizedBox(height: 24),
             Container(
               width: double.infinity,
-              child: _buildFileUploadSection('Upload Aadhar Card (Front & Back)',"ADHAAR"),
+              child: _buildFileUploadSection(
+                  'Upload Aadhar Card (Front & Back)', "ADHAAR"),
             ),
             SizedBox(height: 40),
             _buildContinueButton(),
@@ -1016,8 +1033,9 @@ class _ERickshawDriverFlowState
             ),
           ),
           SizedBox(height: 8),
-          _buildDropdownFieldForLanguage('Spoken Languages',_selectedLanguage,langData,(value) {
-            setState((){
+          _buildDropdownFieldForLanguage(
+              'Spoken Languages', _selectedLanguage, langData, (value) {
+            setState(() {
               _selectedLanguage = value;
               _selectedLangs.add(_selectedLanguage!);
             });
@@ -1054,7 +1072,8 @@ class _ERickshawDriverFlowState
     );
   }
 
-  Widget _buildDropdownFieldForLanguage(String label, String? value, List<lm.Data> items, ValueChanged<String?> onChanged) {
+  Widget _buildDropdownFieldForLanguage(String label, String? value,
+      List<lm.Data> items, ValueChanged<String?> onChanged) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1078,7 +1097,7 @@ class _ERickshawDriverFlowState
               items: items.map((lm.Data item) {
                 return DropdownMenuItem<String>(
                   value: item.name,
-                  child: Text(item!.name??''),
+                  child: Text(item!.name ?? ''),
                 );
               }).toList(),
               onChanged: onChanged,
@@ -1119,18 +1138,18 @@ class _ERickshawDriverFlowState
                   ),
                   child: _selectedImage != null
                       ? ClipOval(
-                    child: Image.file(
-                      _selectedImage!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                          child: Image.file(
+                            _selectedImage!,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                       : Icon(
-                    Icons.person,
-                    size: 30,
-                    color: Colors.grey[600],
-                  ),
+                          Icons.person,
+                          size: 30,
+                          color: Colors.grey[600],
+                        ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -1151,48 +1170,39 @@ class _ERickshawDriverFlowState
                     'Self Name',
                     _selfNameController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _selfNameController.text
-                ),
+                        : _selfNameController.text),
                 _buildPreviewItem(
                     'Phone Number',
                     _phoneNumberController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _phoneNumberController.text
-                ),
+                        : _phoneNumberController.text),
                 _buildPreviewItem(
                     'Address Line',
                     _addressController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _addressController.text
-                ),
+                        : _addressController.text),
                 _buildPreviewItem(
                     'Pin Code',
                     _pinCodeController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _pinCodeController.text
-                ),
+                        : _pinCodeController.text),
                 _buildPreviewItem(
                     'City',
                     _cityController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _cityController.text
-                ),
+                        : _cityController.text),
                 _buildPreviewItem(
                     'State',
                     _stateController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _stateController.text
-                ),
+                        : _stateController.text),
                 _buildPreviewItem(
                     'Aadhar Card No.',
                     _aadharCardController.text.isEmpty
                         ? 'Lorem Ipsum'
-                        : _aadharCardController.text
-                ),
+                        : _aadharCardController.text),
                 _buildPreviewItem(
-                    'Spoken Languages',
-                    _selectedLanguage ?? 'Lorem Ipsum'
-                ),
+                    'Spoken Languages', _selectedLanguage ?? 'Lorem Ipsum'),
                 SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1309,10 +1319,10 @@ class _ERickshawDriverFlowState
                               child: SingleChildScrollView(
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black87,
@@ -1334,19 +1344,23 @@ class _ERickshawDriverFlowState
                                     width: 24,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: isAgreed ? Color(0xFF8B5CF6) : Colors.transparent,
+                                      color: isAgreed
+                                          ? Color(0xFF8B5CF6)
+                                          : Colors.transparent,
                                       border: Border.all(
-                                        color: isAgreed ? Color(0xFF8B5CF6) : Colors.grey[400]!,
+                                        color: isAgreed
+                                            ? Color(0xFF8B5CF6)
+                                            : Colors.grey[400]!,
                                         width: 2,
                                       ),
                                       borderRadius: BorderRadius.circular(4),
                                     ),
                                     child: isAgreed
                                         ? Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 16,
-                                    )
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          )
                                         : null,
                                   ),
                                 ),
@@ -1355,23 +1369,29 @@ class _ERickshawDriverFlowState
                                   child: Container(
                                     height: 48,
                                     child: ElevatedButton(
-                                      onPressed: isAgreed ? () {
-                                        _proceedToFinalStep();
-                                      } : null,
+                                      onPressed: isAgreed
+                                          ? () {
+                                              _proceedToFinalStep();
+                                            }
+                                          : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isAgreed
                                             ? Color(0xFF8B5CF6)
                                             : Colors.grey[300],
-                                        padding: EdgeInsets.symmetric(vertical: 12),
+                                        padding:
+                                            EdgeInsets.symmetric(vertical: 12),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(25),
+                                          borderRadius:
+                                              BorderRadius.circular(25),
                                         ),
                                         elevation: 0,
                                       ),
                                       child: Text(
                                         'I Agree',
                                         style: TextStyle(
-                                          color: isAgreed ? Colors.white : Colors.grey[600],
+                                          color: isAgreed
+                                              ? Colors.white
+                                              : Colors.grey[600],
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -1396,59 +1416,70 @@ class _ERickshawDriverFlowState
     );
   }
 
-
   AutoRickshawModel _erickshawModel = AutoRickshawModel(
     vehicleImages: [],
     languageSpoken: [],
     address: Address(),
   );
-  Future<void> _proceedToFinalStep() async {
 
-    _erickshawModel=_erickshawModel.copyWith(
-      firstName: _selfNameController.text??"",
+  Future<void> _proceedToFinalStep() async {
+    _erickshawModel = _erickshawModel.copyWith(
+      firstName: _selfNameController.text ?? "",
       languageSpoken: ['68bad78fe814b9f56ef22bba'],
       lastName: _selfNameController.text,
       address: _erickshawModel.address?.copyWith(
-        addressLine: _addressController.text,
-        pincode: int.parse(_pinCodeController.text),
-        state: _selectedState,
-          city: _selectedCity
-      ),
+          addressLine: _addressController.text,
+          pincode: int.parse(_pinCodeController.text),
+          state: _selectedState,
+          city: _selectedCity),
       aadharCardNumber: _aadharCardController.text,
-      aadharCardPhotoFront: (adhaar!=null && adhaar.isNotEmpty)?adhaar[0].path:'',
-      aadharCardPhotoBack: (adhaar!=null && adhaar.isNotEmpty && adhaar.length>=2)?adhaar[1].path:'',
-      profilePhoto: _selectedImage?.path??'',
+      aadharCardPhotoFront:
+          (adhaar != null && adhaar.isNotEmpty) ? adhaar[0].path : '',
+      aadharCardPhotoBack:
+          (adhaar != null && adhaar.isNotEmpty && adhaar.length >= 2)
+              ? adhaar[1].path
+              : '',
+      profilePhoto: _selectedImage?.path ?? '',
       bio: _aboutController.text,
       drivingLicencePhoto: '',
       drivingLicenceNumber: '',
       vehicleNumber: '',
       businessMobileNumber: _phoneNumberController.text,
     );
-    final response = await BecomeErickshawService()
-           .submitErickshawApplication(_erickshawModel);
-      if (response['success'] == true) {
-        if (!mounted) return;
-        BecomeErickshawService.showSuccessSnackBar(
-            context, 'Application submitted successfully!');
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const RegistrationSuccessfulScreen(userType: 'E-Rickshaw Driver')),
-        );
-      } else {
-        if (!mounted) return;
-        BecomeErickshawService.showApiErrorSnackBar(
-          context,
-          response['message'] ?? 'Submission failed',
-        );
-      }
+    bool isUpgrade = await getUserProfile();
+
+    final response = await BecomeErickshawService().submitErickshawApplication(
+        _erickshawModel, isUpgrade ? "become-upgradable" : "become-e-rickshaw");
+    if (response['success'] == true) {
+      if (!mounted) return;
+      BecomeErickshawService.showSuccessSnackBar(
+          context, 'Application submitted successfully!');
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const RegistrationSuccessfulScreen(
+                userType: 'E-Rickshaw Driver')),
+      );
+    } else {
+      if (!mounted) return;
+      BecomeErickshawService.showApiErrorSnackBar(
+        context,
+        response['message'] ?? 'Submission failed',
+      );
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Agreement accepted! Registration completed.'),
         backgroundColor: Colors.green,
       ),
     );
-    Navigator.push(context, MaterialPageRoute(builder: (context) => RegistrationSuccessfulScreen(userType: 'E-Rickshaw',)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => RegistrationSuccessfulScreen(
+                  userType: 'E-Rickshaw',
+                )));
   }
 
   Widget _buildPreviewItem(String label, String value) {
@@ -1496,6 +1527,7 @@ class _ERickshawDriverFlowState
     _aboutController.dispose();
     super.dispose();
   }
+
   Widget _buildTextField(String label, TextEditingController controller,
       {String? placeholder}) {
     return Column(
@@ -1531,7 +1563,7 @@ class _ERickshawDriverFlowState
     );
   }
 
-  Widget _buildFileUploadSection(String title,String from) {
+  Widget _buildFileUploadSection(String title, String from) {
     return Column(
       children: [
         Text(
@@ -1632,5 +1664,19 @@ class _ERickshawDriverFlowState
     );
   }
 
-
+  Future<bool> getUserProfile() async {
+    final data = await UserProfileService().getUserProfile();
+    final prefs = await SharedPreferences.getInstance();
+    if (data!.subscriptions!.isNotEmpty) {
+      for (var sub in data!.subscriptions!) {
+        if ((sub.status ?? "").toLowerCase() == "active" &&
+            (sub.isUpgrade ?? false)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return false;
+    }
+  }
 }

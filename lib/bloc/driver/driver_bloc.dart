@@ -5,7 +5,9 @@ import 'package:r_w_r/api/api_model/rating_and_reviews_model/indicar_model.dart'
 import 'package:r_w_r/api/api_service/api_repository.dart';
 import 'package:r_w_r/api/api_service/registration_services/become_driver_registration_service.dart';
 import 'package:r_w_r/api/api_service/registration_services/e_rekshaw_registration_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../api/api_service/user_service/user_profile_service.dart';
 import 'driver_event.dart';
 import 'driver_state.dart';
 
@@ -23,7 +25,8 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
     on<TransporterRegistrationEvent>(_onTransporterRegistration);
   }
 
-  Future<void> _onLoadDriverProfile(LoadDriverProfileEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onLoadDriverProfile(
+      LoadDriverProfileEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
@@ -32,11 +35,13 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
       emit(const DriverProfileLoaded(profileData: {}));
     } catch (e) {
       debugPrint('DriverBloc LoadDriverProfile Exception: $e');
-      emit(const DriverError(message: 'Failed to load driver profile. Please try again.'));
+      emit(const DriverError(
+          message: 'Failed to load driver profile. Please try again.'));
     }
   }
 
-  Future<void> _onUpdateDriverProfile(UpdateDriverProfileEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onUpdateDriverProfile(
+      UpdateDriverProfileEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
@@ -48,11 +53,13 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
       ));
     } catch (e) {
       debugPrint('DriverBloc UpdateDriverProfile Exception: $e');
-      emit(const DriverError(message: 'Failed to update driver profile. Please try again.'));
+      emit(const DriverError(
+          message: 'Failed to update driver profile. Please try again.'));
     }
   }
 
-  Future<void> _onDriverRegistration(DriverRegistrationEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onDriverRegistration(
+      DriverRegistrationEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
@@ -64,11 +71,14 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
       ));
     } catch (e) {
       debugPrint('DriverBloc DriverRegistration Exception: $e');
-      emit(const DriverError(message: 'Failed to complete driver registration. Please try again.'));
+      emit(const DriverError(
+          message:
+              'Failed to complete driver registration. Please try again.'));
     }
   }
 
-  Future<void> _onLoadDriverDetails(LoadDriverDetailsEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onLoadDriverDetails(
+      LoadDriverDetailsEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
@@ -77,31 +87,34 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
       emit(const DriverDetailsLoaded(driverDetails: {}));
     } catch (e) {
       debugPrint('DriverBloc LoadDriverDetails Exception: $e');
-      emit(const DriverError(message: 'Failed to load driver details. Please try again.'));
+      emit(const DriverError(
+          message: 'Failed to load driver details. Please try again.'));
     }
   }
 
-  Future<void> _onBecomeDriverRegistration(BecomeDriverRegistrationEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onBecomeDriverRegistration(
+      BecomeDriverRegistrationEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
       Map<String, dynamic> response;
-      
+
       // Handle different registration types
       if (event.type == 'E_RICKSHAW') {
         // Create E-Rickshaw model from the registration data
         final model = AutoRickshawModel.fromJson(event.data);
-        
+        bool isUpgrade = await getUserProfile();
         // Call the E-Rickshaw API service
-        response = await BecomeErickshawService().submitErickshawApplication(model);
+        response = await BecomeErickshawService().submitErickshawApplication(
+            model, isUpgrade ? "become-upgradable" : "become-rickshaw");
       } else {
         // Default case - regular driver registration
         final model = BecomeDriverModel.fromJson(event.data);
-        
+
         // Call the regular driver API service
         response = await BecomeDriverService().submitDriverApplication(model);
       }
-      
+
       if (response['success'] == true) {
         emit(BecomeDriverRegistrationSuccess(
           message: 'Application submitted successfully!',
@@ -109,16 +122,20 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
         ));
       } else {
         emit(DriverError(
-          message: response['message'] ?? 'Registration failed. Please try again.',
+          message:
+              response['message'] ?? 'Registration failed. Please try again.',
         ));
       }
     } catch (e) {
       debugPrint('DriverBloc BecomeDriverRegistration Exception: $e');
-      emit(const DriverError(message: 'Failed to complete driver registration. Please try again.'));
+      emit(const DriverError(
+          message:
+              'Failed to complete driver registration. Please try again.'));
     }
   }
 
-  Future<void> _onAutoRikshawRegistration(AutoRikshawRegistrationEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onAutoRikshawRegistration(
+      AutoRikshawRegistrationEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
@@ -130,20 +147,26 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
       ));
     } catch (e) {
       debugPrint('DriverBloc AutoRikshawRegistration Exception: $e');
-      emit(const DriverError(message: 'Failed to complete Auto Rickshaw registration. Please try again.'));
+      emit(const DriverError(
+          message:
+              'Failed to complete Auto Rickshaw registration. Please try again.'));
     }
   }
 
-  Future<void> _onERikshawRegistration(ERikshawRegistrationEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onERikshawRegistration(
+      ERikshawRegistrationEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
       // Create model from the registration data
       final model = AutoRickshawModel.fromJson(event.registrationData);
-      
+      bool isUpgrade = await getUserProfile();
+
       // Call the actual API service
-      final response = await BecomeErickshawService().submitErickshawApplication(model);
-      
+      final response = await BecomeErickshawService()
+          .submitErickshawApplication(
+              model, isUpgrade ? "become-upgradable" : "become-rickshaw");
+
       if (response['success'] == true) {
         emit(ERikshawRegistrationSuccess(
           message: 'E-Rickshaw registration completed successfully!',
@@ -151,16 +174,20 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
         ));
       } else {
         emit(DriverError(
-          message: response['message'] ?? 'E-Rickshaw registration failed. Please try again.',
+          message: response['message'] ??
+              'E-Rickshaw registration failed. Please try again.',
         ));
       }
     } catch (e) {
       debugPrint('DriverBloc ERikshawRegistration Exception: $e');
-      emit(const DriverError(message: 'Failed to complete E-Rickshaw registration. Please try again.'));
+      emit(const DriverError(
+          message:
+              'Failed to complete E-Rickshaw registration. Please try again.'));
     }
   }
 
-  Future<void> _onTransporterRegistration(TransporterRegistrationEvent event, Emitter<DriverState> emit) async {
+  Future<void> _onTransporterRegistration(
+      TransporterRegistrationEvent event, Emitter<DriverState> emit) async {
     emit(const DriverLoading());
 
     try {
@@ -172,7 +199,25 @@ class DriverBloc extends Bloc<DriverEvent, DriverState> {
       ));
     } catch (e) {
       debugPrint('DriverBloc TransporterRegistration Exception: $e');
-      emit(const DriverError(message: 'Failed to complete transporter registration. Please try again.'));
+      emit(const DriverError(
+          message:
+              'Failed to complete transporter registration. Please try again.'));
+    }
+  }
+
+  Future<bool> getUserProfile() async {
+    final data = await UserProfileService().getUserProfile();
+    final prefs = await SharedPreferences.getInstance();
+    if (data!.subscriptions!.isNotEmpty) {
+      for (var sub in data!.subscriptions!) {
+        if ((sub.status ?? "").toLowerCase() == "active" &&
+            (sub.isUpgrade ?? false)) {
+          return true;
+        }
+      }
+      return false;
+    } else {
+      return false;
     }
   }
 }

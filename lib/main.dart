@@ -28,6 +28,10 @@ import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_scree
 import 'package:r_w_r/firebase_options.dart';
 import 'package:r_w_r/plan/data/repositories/plan_repository.dart';
 import 'package:r_w_r/plan/presentation/bloc/plan_bloc.dart';
+import 'package:r_w_r/screens/Eligibility/bloc/eligibility_bloc.dart';
+import 'package:r_w_r/screens/Eligibility/bloc/eligibility_event.dart';
+import 'package:r_w_r/screens/Eligibility/eligibility_remote_source.dart';
+import 'package:r_w_r/screens/Eligibility/eligibility_repository.dart';
 import 'package:r_w_r/screens/auth_screens/first_time_user.dart';
 import 'package:r_w_r/screens/auth_screens/login_screen.dart';
 import 'package:r_w_r/screens/auth_screens/otp_screen.dart';
@@ -179,10 +183,16 @@ class MyApp extends StatelessWidget {
     final vehicleRepository = VehicleRepositoryImpl(vehicleRemoteDatasource);
 
     final getVehiclesUseCase = GetVehiclesUseCase(vehicleRepository);
-
+    final eligibilityRepository = EligibilityRepository(
+      EligibilityRemoteSource(http.Client()),
+    );
     return MultiRepositoryProvider(
         providers: [
           RepositoryProvider(create: (_) => PlanRepository()),
+          BlocProvider<EligibilityBloc>(
+            create: (_) => EligibilityBloc(eligibilityRepository)
+              ..add(FetchEligibilityEvent()),
+          ),
         ],
         child: MultiBlocProvider(
           providers: [

@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
 import 'package:r_w_r/screens/layout.dart';
 import 'package:r_w_r/screens/profileScreens/widget/videoPlayerWidget.dart';
@@ -30,6 +31,8 @@ import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
 import '../../plan/data/repositories/plan_repository.dart';
 import '../../plan/presentation/bloc/plan_bloc.dart';
+import '../Eligibility/bloc/eligibility_bloc.dart';
+import '../Eligibility/bloc/eligibility_state.dart';
 import '../auth_screens/select_language_screen.dart';
 import '../autoRikshawDriverRegistration.dart';
 import '../block/home/home_provider.dart';
@@ -413,7 +416,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      setState(() {
+      if(mounted)setState(() {
         _currentSubscriptionVisibility = widget.showDriverSubscription ?? false;
       });
     }
@@ -1827,6 +1830,38 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                 : SizedBox.shrink();
                           },
                         ),
+                      SizedBox(height: 10,),
+                      BlocBuilder<EligibilityBloc, EligibilityState>(
+                        builder: (context, state) {
+                          if (state is EligibilityLoaded &&
+                              state.paymentPhase == 'PRE_REGISTRATION') {
+                            return Container(
+                              height: 50,
+                              width: double.infinity,
+                              margin: EdgeInsets.symmetric(horizontal: 15,vertical: 10),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                      BorderRadius.circular(
+                                          12), // ✅ works fine
+                                    ),
+                                    elevation: 0,
+                                    backgroundColor:
+                                    Color(0xff0064E0)),
+                                onPressed: () {
+                                  _navigateToApplication(state.userType);
+
+                                },
+                                child: const Text('Complete Your Application',style: TextStyle(color: Colors.white,fontSize: 16,fontWeight: FontWeight.bold),),
+                              ),
+                            );
+                          }
+
+                          return const SizedBox.shrink();
+                        },
+                      ),
+/*
                       FutureBuilder<ApplicationStatus>(
                         future: _loadWhoRegAndStatus(),
                         builder: (context, snapshot) {
@@ -1835,10 +1870,12 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             if (status != ApplicationStatus.notStarted &&
                                 status != ApplicationStatus.submitted &&
                                 status != ApplicationStatus.approved &&
-                                status != ApplicationStatus.fareAndCitiesComplete &&
+                                status !=
+                                    ApplicationStatus.fareAndCitiesComplete &&
                                 status != ApplicationStatus.rejected) {
                               return AutoRickshawProgressCard();
-                            } else if (isRegistrationIncomplete && whoReg?.toLowerCase()!="user") {
+                            } else if (isRegistrationIncomplete &&
+                                whoReg?.toLowerCase() != "user") {
                               return _buildActionButton();
                             }
                             return const SizedBox.shrink();
@@ -1848,6 +1885,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                               child: CircularProgressIndicator());
                         },
                       ),
+*/
                       _buildMediaSection(),
                       // Padding(
                       //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -2016,7 +2054,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       case ApplicationStatus.notStarted:
         buttonText = 'Start Application';
         buttonColor = ColorConstants.primaryColor;
-        onPressed = () => _navigateToApplication();
+        onPressed = () => _navigateToApplication("");
         break;
       case ApplicationStatus.submitted:
         buttonText = 'Application Submitted';
@@ -2026,13 +2064,13 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       default:
         buttonText = 'Complete your Application';
         buttonColor = ColorConstants.primaryColorNew;
-        onPressed = () => _navigateToApplication();
+        onPressed = () => _navigateToApplication("");
     }
 
     return Container(
       width: double.infinity,
       height: 48,
-      margin: EdgeInsets.symmetric(horizontal: 10,vertical: 10),
+      margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       child: ElevatedButton(
           style: ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
@@ -2048,10 +2086,13 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
           )),
     );
   }
-  void _navigateToApplication() {
+
+  Future<void> _navigateToApplication(String type) async {
+    final prefs = await SharedPreferences.getInstance();
+    whoReg = prefs.getString('who_reg') ?? "";
     Widget? destination;
 
-    String userType = (whoReg ?? "").toUpperCase();
+    String userType =type.isNotEmpty?type: (whoReg ?? "").toUpperCase();
     if (userType.contains("RICKSHAW")) {
       destination = AutoRickshawDriverFlow();
     } else if (userType == "DRIVER") {
@@ -2085,5 +2126,4 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       });
     }
   }
-
 }

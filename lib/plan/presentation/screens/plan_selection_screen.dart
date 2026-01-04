@@ -302,12 +302,23 @@ Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
                     value: context.read<PaymentBloc>(),
                     child: PaymentBottomSheetBlocView(
                       plan: data,
+                      finalPrice: count * data.finalPrice,
+                      planType: category,
+                      currentCategory: currentCategory,
+                      paymentType: PaymentType.registrationWithSubscription,
+                      category: category,
+                    ),
+
+/*
+                    child: PaymentBottomSheetBlocView(
+                      plan: data,
                       planType: category,
                       finalPrice: count * data.finalPrice,
                       currentCategory: currentCategory,
                       paymentType: PaymentType.registrationWithSubscription,
                       category: category,
                     ),
+*/
                   ),
                 );
               }
@@ -484,7 +495,7 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
                 ),
                 Spacer(),
                 Text(
-                  (count*widget.plan.finalPrice).toStringAsFixed(2),
+                  (count * widget.plan.finalPrice).toStringAsFixed(2),
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,
@@ -504,7 +515,8 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
                 ),
                 Spacer(),
                 Text(
-                  (count*widget.plan.earlyBirdDiscountPrice).toStringAsFixed(2),
+                  (count * widget.plan.earlyBirdDiscountPrice)
+                      .toStringAsFixed(2),
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,
@@ -715,6 +727,7 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                           plan: widget.plan,
                           finalPrice: widget.count * widget.plan.finalPrice,
                           planType: widget.category,
+                          vehicleCount: (widget.count ?? 0).toString(),
                           currentCategory: widget.currentCategory,
                           paymentType: PaymentType.registrationWithSubscription,
                           category: widget.category,

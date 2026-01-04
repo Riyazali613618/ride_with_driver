@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +19,7 @@ import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/indi_car_service.dart';
 import '../api/api_service/registration_services/transporter_service.dart';
+import '../components/app_loader.dart';
 import '../constants/api_constants.dart';
 import '../constants/token_manager.dart';
 import '../utils/color.dart';
@@ -51,13 +54,11 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   final _aadharCardController = TextEditingController();
   final _drivingLicenseController = TextEditingController();
   final _aboutController = TextEditingController();
-
-  Map<String, int> vehicleCounts = {
-    'Car': 0,
-    'SUV': 0,
-    'Mini Van': 0,
-    'Bus': 0,
-  };
+  final _carCountController = TextEditingController();
+  final _suvCountController = TextEditingController();
+  final _miniVanCountController = TextEditingController();
+  final _busCountController = TextEditingController();
+  final _totalVehicleCountController = TextEditingController();
 
   final List<String> stepTitles = [
     'Self Detail',
@@ -105,7 +106,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   void _prefillData() {
     // Prefill with user data if available
     final profileProvider =
-    Provider.of<ProfileProvider>(context, listen: false);
+        Provider.of<ProfileProvider>(context, listen: false);
     if (profileProvider.fullName != null) {
       _selfNameController.text = profileProvider.fullName!;
     }
@@ -137,16 +138,12 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   // Validation methods
   String? _validateRequired(String? value, String fieldName) {
-    if (value == null || value
-        .trim()
-        .isEmpty) return '$fieldName is required';
+    if (value == null || value.trim().isEmpty) return '$fieldName is required';
     return null;
   }
 
   String? _validateMobileNumber(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Mobile number is required';
     }
     if (value.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
@@ -156,9 +153,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   String? _validatePincode(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Pincode is required';
     }
     if (value.length != 6 || !RegExp(r'^[0-9]{6}$').hasMatch(value)) {
@@ -168,9 +163,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   String? _validateAadhaar(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Aadhaar number is required';
     }
     if (value.length != 12 || !RegExp(r'^[0-9]{12}$').hasMatch(value)) {
@@ -184,7 +177,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
     try {
       final profileProvider =
-      Provider.of<ProfileProvider>(context, listen: false);
+          Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
@@ -212,9 +205,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   Future<void> _verifyAadhaar(String aadhaarNumber) async {
-    if (aadhaarNumber
-        .trim()
-        .isEmpty) return;
+    if (aadhaarNumber.trim().isEmpty) return;
 
     final aadhaarError = _validateAadhaar(aadhaarNumber);
     if (aadhaarError != null) {
@@ -238,18 +229,6 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     _showSuccessSnackBar('Aadhaar verified successfully!');
   }
 
-  int get totalVehicles =>
-      vehicleCounts.values.fold(0, (sum, count) => sum + count);
-
-  void _updateVehicleCount(String vehicleType, int change) {
-    setState(() {
-      int newCount = vehicleCounts[vehicleType]! + change;
-      if (newCount >= 0) {
-        vehicleCounts[vehicleType] = newCount;
-      }
-    });
-  }
-
   void _showSuccessSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -270,6 +249,13 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   // Document picker methods
   void _showDocumentPickerBottomSheet(String from) {
+    if (from == "AADHAAR" && adhaar.length == 2) {
+      return;
+    } else if (from == "DRIVING LICENSE" && drivingLicense.length == 1) {
+      return;
+    } else if (from == "PERMIT" && permit.length == 1) {
+      return;
+    }
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -400,7 +386,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         imageQuality: 80,
       );
       if (image != null) {
-        if (from == "ADHAAR") {
+        if (from == "AADHAAR") {
           adhaar.add(image);
           image = null;
         } else if (from == "PERMIT") {
@@ -425,7 +411,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         imageQuality: 80,
       );
       if (image != null) {
-        if (from == "ADHAAR") {
+        if (from == "AADHAAR") {
           adhaar.add(image);
           image = null;
         } else if (from == "PERMIT") {
@@ -435,7 +421,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           drivingLicense.add(image);
           image = null;
         }
-        setState(() {});
+        print(adhaar);
+        updateState();
         _showSuccessSnackBar('Document selected from gallery');
       }
     } catch (e) {
@@ -641,15 +628,33 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
       case 2: // Document
         isValid = _documentFormKey.currentState?.validate() ?? false;
-        if (isValid && !_isAadhaarVerified) {
+        if (_aadharCardController.text.toString().trim().isEmpty) {
+          errorMessage = 'Please enter Aadhaar number';
+          isValid = false;
+        } else if (isValid && !_isAadhaarVerified) {
           errorMessage = 'Please verify your Aadhaar number';
+          isValid = false;
+        } else if (_aadharCardController.text.toString().trim().length < 12) {
+          errorMessage = 'Aadhaar number should be of 12 digit long';
+          isValid = false;
+        } else if (adhaar.length < 2) {
+          errorMessage = 'Add aadhaar card both front and back photo.';
+          isValid = false;
+        } else if (_drivingLicenseController.text.toString().trim().isEmpty) {
+          errorMessage = 'Please add driving license number';
+          isValid = false;
+        } else if (drivingLicense.isEmpty) {
+          errorMessage = 'Add driving license photo.';
+          isValid = false;
+        } else if (permit.isEmpty) {
+          errorMessage = 'Please upload photo.';
           isValid = false;
         }
         break;
 
       case 3: // About
         isValid = _aboutFormKey.currentState?.validate() ?? false;
-        if (isValid && totalVehicles == 0) {
+        if (isValid && (_totalVehicleCountController.text.toString().isEmpty || int.parse(_totalVehicleCountController.text.toString())==0)) {
           errorMessage = 'You must have at least 1 vehicle';
           isValid = false;
         }
@@ -707,10 +712,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
-              height: MediaQuery
-                  .of(context)
-                  .size
-                  .height * 0.85,
+              height: MediaQuery.of(context).size.height * 0.85,
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.only(
@@ -749,10 +751,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                               child: SingleChildScrollView(
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
                                   style: TextStyle(
                                     fontSize: 16,
                                     color: Colors.black87,
@@ -787,10 +789,10 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                                     ),
                                     child: isAgreed
                                         ? Icon(
-                                      Icons.check,
-                                      color: Colors.white,
-                                      size: 16,
-                                    )
+                                            Icons.check,
+                                            color: Colors.white,
+                                            size: 16,
+                                          )
                                         : null,
                                   ),
                                 ),
@@ -801,18 +803,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                                     child: ElevatedButton(
                                       onPressed: isAgreed
                                           ? () {
-                                        _proceedToFinalStep();
-                                      }
+                                              _proceedToFinalStep();
+                                            }
                                           : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: isAgreed
                                             ? Color(0xFF8B5CF6)
                                             : Colors.grey[300],
                                         padding:
-                                        EdgeInsets.symmetric(vertical: 12),
+                                            EdgeInsets.symmetric(vertical: 12),
                                         shape: RoundedRectangleBorder(
                                           borderRadius:
-                                          BorderRadius.circular(25),
+                                              BorderRadius.circular(25),
                                         ),
                                         elevation: 0,
                                       ),
@@ -855,6 +857,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   bool submittingForm = false;
 
+  int totalVehicles = 0;
+
   Future<void> _proceedToFinalStep() async {
     Navigator.pop(context); // Close bottom sheet
     setState(() {
@@ -868,7 +872,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       String aadhaarBackUrl = "";
       String drivingLicencePhoto = "";
       String transportationPermitPhoto = "";
-    /*  if (permit.isNotEmpty ) {
+      /*  if (permit.isNotEmpty ) {
         final XFile xFileAadhaarFront = XFile(permit[0]!.path);
         final permitPhoto = await MediaService()
             .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
@@ -880,7 +884,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
         aadhaarFrontUrl = aadharCardPhotoFront.url!;
       }
-      if (adhaar.isNotEmpty && adhaar.length > 1 &&
+      if (adhaar.isNotEmpty &&
+          adhaar.length > 1 &&
           adhaar[1]!.path.isNotEmpty) {
         final XFile xFileAadhaarBack = XFile(adhaar[1]!.path);
         final aadharCardPhotoBack = await MediaService()
@@ -889,16 +894,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       }
       if (drivingLicense.isNotEmpty) {
         final XFile drivingLicenseFile = XFile(drivingLicense[0]!.path);
-        final drivingLicencePhotoUrl = await MediaService()
-            .uploadMedia(
-            drivingLicenseFile, kind: "document", type: "document");
+        final drivingLicencePhotoUrl = await MediaService().uploadMedia(
+            drivingLicenseFile,
+            kind: "document",
+            type: "document");
         drivingLicencePhoto = drivingLicencePhotoUrl.url!;
       }
       if (permit.isNotEmpty && permit[0]!.path.isNotEmpty) {
         final XFile drivingLicenseFile = XFile(permit[0]!.path);
-        final transportationPermitPhotoUrl = await MediaService()
-            .uploadMedia(
-            drivingLicenseFile, kind: "document", type: "document");
+        final transportationPermitPhotoUrl = await MediaService().uploadMedia(
+            drivingLicenseFile,
+            kind: "document",
+            type: "document");
         transportationPermitPhoto = transportationPermitPhotoUrl.url!;
       }
 
@@ -920,7 +927,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         drivingLicencePhoto: drivingLicencePhoto,
         transportationPermitPhoto: transportationPermitPhoto,
         independentCarOwnerFleetSize:
-        FleetSize(cars: 1 ?? 0, minivans: 1 ?? 0, buses: 0, suvs: 0),
+            FleetSize(cars: 1 ?? 0, minivans: 1 ?? 0, buses: 0, suvs: 0),
       );
       try {
         final response = await BecomeDriverServiceIndi()
@@ -938,8 +945,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) =>
-                      RegistrationSuccessfulScreen(
+                  builder: (context) => RegistrationSuccessfulScreen(
                         userType: 'Taxi Owner',
                       )),
             );
@@ -1066,7 +1072,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             ),
           ),
           SizedBox(width: 16),
-          Expanded(
+          Flexible(
             child: Text(
               'Become Independent Taxi Owner',
               style: TextStyle(
@@ -1081,191 +1087,93 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     );
   }
 
-  Widget _buildProgressBar() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 8,
-                margin: EdgeInsets.symmetric(horizontal: 0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  height: 8,
-                  width: 30 +
-                      (MediaQuery
-                          .of(context)
-                          .size
-                          .width * 0.25 * currentStep),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(width: 1),
-                  ...List.generate(5, (index) {
-                    return Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              gradientFirst,
-                              gradientSecond,
-                            ],
-                          ),
-                          color: Color(0xFF8B5CF6)),
-                      child: Center(
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SizedBox(width: 25),
-              ...List.generate(5, (index) {
-                return Container(
-                  width: 60,
-                  child: Text(
-                    stepTitles[index],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                );
-              }),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildSelfDetailStep() {
     return Padding(
       padding: EdgeInsets.all(24),
       child: Form(
         key: _selfDetailFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Self Detail',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+              child: ListView(
+            children: [
+              Text(
+                'Self Detail',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 40),
-            Center(
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: _showImagePickerBottomSheet,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.grey[300],
-                        border: _selectedImage != null
-                            ? Border.all(color: Color(0xFF8B5CF6), width: 3)
-                            : null,
-                      ),
-                      child: _selectedImage != null
-                          ? ClipOval(
-                        child: Image.file(
-                          _selectedImage!,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
+              SizedBox(height: 40),
+              Center(
+                child: Column(
+                  children: [
+                    GestureDetector(
+                      onTap: _showImagePickerBottomSheet,
+                      child: Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey[300],
+                          border: _selectedImage != null
+                              ? Border.all(color: Color(0xFF8B5CF6), width: 3)
+                              : null,
                         ),
-                      )
-                          : Icon(
-                        Icons.camera_alt,
-                        size: 32,
-                        color: Colors.grey[600],
+                        child: _selectedImage != null
+                            ? ClipOval(
+                                child: Image.file(
+                                  _selectedImage!,
+                                  width: 80,
+                                  height: 80,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Icon(
+                                Icons.camera_alt,
+                                size: 32,
+                                color: Colors.grey[600],
+                              ),
                       ),
                     ),
-                  ),
-                  SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: _showImagePickerBottomSheet,
-                    child: Text(
-                      _selectedImage != null
-                          ? 'Tap to change image'
-                          : 'Profile Image / Logo',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: _selectedImage != null
-                            ? Color(0xFF8B5CF6)
-                            : Colors.black87,
-                        decoration: _selectedImage != null
-                            ? TextDecoration.underline
-                            : null,
+                    SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: _showImagePickerBottomSheet,
+                      child: Text(
+                        _selectedImage != null
+                            ? 'Tap to change image'
+                            : 'Profile Image / Logo',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _selectedImage != null
+                              ? Color(0xFF8B5CF6)
+                              : Colors.black87,
+                          decoration: _selectedImage != null
+                              ? TextDecoration.underline
+                              : null,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 40),
-            _buildTextField(
-              'Self Name *',
-              _selfNameController,
-              validator: (value) => _validateRequired(value, 'Self name'),
-            ),
-            SizedBox(height: 20),
-            _buildTextField(
-              'Phone Number*',
-              _phoneNumberController,
-              validator: _validateMobileNumber,
-              keyboardType: TextInputType.phone,
-            ),
-            Spacer(),
-            _buildContinueButton(),
-          ],
-        ),
+              SizedBox(height: 40),
+              _buildTextField(
+                'Self Name *',
+                _selfNameController,
+                validator: (value) => _validateRequired(value, 'Self name'),
+              ),
+              SizedBox(height: 20),
+              _buildTextField(
+                'Phone Number*',
+                _phoneNumberController,
+                validator: _validateMobileNumber,
+                keyboardType: TextInputType.phone,
+              ),
+            ],
+          )),
+          _buildContinueButton(),
+        ]),
       ),
     );
   }
@@ -1275,92 +1183,91 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       padding: EdgeInsets.all(24),
       child: Form(
         key: _addressFormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Address',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+              child: ListView(
+            children: [
+              Text(
+                'Address',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
               ),
-            ),
-            SizedBox(height: 40),
-            _buildTextField(
-              'Address*',
-              _addressController,
-              placeholder: '12 house no., XYZ STREET, Opp ABC Mall',
-              validator: (value) => _validateRequired(value, 'Address'),
-            ),
-            SizedBox(height: 20),
-            _buildTextField(
-              'Pin Code*',
-              _pinCodeController,
-              placeholder: '788799',
-              validator: _validatePincode,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              onChanged: (value) {
-                if (value.length == 6) {
-                  _fetchLocationFromPincode(value);
-                }
-              },
-            ),
-            SizedBox(height: 20),
-            _buildDropdown(
-              'State',
-              _selectedState,
-              _stateList
-                  .map((state) =>
-                  DropdownMenuItem(
-                    value: state.sId,
-                    child: Text(state.name.toString()),
-                  ))
-                  .toList(),
-                  (newValue) {
-                setState(() {
-                  _selectedState = newValue;
-                  _stateController.text = newValue ?? '';
-                  if (newValue != null) {
-                    final locProvider =
-                    Provider.of<LocationProvider>(context, listen: false);
-                    locProvider.fetchCity(newValue).then((_) {
-                      setState(() {
-                        _cityList = locProvider.cities;
-                        _selectedCity = null; // Reset city when state changes
-                      });
-                    });
+              SizedBox(height: 40),
+              _buildTextField(
+                'Address*',
+                _addressController,
+                placeholder: '12 house no., XYZ STREET, Opp ABC Mall',
+                validator: (value) => _validateRequired(value, 'Address'),
+              ),
+              SizedBox(height: 20),
+              _buildTextField(
+                'Pin Code*',
+                _pinCodeController,
+                placeholder: '788799',
+                validator: _validatePincode,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                onChanged: (value) {
+                  if (value.length == 6) {
+                    _fetchLocationFromPincode(value);
                   }
-                });
-              },
-              validator: (value) =>
-              value == null ? 'Please select a state' : null,
-            ),
-            SizedBox(height: 20),
-            _buildDropdown(
-              'City',
-              _selectedCity,
-              _cityList
-                  .map((city) =>
-                  DropdownMenuItem(
-                    value: city.sId,
-                    child: Text(city.name.toString()),
-                  ))
-                  .toList(),
-                  (newValue) {
-                setState(() {
-                  _selectedCity = newValue;
-                  _cityController.text = newValue ?? '';
-                });
-              },
-              validator: (value) =>
-              value == null ? 'Please select a city' : null,
-            ),
-            Spacer(),
-            _buildContinueButton(),
-          ],
-        ),
+                },
+              ),
+              SizedBox(height: 20),
+              _buildDropdown(
+                'State',
+                _selectedState,
+                _stateList
+                    .map((state) => DropdownMenuItem(
+                          value: state.sId,
+                          child: Text(state.name.toString()),
+                        ))
+                    .toList(),
+                (newValue) {
+                  setState(() {
+                    _selectedState = newValue;
+                    _stateController.text = newValue ?? '';
+                    if (newValue != null) {
+                      final locProvider =
+                          Provider.of<LocationProvider>(context, listen: false);
+                      locProvider.fetchCity(newValue).then((_) {
+                        setState(() {
+                          _cityList = locProvider.cities;
+                          _selectedCity = null; // Reset city when state changes
+                        });
+                      });
+                    }
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Please select a state' : null,
+              ),
+              SizedBox(height: 20),
+              _buildDropdown(
+                'City',
+                _selectedCity,
+                _cityList
+                    .map((city) => DropdownMenuItem(
+                          value: city.sId,
+                          child: Text(city.name.toString()),
+                        ))
+                    .toList(),
+                (newValue) {
+                  setState(() {
+                    _selectedCity = newValue;
+                    _cityController.text = newValue ?? '';
+                  });
+                },
+                validator: (value) =>
+                    value == null ? 'Please select a city' : null,
+              ),
+            ],
+          )),
+          _buildContinueButton(),
+        ]),
       ),
     );
   }
@@ -1370,9 +1277,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       padding: EdgeInsets.all(24),
       child: Form(
         key: _documentFormKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(
+              child: ListView(
             children: [
               Text(
                 'Document',
@@ -1383,14 +1290,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                 ),
               ),
               SizedBox(height: 40),
-              Container(
+              // Aadhar Card Container with both field and verify button
+              SizedBox(
                 width: double.infinity,
-                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 15.0),
+                      padding: const EdgeInsets.only(left: 5.0),
                       child: Text(
                         'Aadhar Card No.*',
                         style: TextStyle(
@@ -1400,98 +1307,95 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                         ),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(
+                      height: 10,
+                    ),
                     Row(
                       children: [
                         Expanded(
                           child: Container(
-                            height: 40,
-                            padding: EdgeInsets.symmetric(horizontal: 16),
+                            height: 35,
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(horizontal: 5),
                             decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: Colors.grey[400]!),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: TextField(
-                              controller: _aadharCardController,
-                              keyboardType: TextInputType.number,
+                              textAlign: TextAlign.start,
                               maxLength: 12,
+                              buildCounter: (
+                                context, {
+                                required int currentLength,
+                                required bool isFocused,
+                                required int? maxLength,
+                              }) {
+                                return null; // 👈 hides the counter
+                              },
+                              controller: _aadharCardController,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              keyboardType: TextInputType.phone,
+                              decoration: InputDecoration.collapsed(
+                                hintText: 'Enter Aadhar Card Number',
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[400],
+                                  fontSize: 14,
+                                ),
+                              ),
                               onChanged: (value) {
                                 if (value.length == 12) {
                                   _verifyAadhaar(value);
                                 }
                               },
-                              decoration: InputDecoration.collapsed(
-                                hintText: 'Enter Aadhar Card Number',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 16,
-                                ),
-                              ),
                             ),
                           ),
                         ),
                         SizedBox(width: 12),
                         Container(
-                          height: 40,
+                          height: 30,
                           padding: EdgeInsets.symmetric(horizontal: 16),
                           decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.green,
-                            ),
+                            border: Border.all(color: Colors.green),
                             borderRadius: BorderRadius.circular(24),
-                            color: _isAadhaarVerified
-                                ? Colors.green.withOpacity(0.1)
-                                : null,
                           ),
                           child: Center(
                             child: _isAadhaarVerifying
                                 ? SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2),
-                            )
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2),
+                                  )
                                 : Text(
-                              _isAadhaarVerified ? 'Verified' : 'Verify',
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                                    _isAadhaarVerified ? 'Verified' : 'Verify',
+                                    style: TextStyle(
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
                     ),
-                    if (_isAadhaarVerified)
-                      Padding(
-                        padding: EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          'Aadhaar verified successfully!',
-                          style: TextStyle(
-                            color: Colors.green,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
               SizedBox(height: 24),
-              Container(
+              SizedBox(
                 width: double.infinity,
-                child: _buildFileUploadSection(
-                    'Upload Aadhar Card (Front & Back)', 'ADHAAR'),
+                child: _buildAadhaarFileUploadSection(
+                    'Upload Aadhar Card (Front & Back)', "AADHAAR"),
               ),
               SizedBox(height: 24),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: _buildTextField(
-                  'Driving License Number',
-                  _drivingLicenseController,
-                ),
+                    'Driving License Number', _drivingLicenseController),
               ),
               SizedBox(height: 24),
-              Container(
+              SizedBox(
                 width: double.infinity,
                 child: _buildFileUploadSection(
                     'Upload Driving License', 'DRIVING LICENSE'),
@@ -1499,14 +1403,372 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               SizedBox(height: 24),
               Container(
                 width: double.infinity,
-                child: _buildFileUploadSection('Upload Permit', 'PERMIT'),
+                child: _buildPermitFileUploadSection('Upload Permit', 'PERMIT'),
               ),
               SizedBox(height: 40),
-              _buildContinueButton(),
+            ],
+          )),
+          _buildContinueButton(),
+        ]),
+      ),
+    );
+  }
+
+  Widget _buildAadhaarFileUploadSection(String title, String from) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showDocumentPickerBottomSheet("AADHAAR"),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientFirst,
+                        gradientSecond,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'browse',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (adhaar.isNotEmpty)
+                _showAadharCardImages()
+              else
+                SizedBox(height: 12),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _showAadharCardImages() {
+    return Container(
+      alignment: Alignment.centerLeft,
+      height: 100,
+      width: double.infinity,
+      child: ListView.builder(
+        shrinkWrap: true,
+        itemCount: adhaar.length,
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Container(
+                  clipBehavior: Clip.hardEdge,
+                  margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    color: Colors.grey.shade400,
+                    border: Border.all(color: AppColors.blue, width: 1),
+                  ),
+                  child: Image.file(
+                    File(adhaar[index]?.path ?? ""),
+                    width: 50,
+                    fit: BoxFit.cover,
+                    height: 50,
+                  )),
+              Positioned(
+                  right: 5,
+                  top: 12,
+                  child: GestureDetector(
+                    onTap: () {
+                      adhaar.removeAt(index);
+                      updateState();
+                    },
+                    child: SvgPicture.asset(
+                      "assets/svg/cross.svg",
+                      width: 15,
+                      height: 15,
+                    ),
+                  ))
+            ],
+          );
+        },
       ),
+    );
+  }
+
+  Widget _showDLImages() {
+    return Stack(
+      children: [
+        Container(
+            clipBehavior: Clip.hardEdge,
+            margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.grey.shade400,
+              border: Border.all(color: AppColors.blue, width: 1),
+            ),
+            child: Image.file(
+              File(drivingLicense[0]?.path ?? ""),
+              width: 50,
+              fit: BoxFit.cover,
+              height: 50,
+            )),
+        Positioned(
+            right: 5,
+            top: 12,
+            child: GestureDetector(
+              onTap: () {
+                drivingLicense.clear();
+                updateState();
+              },
+              child: SvgPicture.asset(
+                "assets/svg/cross.svg",
+                width: 15,
+                height: 15,
+              ),
+            ))
+      ],
+    );
+  }
+
+  Widget _showPermitImage() {
+    return Stack(
+      children: [
+        Container(
+            clipBehavior: Clip.hardEdge,
+            margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.grey.shade400,
+              border: Border.all(color: AppColors.blue, width: 1),
+            ),
+            child: Image.file(
+              File(permit[0]?.path ?? ""),
+              width: 50,
+              fit: BoxFit.cover,
+              height: 50,
+            )),
+        Positioned(
+            right: 5,
+            top: 12,
+            child: GestureDetector(
+              onTap: () {
+                permit.clear();
+                updateState();
+              },
+              child: SvgPicture.asset(
+                "assets/svg/cross.svg",
+                width: 15,
+                height: 15,
+              ),
+            ))
+      ],
+    );
+  }
+
+  Widget _buildFileUploadSection(String title, String from) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showDocumentPickerBottomSheet(from),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientFirst,
+                        gradientSecond,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'browse',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (drivingLicense.isNotEmpty)
+                _showDLImages()
+              else
+                SizedBox(
+                  height: 10,
+                )
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPermitFileUploadSection(String title, String from) {
+    return Column(
+      children: [
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.black,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: MediaQuery.of(context).size.width,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.black87,
+                ),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[500],
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => _showDocumentPickerBottomSheet(from),
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        gradientFirst,
+                        gradientSecond,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    'browse',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+              if (permit.isNotEmpty)
+                _showPermitImage()
+              else
+                SizedBox(
+                  height: 10,
+                )
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -1537,45 +1799,221 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                 ),
               ),
               SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: vehicleCounts.entries.map((entry) {
-                  return Column(
-                    children: [
-                      Text(
-                        entry.key,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Expanded(
+                    child: Column(
+                  children: [
+                    Text(
+                      "Car",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
                       ),
-                      SizedBox(height: 4),
-                      GestureDetector(
-                        onTap: () => _updateVehicleCount(entry.key, 1),
-                        onLongPress: () => _updateVehicleCount(entry.key, -1),
-                        child: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey[50],
-                          ),
-                          child: Center(
-                            child: Text(
-                              entry.value.toString(),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
+                    ),
+                    SizedBox(height: 4),
+                    GestureDetector(
+                      child: Container(
+                        width: 40,
+                        alignment: Alignment.center,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[50],
+                        ),
+                        child: Center(
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            maxLength: 2,
+                            buildCounter: (
+                              context, {
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
+                            controller: _carCountController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            onChanged: (value) {
+                              updateVehicleCount();
+                            },
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration.collapsed(
+                              hintText: '0',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  );
-                }).toList(),
-              ),
+                    ),
+                  ],
+                )),
+                Expanded(
+                    child: Column(
+                  children: [
+                    Text(
+                      "SUV",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    GestureDetector(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[50],
+                        ),
+                        child: Center(
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            maxLength: 2,
+                            buildCounter: (
+                              context, {
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
+                            onChanged: (value) {
+                              updateVehicleCount();
+                            },
+                            controller: _suvCountController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration.collapsed(
+                              hintText: '0',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+                Expanded(
+                    child: Column(
+                  children: [
+                    Text(
+                      "Mini Van",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    GestureDetector(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[50],
+                        ),
+                        child: Center(
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            maxLength: 2,
+                            buildCounter: (
+                              context, {
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
+                            controller: _miniVanCountController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            onChanged: (value) {
+                              updateVehicleCount();
+                            },
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration.collapsed(
+                              hintText: '0',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+                Expanded(
+                    child: Column(
+                  children: [
+                    Text(
+                      "Bus",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    GestureDetector(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[300]!),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[50],
+                        ),
+                        child: Center(
+                          child: TextField(
+                            textAlign: TextAlign.center,
+                            maxLength: 2,
+                            buildCounter: (
+                              context, {
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
+                            controller: _busCountController,
+                            onChanged: (value) {
+                              updateVehicleCount();
+                            },
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration.collapsed(
+                              hintText: '0',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+              ]),
               SizedBox(height: 24),
               Row(
                 children: [
@@ -1598,20 +2036,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                               onTap: () {
                                 showDialog(
                                   context: context,
-                                  builder: (context) =>
-                                      AlertDialog(
-                                        title: Text('Vehicle Count Info'),
-                                        content: Text(
-                                          'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                            child: Text('OK'),
-                                          ),
-                                        ],
+                                  builder: (context) => AlertDialog(
+                                    title: Text('Vehicle Count Info'),
+                                    content: Text(
+                                      'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
                                       ),
+                                    ],
+                                  ),
                                 );
                               },
                               child: Container(
@@ -1638,12 +2074,29 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                             border: Border.all(color: Colors.grey[300]!),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
-                            totalVehicles.toString(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.black,
-                              fontWeight: FontWeight.w500,
+                          child: TextField(
+                            textAlign: TextAlign.start,
+                            maxLength: 2,
+                            buildCounter: (
+                              context, {
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
+                            readOnly: true,
+                            controller: _totalVehicleCountController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration.collapsed(
+                              hintText: '0',
+                              hintStyle: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                         ),
@@ -1716,18 +2169,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                   ),
                   child: _selectedImage != null
                       ? ClipOval(
-                    child: Image.file(
-                      _selectedImage!,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                  )
+                          child: Image.file(
+                            _selectedImage!,
+                            width: 60,
+                            height: 60,
+                            fit: BoxFit.cover,
+                          ),
+                        )
                       : Icon(
-                    Icons.person,
-                    size: 30,
-                    color: Colors.grey[600],
-                  ),
+                          Icons.person,
+                          size: 30,
+                          color: Colors.grey[600],
+                        ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -1825,7 +2278,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     return Container(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed:submittingForm ?null: nextStep,
+        onPressed: submittingForm ? null : nextStep,
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF8B5CF6),
           padding: EdgeInsets.symmetric(vertical: 16),
@@ -1834,17 +2287,23 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           ),
           elevation: 0,
         ),
-        child: submittingForm ? SizedBox(width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            color: Colors.blue, strokeWidth: 2,),):Text(
-          'Submit',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: submittingForm
+            ? SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.blue,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                'Submit',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -1881,14 +2340,15 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     );
   }
 
-  Widget _buildTextField(String label,
-      TextEditingController controller, {
-        String? placeholder,
-        String? Function(String?)? validator,
-        TextInputType? keyboardType,
-        int? maxLength,
-        Function(String)? onChanged,
-      }) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? placeholder,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+    int? maxLength,
+    Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1913,6 +2373,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             keyboardType: keyboardType,
             maxLength: maxLength,
             onChanged: onChanged,
+            buildCounter: (
+              context, {
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) {
+              return null; // 👈 hides the counter
+            },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
               hintStyle: TextStyle(
@@ -1926,12 +2394,13 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     );
   }
 
-  Widget _buildDropdown<T>(String label,
-      T? value,
-      List<DropdownMenuItem<T>> items,
-      void Function(T?) onChanged, {
-        String? Function(T?)? validator,
-      }) {
+  Widget _buildDropdown<T>(
+    String label,
+    T? value,
+    List<DropdownMenuItem<T>> items,
+    void Function(T?) onChanged, {
+    String? Function(T?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1965,6 +2434,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     );
   }
 
+/*
   Widget _buildFileUploadSection(String title, String from) {
     return Column(
       children: [
@@ -1978,10 +2448,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         ),
         SizedBox(height: 8),
         Container(
-          width: MediaQuery
-              .of(context)
-              .size
-              .width,
+          width: MediaQuery.of(context).size.width,
           height: 150,
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
@@ -2043,6 +2510,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       ],
     );
   }
+*/
 
   Widget _buildContinueButton() {
     return Container(
@@ -2067,5 +2535,27 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         ),
       ),
     );
+  }
+
+  void updateState() {
+    if (mounted) setState(() {});
+  }
+
+  void updateVehicleCount() {
+    int car = _carCountController.text.toString().isNotEmpty
+        ? int.parse(_carCountController.text.toString())
+        : 0;
+    int bus = _busCountController.text.toString().isNotEmpty
+        ? int.parse(_busCountController.text.toString())
+        : 0;
+    int van = _miniVanCountController.text.toString().isNotEmpty
+        ? int.parse(_miniVanCountController.text.toString())
+        : 0;
+    int suv = _suvCountController.text.toString().isNotEmpty
+        ? int.parse(_suvCountController.text.toString())
+        : 0;
+
+    totalVehicles = car + bus + van + suv;
+    _totalVehicleCountController.text = totalVehicles.toString();
   }
 }

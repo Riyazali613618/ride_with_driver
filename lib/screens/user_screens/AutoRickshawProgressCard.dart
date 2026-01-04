@@ -2,18 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:r_w_r/screens/autoRikshawDriverRegistration.dart';
 import 'package:r_w_r/screens/driverRegistrationScreen.dart';
 import 'package:r_w_r/screens/eRickshawRegistration.dart';
-import 'package:r_w_r/screens/registration_screens/become_driver_registration_screen.dart';
-import 'package:r_w_r/screens/registration_screens/e_rikshaw_registration_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/api_model/language/language_model.dart';
 import '../../constants/color_constants.dart';
 import '../../l10n/app_localizations.dart';
-import '../../transporterRegistration/presentation/pages/transporter_registration_page.dart';
 import '../independentCarOwnerRegistration.dart' hide ApplicationStatus;
-import '../registration_screens/auto_rikshaw_registration_screenn.dart';
-import '../registration_screens/indipendent_car_owner_registration_screen.dart';
-import '../registration_screens/transporter_registration_screen.dart';
 import '../transporterRegistration.dart' hide ApplicationStatus;
 
 class AutoRickshawProgressCard extends StatefulWidget {
