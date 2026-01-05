@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,7 +28,7 @@ class SubscriptionsScreen extends StatefulWidget {
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
-  SubscriptionData? _subscriptionData;
+  List<Subscription> _subscriptionData=[];
   bool _isInitialized = false;
 
   @override
@@ -71,20 +74,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     });
 
     try {
-      final service = SubscriptionService(baseUrl: widget.baseUrl);
-      final response = await service.getSubscriptionDetails();
+      final data = await UserProfileService().getUserProfile();
+      _subscriptionData=data.subscriptions;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = '';
+      });
 
-      if (response.status) {
-        setState(() {
-          _subscriptionData = response.data;
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = response.message;
-          _isLoading = false;
-        });
-      }
     } catch (e) {
       setState(() {
         _errorMessage = e is ApiException ? e.message : localizations.retry;
@@ -129,26 +125,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       //   ),
       //   titleSpacing: 0,
       // ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              ColorConstants.primaryColorNew,
-              ColorConstants.redColorNew,
-              ColorConstants.whiteNew,
-            ],
-            stops: [
-              0.0,
-              0.20,
-              0.80,
-            ],
-          ),
-        ),
+      body: CommonParentContainer(
+        showLargeGradient: true,
         child: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(height: 20,),
               Container(
                 padding:
                 const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
@@ -256,11 +238,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
 
     // Check if there are no plans and no active transactions
-    final hasActivePlan = _subscriptionData?.activePlan != null;
-    final hasActiveTransactions = _subscriptionData?.transactions.any(
-        (transaction) => transaction.status.toLowerCase() == 'active') ?? false;
-    
-    if (_subscriptionData == null || (!hasActivePlan && !hasActiveTransactions)) {
+    List<Subscription> activeSubscriptions =
+    _subscriptionData.where((s) => s.status == 'active').toList();
+    List<Subscription> expiredSubscription =
+    _subscriptionData.where((s) => s.status != 'active').toList();
+
+    if (_subscriptionData.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -307,12 +290,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ),
           ),
           const SizedBox(height: 16),
-        if (_subscriptionData!.activePlan != null) 
-          _buildActivePlanCard(
-            _subscriptionData!.activePlan!,
-            _subscriptionData!.transactions.isNotEmpty ? _subscriptionData!.transactions.first : null,
-          ),
-          if (_subscriptionData!.transactions.isNotEmpty) ...[
+          if (activeSubscriptions.isNotEmpty)
+            _buildActivePlanCard(
+              activeSubscriptions,
+            ),
+          if (expiredSubscription.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(
               localizations.transaction_history,
@@ -323,7 +305,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ..._subscriptionData!.transactions
+            ...expiredSubscription
                 .map(
                   (transaction) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
@@ -333,13 +315,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 .toList(),
           ],
           const SizedBox(height: 24),
-          _buildActionButtons(),
+          // _buildActionButtons(),
         ],
       ),
     );
   }
 
-  Widget _buildActivePlanCard(ActivePlan activePlan, TransactionModel? tran) {
+  Widget _buildActivePlanCard(List<Subscription> activePlan) {
     final localizations = AppLocalizations.of(context)!;
 
     final bool isPro = true;
@@ -348,10 +330,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     final Color featureIconBorderColor = Colors.white;
     final Color featureIconBackgroundColor = Colors.transparent;
 
-    final double priceInStandardUnit = activePlan.price / 1;
+    final double priceInStandardUnit = (activePlan[0].totalAmount??0)/1;
 
     // Safe date handling
-    final expiryDate = activePlan.validity;
+    final expiryDate = DateFormat("dd-MM-yyyy hh:mm a").format(activePlan[0].endDate!);
     // final purchaseDate = activePlan.validity;
 
     // String formattedEndDate = expiryDate != null
@@ -400,7 +382,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      tran?.status.capitalize() ?? 'Active',
+                      'Active',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -427,7 +409,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            '${activePlan.name} ',
+            activePlan[0].category??"",
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -475,7 +457,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                     localizations.expiryNotAvailable,
+                    localizations.expiryNotAvailable,
                     style: TextStyle(
                       fontSize: 14,
                       color: textColor.withAlpha(200),
@@ -487,9 +469,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            activePlan.featureTitle.isNotEmpty
-                ? activePlan.featureTitle
-                : localizations.planIncludes,
+            activePlan[0].category??"",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -497,7 +477,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          ...activePlan.features
+          /*...activePlan.features
               .map((feature) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Row(
@@ -535,7 +515,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ],
             ),
           ))
-              .toList(),
+              .toList(),*/
         ],
       ),
     );
@@ -554,10 +534,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  Widget _buildTransactionItem(TransactionModel transaction) {
+  Widget _buildTransactionItem(Subscription transaction) {
     final localizations = AppLocalizations.of(context)!;
 
-    final double amountInStandardUnit = transaction.amount / 1;
+    final double amountInStandardUnit =( transaction.subscriptionAmount??0) / 1;
 
     final transactionDate = DateTime.now();
     String formattedDate = transactionDate != null
@@ -565,10 +545,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         : 'Invalid date';
     return GestureDetector(
       onTap: () {
-        _showInvoiceBottomSheet(context, transaction.amount.toString());
+        _showInvoiceBottomSheet(context, transaction.subscriptionAmount.toString());
 
-        print(
-            "this is the invoice pdf in html🔫🔫🔫🔫🔫🔫🔫🔫 ${transaction.amount}");
       },
       child: Container(
         decoration: BoxDecoration(
@@ -598,7 +576,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transaction.planName,
+                    transaction.category??"",
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -630,18 +608,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: transaction.status.toLowerCase() == 'active'
-                        ? Colors.green.shade50
-                        : Colors.orange.shade50,
+                    color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(
-                    transaction.status.capitalize(),
+                  child: Text("EXPIRED",
                     style: TextStyle(
                       fontSize: 12,
-                      color: transaction.status.toLowerCase() == 'active'
-                          ? Colors.green.shade700
-                          : Colors.orange.shade700,
+                      color: Colors.orange.shade700,
                     ),
                   ),
                 ),

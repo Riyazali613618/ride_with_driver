@@ -1,3 +1,5 @@
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+
 class TransporterDriverProfileModel {
   final bool status;
   final String message;
@@ -81,10 +83,12 @@ class UserProfileData {
   final String? upgradedFromCategory;
   final List<String>? vehicleType;
   final List<Vehicle>? vehicles;
+  final List<Subscription>? subscriptions;
   final String? transportationPermit;
 
   UserProfileData({
     this.vehicleLimit,
+    this.subscriptions,
     this.id,
     this.mobileNumber,
     this.otpExpiry,
@@ -233,6 +237,9 @@ class UserProfileData {
       vehicles: json['vehicles'] != null
           ? List<Vehicle>.from(json['vehicles'].map((x) => Vehicle.fromJson(x)))
           : null,
+      subscriptions: json['subscriptions'] != null
+          ? List<Subscription>.from(json['subscriptions'].map((x) => Subscription.fromJson(x)))
+          : null,
       transportationPermit: json['transportationPermit'],
     );
   }
@@ -294,6 +301,7 @@ class UserProfileData {
     if (upgradedFromCategory != null) data['upgradedFromCategory'] = upgradedFromCategory;
     if (vehicleType != null) data['vehicleType'] = vehicleType;
     if (vehicles != null) data['vehicles'] = vehicles!.map((x) => x.toJson()).toList();
+    if (subscriptions != null) data['subscriptions'] = subscriptions!.map((x) => x.toJson()).toList();
     if (transportationPermit != null) data['transportationPermit'] = transportationPermit;
 
     return data;

@@ -9,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/screens/Eligibility/bloc/eligibility_event.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
 import 'package:r_w_r/screens/layout.dart';
 import 'package:r_w_r/screens/profileScreens/widget/videoPlayerWidget.dart';
@@ -68,7 +69,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   int currentSlideIndex = 0;
   PageController pageController = PageController();
   ApplicationStatus _status = ApplicationStatus.notStarted;
-  String? whoReg;
 
   Future<ApplicationStatus> _getApplicationStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -166,10 +166,10 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   }*/
 
   /// 🔹 Wrapper to decide which status to load based on whoReg
-  Future<ApplicationStatus> _loadWhoRegAndStatus() async {
+  Future<ApplicationStatus> _loadWhoRegAndStatus(String type) async {
     final prefs = await SharedPreferences.getInstance();
-    whoReg = prefs.getString('who_reg') ?? "";
-    String userType = (whoReg ?? "").toUpperCase();
+
+    String userType = type.toUpperCase();
     if (userType.contains("RICKSHAW")) {
       return _loadApplicationStatus('auto_rickshaw_status');
     } else if (userType == "DRIVER") {
@@ -396,6 +396,12 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       _loadProfileData();
       getEligibilityData();
     });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        context.read<EligibilityBloc>().add(FetchEligibilityEvent());
+      } catch (e) {}
+    });
   }
 
   Future<void> _loadProfileData() async {
@@ -416,9 +422,11 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if(mounted)setState(() {
-        _currentSubscriptionVisibility = widget.showDriverSubscription ?? false;
-      });
+      if (mounted)
+        setState(() {
+          _currentSubscriptionVisibility =
+              widget.showDriverSubscription ?? false;
+        });
     }
   }
 
@@ -1708,129 +1716,58 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                         ),
                       ),
 
-                      if ((whoReg ?? "").toLowerCase() == "user")
-                        Consumer<HomeDataProvider>(
-                          builder: (context, provider, child) {
-                            return provider.showDashboard == false
-                                ? Column(
-                                    children: [
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 10),
-                                        child: SizedBox(
-                                          height: 54,
-                                          child: ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12), // ✅ works fine
-                                                  ),
-                                                  elevation: 0,
-                                                  backgroundColor:
-                                                      Color(0xff0064E0)),
-                                              onPressed: () {
-                                                if (_status !=
-                                                        ApplicationStatus
-                                                            .submitted ||
-                                                    _status !=
-                                                        ApplicationStatus
-                                                            .notStarted) {
-                                                  Widget? destination =
-                                                      PartnerRegistrationWidget();
-
-                                                  String userType =
-                                                      (whoReg ?? "")
-                                                          .toUpperCase();
-                                                  if (userType
-                                                      .contains("RICKSHAW")) {
-                                                    destination =
-                                                        AutoRickshawDriverFlow();
-                                                  } else if (userType ==
-                                                      "DRIVER") {
-                                                    destination =
-                                                        DriverRegistrationFlow();
-                                                  } else if (userType ==
-                                                      "E_RICKSHAW") {
-                                                    destination =
-                                                        ERickshawDriverFlow();
-                                                  } else if (userType ==
-                                                      "TRANSPORTER") {
-                                                    destination =
-                                                        TransporterRegistrationFlow();
-                                                  } else if (userType ==
-                                                      "INDEPENDENT_CAR_OWNER") {
-                                                    destination =
-                                                        IndependentTaxiOwnerFlow();
-                                                  }
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          BlocProvider(
-                                                        create: (context) =>
-                                                            PlanBloc(
-                                                          RepositoryProvider.of<
-                                                                  PlanRepository>(
-                                                              context),
-                                                        ),
-                                                        child: destination,
-                                                      ),
-                                                    ),
-                                                  );
-                                                } else {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          BlocProvider(
-                                                        create: (context) =>
-                                                            PlanBloc(
-                                                          RepositoryProvider.of<
-                                                                  PlanRepository>(
-                                                              context),
-                                                        ),
-                                                        child:
-                                                            PartnerRegistrationWidget(),
-                                                      ),
-                                                    ),
-                                                  );
-                                                }
-                                              },
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Image.asset(
-                                                    AssetsConstant.partnerIcon,
-                                                    height: 40,
-                                                    width: 40,
-                                                  ),
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  Text(
-                                                    localizations
-                                                        .become_partner,
-                                                    style: TextStyle(
-                                                        fontSize: 18,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color: Colors.white),
-                                                  )
-                                                ],
-                                              )),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      BlocBuilder<EligibilityBloc, EligibilityState>(
+                        builder: (context, state) {
+                          if (state is EligibilityLoaded &&
+                              (state.userType.isEmpty ||
+                                  state.userType.toLowerCase() == "user")) {
+                            return Container(
+                              height: 50,
+                              width: double.infinity,
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 10),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          12), // ✅ works fine
+                                    ),
+                                    elevation: 0,
+                                    backgroundColor: Color(0xff0064E0)),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => BlocProvider(
+                                        create: (context) => PlanBloc(
+                                          RepositoryProvider.of<PlanRepository>(
+                                              context),
                                         ),
+                                        child: PartnerRegistrationWidget(),
                                       ),
-                                    ],
-                                  )
-                                : SizedBox.shrink();
-                          },
-                        ),
-                      SizedBox(height: 10,),
+                                    ),
+                                  );
+                                },
+                                child: const Text(
+                                  'Become Partner',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            );
+                          }
+
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
                       BlocBuilder<EligibilityBloc, EligibilityState>(
                         builder: (context, state) {
                           if (state is EligibilityLoaded &&
@@ -1838,22 +1775,26 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             return Container(
                               height: 50,
                               width: double.infinity,
-                              margin: EdgeInsets.symmetric(horizontal: 15,vertical: 10),
+                              margin: EdgeInsets.symmetric(
+                                  horizontal: 15, vertical: 10),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(
+                                      borderRadius: BorderRadius.circular(
                                           12), // ✅ works fine
                                     ),
                                     elevation: 0,
-                                    backgroundColor:
-                                    Color(0xff0064E0)),
+                                    backgroundColor: Color(0xff0064E0)),
                                 onPressed: () {
                                   _navigateToApplication(state.userType);
-
                                 },
-                                child: const Text('Complete Your Application',style: TextStyle(color: Colors.white,fontSize: 16,fontWeight: FontWeight.bold),),
+                                child: const Text(
+                                  'Complete Your Application',
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
+                                ),
                               ),
                             );
                           }
@@ -2045,12 +1986,11 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     return data;
   }
 
-
   Future<void> _navigateToApplication(String type) async {
     Widget? destination;
 
-    String userType =type;
-    if (userType=="RICKSHAW") {
+    String userType = type;
+    if (userType == "RICKSHAW") {
       destination = AutoRickshawDriverFlow();
     } else if (userType == "DRIVER") {
       destination = DriverRegistrationFlow();
@@ -2068,9 +2008,9 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
         MaterialPageRoute(builder: (context) => destination!),
       ).then((_) {
         // Load status based on whoReg
-        String userType = (whoReg ?? "").toUpperCase();
+        String userType = type.toUpperCase();
         if (userType.contains("RICKSHAW")) {
-          _loadWhoRegAndStatus();
+          _loadWhoRegAndStatus(userType);
         } else if (userType == "DRIVER") {
           _loadApplicationStatusDriver();
         } else if (userType == "E_RICKSHAW") {

@@ -5,6 +5,7 @@ import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 
+import '../../../api/api_service/user_service/user_profile_service.dart';
 import '../../../components/app_appbar.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../utils/color.dart';
@@ -38,7 +39,6 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _visiblePlan = widget.showDriverSubscription;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadProfileData();
     });
@@ -56,18 +56,12 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
   @override
   void didUpdateWidget(MoreScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.showDriverSubscription != widget.showDriverSubscription) {
-      setState(() {
-        _visiblePlan = widget.showDriverSubscription;
-      });
-    }
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       setState(() {
-        _visiblePlan = widget.showDriverSubscription;
       });
       _loadProfileData();
     }
@@ -75,6 +69,8 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
 
   Future<void> _loadProfileData() async {
     await context.read<ProfileProvider>().loadProfile(context);
+    final data = await UserProfileService().getUserProfile();
+    _visiblePlan = data.subscriptions != null && data.subscriptions.isNotEmpty;
     if (mounted) setState(() {});
   }
 
@@ -86,7 +82,6 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    _visiblePlan = widget.showDriverSubscription;
     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
@@ -241,7 +236,6 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
-
                 ],
               ),
             ),
@@ -258,7 +252,6 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
 
   Widget _buildMenuItems(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-    _visiblePlan = widget.showDriverSubscription;
 
     return Container(
       decoration: BoxDecoration(
@@ -273,7 +266,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
         child: Column(
           children: [
             Visibility(
-              visible: !_visiblePlan,
+              visible: _visiblePlan,
               child: _buildMenuItem(
                 icon: Icons.map_outlined,
                 title: localizations.plans,
@@ -290,7 +283,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               ),
             ),
             Visibility(
-              visible: !_visiblePlan,
+              visible: _visiblePlan,
               child: _buildMenuItem(
                 icon: Icons.star_border,
                 title: localizations.my_ratings,
