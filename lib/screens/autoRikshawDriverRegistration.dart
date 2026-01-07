@@ -1181,7 +1181,7 @@ List<String> langIds=[];
                   controller: _aboutController,
                   maxLines: null,
                   decoration: InputDecoration.collapsed(
-                    hintText: 'Tell us about yourself...',
+                    hintText: 'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                   ),
                 ),
               ),
@@ -1509,7 +1509,16 @@ List<String> langIds=[];
 
   void _showRegistrationAgreementBottomSheet() {
     bool isAgreed = false;
-
+    bool isScrolledToBottom = false;
+    final ScrollController _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 10) {
+        setState(() {
+          isScrolledToBottom = true;
+        });
+      }
+    });
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -1555,6 +1564,7 @@ List<String> langIds=[];
                             SizedBox(height: 20),
                             Expanded(
                               child: SingleChildScrollView(
+                                controller: _scrollController,
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
                                   'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
@@ -1574,6 +1584,7 @@ List<String> langIds=[];
                               children: [
                                 GestureDetector(
                                   onTap: () {
+                                    if(isScrolledToBottom)
                                     setState(() {
                                       isAgreed = !isAgreed;
                                     });

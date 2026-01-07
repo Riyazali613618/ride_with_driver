@@ -126,7 +126,7 @@ class _VehicleAddedSuccessfullyScreenState
                                       ),
                                     )
                                   : const Text(
-                                      "Add more vehicles",
+                                      "Add more vehicle",
                                       style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 12,

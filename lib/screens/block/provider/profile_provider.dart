@@ -296,6 +296,7 @@ class ProfileProvider with ChangeNotifier {
       context: context,
       builder: (context) {
         return AlertDialog(
+          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
           backgroundColor: Colors.white,
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -303,36 +304,31 @@ class ProfileProvider with ChangeNotifier {
               SizedBox(
                 height: 16,
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF641BB4),
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(9), // Less round: 4 px radius
-                  ),
-                ),
-                onPressed: () {
+              GestureDetector(
+                onTap: () {
                   _isDialogVisible = false;
                   notifyListeners();
                   Navigator.of(context).pop();
-                  // Handle "Continue as User"
                 },
-                child: Text('Continue as User'),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF641BB4),
-                  foregroundColor: Colors.white,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(9), // Less round: 4 px radius
+                child: Container(
+                  alignment: Alignment.center,
+                  height: 48,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                      color: Color(0xFF641BB4),
+                      borderRadius: BorderRadius.all(Radius.circular(9))),
+                  child: Text(
+                    'Book Now',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   ),
                 ),
-                onPressed: () {
+              ),
+              SizedBox(height: 20),
+              GestureDetector(
+                onTap: () {
                   _isDialogVisible = false;
                   Navigator.of(context).pop();
                   Navigator.pushReplacement(
@@ -340,9 +336,35 @@ class ProfileProvider with ChangeNotifier {
                       MaterialPageRoute(
                           builder: (context) => PartnerRegistrationWidget()));
                   notifyListeners();
-                  // Handle "Become Partner"
                 },
-                child: Text('Become Partner'),
+                child: Container(
+                  alignment: Alignment.center,
+                  height: 48,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                      color: Color(0xFF641BB4),
+                      borderRadius: BorderRadius.all(Radius.circular(9))),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Become Partner',
+                        style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                      ),
+                      Text(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        '(For drivers, vehicle owners & transporters)',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                            color: Colors.white),
+                      )
+                    ],
+                  ),
+                ),
               ),
               SizedBox(
                 height: 10,
@@ -450,8 +472,9 @@ class UserPrefillUtility {
         final data = json.decode(response.body);
         if (data['status'] == true && data['data'] != null) {
           _cachedUserData = data['data'];
-          if(_cachedUserData!['vehicleLimit']!=null){
-            await TokenManager.saveVehicleLimit(_cachedUserData!['vehicleLimit']??1);
+          if (_cachedUserData!['vehicleLimit'] != null) {
+            await TokenManager.saveVehicleLimit(
+                _cachedUserData!['vehicleLimit'] ?? 1);
           }
           return _cachedUserData;
         }

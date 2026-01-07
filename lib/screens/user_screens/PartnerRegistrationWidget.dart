@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/components/custom_activity.dart';
+import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_bloc.dart';
 import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_event.dart';
 import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_state.dart';
+import 'package:r_w_r/screens/layout.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:r_w_r/utils/images.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,8 +97,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       try {
         final prefs = await SharedPreferences.getInstance();
         whoReg = prefs.getString('who_reg');
-        setState(() {
-        });
+        setState(() {});
       } catch (_) {}
       context
           .read<UpgradeablePlansBloc>()
@@ -178,7 +180,6 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
   @override
   Widget build(BuildContext context) {
     if (whoReg == "Transporter") {
-
       return Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(),
@@ -224,6 +225,16 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
               onTap: () {
                 if (Navigator.canPop(context)) {
                   Navigator.of(context).pop();
+                } else {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return Layout();
+                      },
+                    ),
+                    (route) => false,
+                  );
                 }
               },
               child: Icon(
@@ -236,15 +247,27 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             iconTheme: const IconThemeData(color: Colors.white),
             centerTitle: false,
             titleSpacing: 0,
-            title: const Text(
-              "Select your Partnership Type",
-              style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold),
-            ),
           ),
-          body: _buildScrollableContent(),
+          body: Column(children: [
+            const SizedBox(
+              height: 100,
+            ),
+            Text(
+              "Choose & Start Earning As",
+              style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black),
+            ),
+            Text(
+              "Select how you want to work and earn",
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black),
+            ),
+            Expanded(child: _buildScrollableContent())
+          ]),
         ),
       ),
     );
@@ -297,13 +320,13 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
         return CustomScrollView(
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.only(top: 130, left: 16, right: 16),
+              padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1,
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 1 / 1.1,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   childCount: filteredOptions.length,
@@ -325,14 +348,14 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             .add(FetchUserStatusEvent(option['key'], currentCategory));
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: option['colors'],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(.08),
@@ -341,23 +364,202 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             ),
           ],
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Stack(
           children: [
-            Image.asset(option['icon'], height: 60),
-            const SizedBox(height: 10),
-            Text(
-              option['title'],
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset(option['icon'], height: 40),
+                const SizedBox(height: 5),
+                Text(
+                  option['title'],
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w400,
+                    color: ColorConstants.black2,
+                  ),
+                ),
+                Text(
+                  getDescription(option['key']),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: ColorConstants.black2,
+                  ),
+                ),
+              ],
             ),
+            Align(
+                alignment: Alignment.topRight,
+                child: GestureDetector(
+                  onTap: () {
+                    showInfoPopup(option['key']);
+                  },
+                  child: SvgPicture.asset(
+                    "assets/svg/info.svg",
+                    width: 20,
+                    height: 20,
+                  ),
+                ))
           ],
         ),
       ),
+    );
+  }
+
+  String getDescription(String category) {
+    String desc = "";
+    if (category == "RICKSHAW") {
+      desc = "City Rides";
+    } else if (category == "DRIVER") {
+      desc = "Direct booking";
+    } else if (category == "E_RICKSHAW") {
+      desc = "Local & daily trips";
+    } else if (category == "TRANSPORTER") {
+      desc = "Outstation & city Or Fleet Bookings";
+    } else if (category == "INDEPENDENT_CAR_OWNER") {
+      desc = "Outstation & city";
+    }
+
+    return desc;
+  }
+
+  void showInfoPopup(String category) {
+    String desc = "";
+    String title = "";
+    if (category == "RICKSHAW") {
+      desc =
+          "1. Valid driving licence\n2. Aadhaar Card ID verification\n3. Vehicle details with photos and videos";
+      title = "Drivers who owned, rented or operate an Auto Rickshaw.";
+    } else if (category == "DRIVER") {
+      desc = "1. Valid driving licence\n2. Adhaar Card ID verification";
+      title = "Drivers who do not own a vehicle.";
+    } else if (category == "E_RICKSHAW") {
+      desc =
+          "1. Valid driving licence (as applicable)\n2. Aadhaar Card ID verification\n3. Vehicle details with photos and videos";
+      title = "Drivers who owned, rented or operate an E-Rickshaw.";
+    } else if (category == "TRANSPORTER") {
+      desc =
+          "1. Business ID verification or valid Transport Permit (if applicable)\n2. Company details (legal name, address, contact person, contact number)\n3. GST Certificate (mandatory)\n4. Vehicle details with photos and videos";
+      title =
+          "Owners managing more than two vehicles or those who want to register as a Transport Agency. ";
+    } else if (category == "INDEPENDENT_CAR_OWNER") {
+      desc =
+          "1. Valid driving licence\n2. Aadhaar Card ID verification\n3. Active vehicle insurance\n4. Vehicle details with photos and videos";
+      title =
+          "Drivers who operate their own or rented car (Limited to one or two vehicles).";
+    }
+
+    showStandAloneDriverDialog(title,desc,category);
+  }
+
+  void showStandAloneDriverDialog(String title,String desc,String category) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+               Text(
+                category,
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Subtitle
+               Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Section title
+              const Text(
+                'Mandatory Requirements',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              Text(
+                desc,
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Optional action button
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Reusable list item widget
+class _RequirementItem extends StatelessWidget {
+  final String index;
+  final String text;
+
+  const _RequirementItem({
+    required this.index,
+    required this.text,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$index.',
+          style: const TextStyle(fontSize: 16),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(
+              fontSize: 16,
+              height: 1.4,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

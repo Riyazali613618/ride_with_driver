@@ -98,7 +98,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                               ],
                             ),
                             padding: EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 10),
+                                horizontal: 5, vertical: 15),
                             width: MediaQuery.of(context).size.width,
                             child: RichText(
                                 textAlign: TextAlign.center,
@@ -137,7 +137,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                                 ],
                               ),
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
+                                  horizontal: 5, vertical: 15),
                               child: RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
@@ -178,7 +178,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                                 ],
                               ),
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
+                                  horizontal: 5, vertical: 15),
                               child: RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
@@ -213,27 +213,48 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                                   ),
                                 ],
                               ),
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 10),
-                              child: RichText(
-                                  textAlign: TextAlign.center,
-                                  text: TextSpan(
-                                      style: TextStyle(
-                                          letterSpacing: 1, wordSpacing: 1),
-                                      children: [
-                                        TextSpan(
-                                            text: "Value Addition",
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white)),
-                                        TextSpan(
-                                            text: "\n30000.00",
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w400,
-                                                color: Colors.white)),
-                                      ]))),
+                              child: Stack(
+                                children: [
+                                  Padding(padding: EdgeInsets.symmetric(horizontal: 5,vertical: 15),
+                                  child: RichText(
+                                      textAlign: TextAlign.center,
+                                      text: TextSpan(
+                                          style: TextStyle(
+                                              letterSpacing: 1, wordSpacing: 1),
+                                          children: [
+                                            TextSpan(
+                                                text: "Extra Charges",
+                                                style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white)),
+                                            TextSpan(
+                                                text: "\n30000.00",
+                                                style: TextStyle(
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: Colors.white)),
+                                          ])),),
+                                  Positioned(
+                                    top: 3,
+                                    right: 0,
+                                    child: Align(
+                                        alignment: Alignment.topRight,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            showInfoPopup();
+                                          },
+                                          child: SvgPicture.asset(
+                                            "assets/svg/info.svg",
+                                            width: 14,
+                                            height: 14,
+                                            color: Colors.white,
+                                          ),
+                                        )),
+                                  )
+
+                                ],
+                              )),
                         ],
                       )),
                       const SizedBox(width: 10),
@@ -317,12 +338,13 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                                   ),
                                   padding: EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 4),
-                                  child: Text("  + Add Value  ",
+                                  child: Text("  + Add Extra  ",
                                       style: TextStyle(
                                           fontSize: 10,
                                           fontWeight: FontWeight.w400,
                                           color: Colors.white))),
                             ),
+/*
                             GestureDetector(
                               onTap: () {
                                 showDialog(
@@ -359,6 +381,7 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
                                           fontWeight: FontWeight.w400,
                                           color: Colors.white))),
                             ),
+*/
                           ],
                         ),
                     ],
@@ -579,6 +602,60 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
       ),
     );
   }
+
+  void showInfoPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              Text(
+                "Extra Charges",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                "Any extra costs applicable to the trip (e.g., tolls, parking, food, water, etc.).",
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // Optional action button
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'OK',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
 
   Widget _circle(bool done, String text) {
     return CircleAvatar(
@@ -1157,4 +1234,5 @@ class _ViewBookingDetailsScreenState extends State<ViewBookingDetailsScreen> {
       ],
     );
   }
+
 }

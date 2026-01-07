@@ -205,6 +205,7 @@ Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
   final features = data.features;
   final discount = data.earlyBirdDiscountPercentage;
   final price = data.finalPrice;
+  final price2 = data.grossPrice;
   final duration = data.durationInMonths;
   return AnimatedContainer(
     duration: const Duration(milliseconds: 300),
@@ -245,6 +246,10 @@ Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
             Text("₹ ${price.toStringAsFixed(0)}",
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(width: 8),
+            Text("₹ ${price2.toStringAsFixed(0)}",
+                style:
+                    const TextStyle(decoration: TextDecoration.lineThrough,fontSize: 11, fontWeight: FontWeight.bold)),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

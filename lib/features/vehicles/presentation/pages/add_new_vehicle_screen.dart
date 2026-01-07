@@ -11,6 +11,7 @@ import 'package:r_w_r/api/api_service/media_service.dart';
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
+import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/features/vehicles/domain/entities/vehicle_entity.dart';
 import 'package:r_w_r/features/vehicles/presentation/bloc/profile_repository.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_added_successfully_screen.dart';
@@ -86,7 +87,7 @@ class AddVehicleProvider extends ChangeNotifier {
       };
 
       // Add vehicleType and vehicleName only if not auto-rickshaw or e-rickshaw
-     /* if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
+      /* if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
         if (vehicleType != null) requestBody["vehicleType"] = vehicleType;
         if (vehicleName != null) requestBody["vehicleName"] = vehicleName;
       }*/
@@ -94,7 +95,7 @@ class AddVehicleProvider extends ChangeNotifier {
       if (vehicleName != null) requestBody["vehicleName"] = vehicleName;
 
       // Add RC photos only if not auto-rickshaw or e-rickshaw
-     /* if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
+      /* if (userType != 'Auto-Rickshaw' && userType != 'E-Rickshaw Driver') {
         if (rcBookFrontPhoto != null)
           requestBody["rcBookFrontPhoto"] = rcBookFrontPhoto;
         if (rcBookBackPhoto != null)
@@ -213,17 +214,20 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   ];
 
   // Check if field should be shown based on user type
-  bool get _shouldShowVehicleType =>true
-    /*  widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver'*/;
+  bool get _shouldShowVehicleType => true
+      /*  widget.userType != 'Auto-Rickshaw' &&
+      widget.userType != 'E-Rickshaw Driver'*/
+      ;
 
-  bool get _shouldShowVehicleName =>true
+  bool get _shouldShowVehicleName => true
       /*widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver'*/;
+      widget.userType != 'E-Rickshaw Driver'*/
+      ;
 
-  bool get _shouldShowRCPhotos =>true
+  bool get _shouldShowRCPhotos => true
       /*widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver'*/;
+      widget.userType != 'E-Rickshaw Driver'*/
+      ;
 
   @override
   void initState() {
@@ -567,15 +571,34 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
                           _buildAirConditioningField(),
 
-                          _buildMultiSelectField(
-                            label: 'Specifications',
-                            selectedItems: _selectedSpecifications,
-                            allItems: _specifications,
-                            onSelectionChanged: (specs) {
-                              setState(() {
-                                _selectedSpecifications = specs;
-                              });
-                            },
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                  child: _buildMultiSelectField(
+                                label: 'Specifications',
+                                selectedItems: _selectedSpecifications,
+                                allItems: _specifications,
+                                onSelectionChanged: (specs) {
+                                  setState(() {
+                                    _selectedSpecifications = specs;
+                                  });
+                                },
+                              )),
+                              GestureDetector(
+                                onTap: () {
+                                  showAddCustomSpecificationPopup();
+                                },
+                                child: Container(
+                                  margin: EdgeInsets.only(bottom: 30, left: 10),
+                                  child: Icon(
+                                    Icons.add_circle,
+                                    color: ColorConstants.primaryColor,
+                                    size: 24,
+                                  ),
+                                ),
+                              )
+                            ],
                           ),
 
                           _buildFileUploadSection(
@@ -910,7 +933,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(8),
@@ -1391,6 +1414,108 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
           setState(() {});
         }
       },
+    );
+  }
+
+  TextEditingController specController = TextEditingController();
+
+  void showAddCustomSpecificationPopup() {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Title
+              const Text(
+                'Add New Specification',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Subtitle
+              const Text(
+                'Drivers who do not own a vehicle.',
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Section title
+              TextFormField(
+                controller: specController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(
+                      color: Colors.grey,
+                      width: 1,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey, width: 1),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Optional action button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _selectedSpecifications
+                            .add(specController.text.toString());
+                        setState(() {});
+                        specController.text = "";
+                      },
+                      child: const Text(
+                        'OK',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

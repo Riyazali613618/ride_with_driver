@@ -705,7 +705,18 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   void _showRegistrationAgreementBottomSheet() {
     bool isAgreed = false;
+    bool isScrolledToBottom = false;
 
+    final ScrollController _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 10) {
+        setState(() {
+          isScrolledToBottom = true;
+
+        });
+      }
+    });
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -751,6 +762,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                             SizedBox(height: 20),
                             Expanded(
                               child: SingleChildScrollView(
+                                controller: _scrollController,
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
                                   'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
@@ -770,32 +782,37 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    setState(() {
-                                      isAgreed = !isAgreed;
-                                    });
+                                    if (isScrolledToBottom) {
+                                      setState(() {
+                                        isAgreed = !isAgreed;
+                                      });
+                                    }
                                   },
-                                  child: Container(
-                                    width: 24,
-                                    height: 24,
-                                    decoration: BoxDecoration(
-                                      color: isAgreed
-                                          ? Color(0xFF8B5CF6)
-                                          : Colors.transparent,
-                                      border: Border.all(
+                                  child: Opacity(
+                                        opacity: isScrolledToBottom ? 1.0 : 0.4,
+                                    child: Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
                                         color: isAgreed
                                             ? Color(0xFF8B5CF6)
-                                            : Colors.grey[400]!,
-                                        width: 2,
+                                            : Colors.transparent,
+                                        border: Border.all(
+                                          color: isAgreed
+                                              ? Color(0xFF8B5CF6)
+                                              : Colors.grey[400]!,
+                                          width: 2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(4),
                                       ),
-                                      borderRadius: BorderRadius.circular(4),
+                                      child: isAgreed
+                                          ? Icon(
+                                              Icons.check,
+                                              color: Colors.white,
+                                              size: 16,
+                                            )
+                                          : null,
                                     ),
-                                    child: isAgreed
-                                        ? Icon(
-                                            Icons.check,
-                                            color: Colors.white,
-                                            size: 16,
-                                          )
-                                        : null,
                                   ),
                                 ),
                                 SizedBox(width: 12),
@@ -868,16 +885,16 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     });
     try {
       final XFile xFile = XFile(_selectedImage!.path);
-       final result = await MediaService()
+      final result = await MediaService()
           .uploadMedia(xFile, kind: "profilePhoto", type: "profilePhoto");
-       final coverImage = await MediaService()
+      final coverImage = await MediaService()
           .uploadMedia(xFile, kind: "coverImage", type: "coverImage");
       String aadhaarFrontUrl = "";
       String aadhaarBackUrl = "";
       String drivingLicencePhoto = "";
       String transportationPermitPhoto = "";
 
-       if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
+      if (adhaar.isNotEmpty && adhaar[0]!.path.isNotEmpty) {
         final XFile xFileAadhaarFront = XFile(adhaar[0]!.path);
         final aadharCardPhotoFront = await MediaService()
             .uploadMedia(xFileAadhaarFront, kind: "document", type: "document");
@@ -2138,7 +2155,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                   controller: _aboutController,
                   maxLines: null,
                   decoration: InputDecoration.collapsed(
-                    hintText: 'Tell us about yourself...',
+                    hintText:
+                        'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                   ),
                 ),
               ),

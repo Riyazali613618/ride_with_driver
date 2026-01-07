@@ -69,9 +69,16 @@ class QuotationTermsPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            const Text(
-              "Payment terms:",
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                const Text("Payment terms:",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: const Text("Mutually agreed between Driver / Transporter and the customer",
+                      style: TextStyle(fontWeight: FontWeight.w400, fontSize: 10)),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             Row(
