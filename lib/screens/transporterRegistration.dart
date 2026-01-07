@@ -114,11 +114,18 @@ class _TransporterRegistrationFlowState
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       MyProfileData? profile = await TokenManager.getProfile();
       if (profile == null) return;
-
+      _contactPersonNameController.text =
+          "${profile.firstName ?? ""} ${profile.lastName ?? ""}";
+      _phoneNumberController.text =
+          profile.mobileNumber ?? profile.businessMobileNumber??"";
       _transporterModel = _transporterModel.copyWith(
         firstName: profile.firstName ?? '',
         lastName: profile.lastName ?? '',
+        contactPersonName: _contactPersonNameController.text.toString().trim(),
+        phoneNumber: _phoneNumberController.text.toString().trim(),
       );
+      setState(() {
+      });
     });
     UserPrefillUtility.prefillUserData(
       contactPersonController: _contactPersonNameController,
@@ -163,7 +170,7 @@ class _TransporterRegistrationFlowState
           String data = prefs.getString('transporter_data') ?? '';
           if (data.isNotEmpty) {
             _transporterModel = TransporterModel.fromJson(jsonDecode(data));
-            _transporterModel=  _transporterModel.copyWith(photo: "");
+            _transporterModel = _transporterModel.copyWith(photo: "");
           } else {
             MyProfileData? profile = await TokenManager.getProfile();
             if (profile != null) {
@@ -1799,8 +1806,8 @@ class _TransporterRegistrationFlowState
             _buildTextField(
               'About (Optional)',
               _bioController,
-              placeholder: 'Tell us about your transport business...',
-              maxLines: 4,
+              placeholder: 'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
+              maxLines: 5,
             ),
             SizedBox(height: 40),
             _buildContinueButton(),
@@ -2153,6 +2160,7 @@ class _TransporterRegistrationFlowState
       decoration: _dropdownDecoration(label).copyWith(
         hintText: placeholder,
         labelText: label,
+        hintStyle: TextStyle(fontSize: 12,fontWeight: FontWeight.w400,color: Colors.grey),
         suffixIcon: suffixIcon,
         counterText: '', // Hide the maxLength counter
       ),
@@ -2202,7 +2210,11 @@ class _TransporterRegistrationFlowState
     _cityController.text = _transporterModel.address.city ?? "";
     _stateController.text = _transporterModel.address.state ?? "";
     _pincodeController.text =
-        _transporterModel.address.pincode.toString() ?? "";
+        _transporterModel.address.pincode!>0?_transporterModel.address.pincode.toString(): "";
+    _contactPersonNameController.text =
+        _transporterModel.contactPersonName ?? "";
+    _phoneNumberController.text =
+        _transporterModel.phoneNumber ?? "";
     _contactPersonNameController.text =
         _transporterModel.contactPersonName ?? "";
     _gstinController.text = _transporterModel.gstin ?? "";

@@ -317,7 +317,7 @@ class TransporterModel {
     String? transportationPermit,
     String? fleetSize,
     Counts? counts,
-    String? contactPersonName,
+    String? contactPersonName,z
   }) {
     return TransporterModel(
       lastName: lastName ?? this.lastName,
@@ -362,7 +362,7 @@ class Address {
       addressLine: json['addressLine'],
       state: json['state'],
       city: json['city'],
-      pincode: json['pincode'],
+      pincode: json['pincode']??0,
     );
   }
 

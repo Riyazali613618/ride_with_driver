@@ -21,9 +21,11 @@ class PlanSelectionScreen extends StatefulWidget {
   final String category;
   final String title;
   final int count;
+  final bool isAdOns;
 
   const PlanSelectionScreen(
       {super.key,
+      this.isAdOns=false,
       required this.title,
       required this.count,
       required this.currentCategory,
@@ -139,6 +141,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       itemBuilder: (context, index, realIdx) {
                         final plan = state.plans![index];
                         return _planCard(
+                          widget.isAdOns,
                             widget.count,
                             plan,
                             index == currentIndex,
@@ -200,7 +203,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   }
 }
 
-Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
+Widget _planCard(bool isAdOns,int count, PlanModel data, bool isActive, BuildContext context,
     String category, String currentCategory) {
   final features = data.features;
   final discount = data.earlyBirdDiscountPercentage;
@@ -295,9 +298,9 @@ Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
         Center(
           child: GestureDetector(
             onTap: () {
-              if (category == UserType.TRANSPORTER.name) {
+              if (category == UserType.TRANSPORTER.name && isAdOns) {
                 showAddVehicleQtyPopup(context, data, category, currentCategory,
-                    PaymentType.registrationWithSubscription, 2);
+                    PaymentType.registrationWithSubscription, 2,isAdOns);
               } else {
                 showModalBottomSheet(
                   context: context,
@@ -352,21 +355,22 @@ Widget _planCard(int count, PlanModel data, bool isActive, BuildContext context,
 }
 
 void showAddVehicleQtyPopup(BuildContext context, PlanModel plan,
-    String category, String currentCategory, PaymentType planType, int count) {
+    String category, String currentCategory, PaymentType planType, int count,bool isAdOns) {
   showDialog(
     context: context,
     builder: (_) => NumberOfVehiclesPopup(
       initialValue: count,
       plan: plan,
+      isAdOns: isAdOns,
       onConfirm: (count) {
-        showShortTermPlanBottomSheet(
+        showShortTermPlanBottomSheet(isAdOns,
             context, plan, category, currentCategory, planType, count);
       },
     ),
   );
 }
 
-void showShortTermPlanBottomSheet(BuildContext context, PlanModel plan,
+void showShortTermPlanBottomSheet(bool isAdOns,BuildContext context, PlanModel plan,
     String category, String currentCategory, PaymentType planType, int count) {
   showModalBottomSheet(
     context: context,
@@ -376,6 +380,7 @@ void showShortTermPlanBottomSheet(BuildContext context, PlanModel plan,
       value: context.read<PaymentBloc>(),
       child: ShortTermPlanBottomSheet(
           context: context,
+          isAdOns: isAdOns,
           plan: plan,
           category: category,
           currentCategory: currentCategory,
@@ -386,12 +391,14 @@ void showShortTermPlanBottomSheet(BuildContext context, PlanModel plan,
 }
 
 class NumberOfVehiclesPopup extends StatefulWidget {
+  final bool isAdOns;
   final int initialValue;
   final PlanModel plan;
   final Function(int) onConfirm;
 
   const NumberOfVehiclesPopup({
     super.key,
+    this.isAdOns = false,
     this.initialValue = 1,
     required this.plan,
     required this.onConfirm,
@@ -575,10 +582,12 @@ class ShortTermPlanBottomSheet extends StatefulWidget {
   final String category;
   final PaymentType planType;
   final int count;
+  final bool isAdOns;
   final BuildContext context;
 
   const ShortTermPlanBottomSheet(
       {required this.plan,
+      this.isAdOns=false,
       required this.context,
       required this.currentCategory,
       required this.category,
@@ -729,10 +738,11 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                       builder: (context) => BlocProvider.value(
                         value: context.read<PaymentBloc>(),
                         child: PaymentBottomSheetBlocView(
+                          isAdOns: widget.isAdOns,
                           plan: widget.plan,
                           finalPrice: widget.count * widget.plan.finalPrice,
                           planType: widget.category,
-                          vehicleCount: (widget.count ?? 0).toString(),
+                          vehicleCount: (2+(widget.count ?? 0)).toString(),
                           currentCategory: widget.currentCategory,
                           paymentType: PaymentType.registrationWithSubscription,
                           category: widget.category,

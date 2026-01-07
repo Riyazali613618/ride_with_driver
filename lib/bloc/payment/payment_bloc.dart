@@ -70,7 +70,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   void _handleExternalWallet(ExternalWalletResponse response) {
     // Handle external wallet
   }
-
+bool isAddOns=false;
   Future<void> _onInitiatePayment(
     InitiatePayment event,
     Emitter<PaymentState> emit,
@@ -102,12 +102,14 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   category: event.category ?? event.planType,
                   currentCategory: event.currentCategory ?? "",
                   planId: event.plan.id,
+                  isAdOns: event.isAdOns,
                   maxvehicles: event.maxvehicles ?? 1,
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
                   pay_amount: event.finalPrice ?? 0);
           break;
       }
+      isAddOns=event.isAdOns;
 
       final createOrderResponse = CreateOrderResponse.fromJson(orderResponse);
 
@@ -192,15 +194,25 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           );
           break;
         case PaymentType.registrationWithSubscription:
-          await PaymentService.saveOrderForRegistrationWithSubscription(
-            razorpayOrderId: event.response.orderId ?? '',
-            razorpayPaymentId: event.response.paymentId ?? '',
-            razorpaySignature: event.response.signature ?? '',
-            category: event.category ?? event.planType,
-            currentCategory: event.currentCategory ?? "",
-            planId: event.plan.id,
-            registrationFeeId: event.registrationFeeId ?? '',
-          );
+          if(isAddOns){
+            await PaymentService.verifyAddonsOrder({
+              "razorpay_order_id":event.response.orderId,
+              "razorpay_payment_id":event.response.paymentId,
+              "razorpay_signature":event.response.signature,
+            }
+            );
+          }
+          else{
+            await PaymentService.saveOrderForRegistrationWithSubscription(
+              razorpayOrderId: event.response.orderId ?? '',
+              razorpayPaymentId: event.response.paymentId ?? '',
+              razorpaySignature: event.response.signature ?? '',
+              category: event.category ?? event.planType,
+              currentCategory: event.currentCategory ?? "",
+              planId: event.plan.id,
+              registrationFeeId: event.registrationFeeId ?? '',
+            );
+          }
           break;
       }
 
@@ -235,7 +247,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     }
   }
 
-  void openRazorpayCheckout(Map<String, dynamic> options) {
+  void openRazorpayCheckout(Map<String, dynamic> options,{bool isAdOns=false}) {
     try {
       print('[PaymentBloc] Opening Razorpay checkout with options: $options');
       print(

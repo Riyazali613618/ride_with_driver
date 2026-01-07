@@ -10,12 +10,16 @@ import 'package:r_w_r/features/vehicles/presentation/bloc/profile_event.dart'
 import 'package:r_w_r/features/vehicles/presentation/bloc/profile_state.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../api/api_model/user_model/my_profile_model.dart';
 import '../../../../api/api_model/user_model/user_eligibility_model.dart';
 import '../../../../api/api_service/user_service/user_profile_service.dart';
+import '../../../../bloc/payment/payment_bloc.dart';
 import '../../../../components/app_loader.dart';
 import '../../../../constants/api_constants.dart';
 import '../../../../plan/data/repositories/plan_repository.dart';
 import '../../../../plan/presentation/bloc/plan_bloc.dart';
+import '../../../../plan/presentation/screens/plan_selection_screen.dart';
+import '../../../../screens/block/provider/profile_provider.dart';
 import '../../../../screens/user_screens/PartnerRegistrationWidget.dart';
 import '../../../../screens/vehicle/add_vehicle_screen.dart';
 import '../../../../screens/vehicle/vehicleRegistrationScreen.dart';
@@ -111,7 +115,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                   ),
                                 ),
                                 BlocConsumer<ProfileBloc, ProfileState>(
-                                  listener: (context, state) {
+                                  listener: (context, state) async {
                                     if (state is VehicleAllowedState) {
                                       Navigator.pushReplacement(
                                         context,
@@ -125,7 +129,8 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                     }
 
                                     if (state is VehicleLimitExceededState) {
-                                      showUpgradeDialog(context, "");
+                                      final userType = await getProfileData();
+                                      showUpgradeDialog(context, userType);
                                     }
 
                                     if (state is ProfileErrorState) {
@@ -229,15 +234,15 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     pref = await SharedPreferences.getInstance();
   }
 
-  void showUpgradeDialog(BuildContext context, String type) {
+  void showUpgradeDialog(BuildContext context, String userType) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(type.isEmpty ? "Limit Exceeded" : "Upgrade Limit"),
+        title: const Text("Limit Exceeded"),
         content: Text(
-          type.isEmpty
-              ? "You have exceed your vehicle adding limit, please upgrade to your partner type to add more vehicle."
-              : "Please upgrade your partner type to add more vehicle.",
+          userType == "TRANSPORTER"
+              ? "You have exceed your vehicle adding limit, please upgrade your transporter plan to add more vehicle."
+              : "You have exceed your vehicle adding limit, please upgrade to transporter to add more vehicle.",
         ),
         actions: [
           TextButton(
@@ -247,23 +252,51 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BlocProvider(
-                    create: (context) => PlanBloc(
-                      RepositoryProvider.of<PlanRepository>(context),
+              if (userType == "TRANSPORTER") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (_) =>
+                          PaymentBloc(profileProvider: context.read<ProfileProvider>()),
+                      child: PlanSelectionScreen(
+                        category: userType,
+                        title: "Upgrade Add ons Vehicles",
+                        count: 1,
+                        currentCategory: "",
+                        isAdOns:true
+                      ),
                     ),
-                    child: PartnerRegistrationWidget(),
                   ),
-                ),
-              );
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => PlanBloc(
+                        RepositoryProvider.of<PlanRepository>(context),
+                      ),
+                      child: PartnerRegistrationWidget(),
+                    ),
+                  ),
+                );
+              }
             },
             child: const Text("Upgrade"),
           ),
         ],
       ),
     );
+  }
+
+  Future<String> getProfileData() async {
+    MyProfileData data = await UserProfileService().getUserProfile();
+    if (data.usertype != null) {
+      return data.usertype ?? "";
+    } else {
+      return "";
+    }
   }
 
   Future<UserEligibilityModel> getEligibilityData() async {

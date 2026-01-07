@@ -57,11 +57,20 @@ class PaymentService {
     required String currentCategory,
     required String category,
     required String planId,
+    bool isAdOns = false,
     int durationInMonths = 1,
     int maxvehicles = 1,
     double pay_amount = 1,
     double earlyBirdDiscountPrice = 1,
   }) async {
+    if(isAdOns){
+      return _createAddOnsVehicles({
+        'add_on_vehicles': maxvehicles,
+        'subscriptionPlanId': planId,
+        'amount': pay_amount,
+        'paymentGatewayType': "razorpay",
+      });
+    }else
     if (currentCategory.isNotEmpty) {
       return _createUpgradeOrder({
         'chosen_category': category,
@@ -441,6 +450,82 @@ class PaymentService {
       }
     } catch (e) {
       throw Exception('Failed to create order: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> _createAddOnsVehicles(Map<String, Object> map) async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+      print(token);
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/user/create-addon'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(map),
+      );
+      print("==================================================");
+      print(response.body);
+      print("==================================================");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        var data = jsonDecode(response.body);
+        print("Errro : ${response.body}");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          rootScaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text(
+                data["error"].toString(),
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
+        throw Exception('Failed to create addon: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to create addon: $e');
+    }
+    return jsonDecode("response.body");
+  }
+
+  static Future<Map<String, dynamic>> verifyAddonsOrder(
+      Map<String, dynamic> requestBody) async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/user/verify-addon'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      print("==================================================");
+      print(response);
+      print("==================================================");
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        return responseData;
+      } else {
+        throw Exception('Failed to save order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to save order: $e');
     }
   }
 }
