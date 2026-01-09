@@ -79,7 +79,7 @@ class OtpVerificationData {
     message = json['message'];
     accessToken = json['accessToken'];
     refreshToken = json['refreshToken'];
-    accessTokenExpiresIn = json['accessTokenExpiresIn'];
+    accessTokenExpiresIn = json['accessTokenExpiresIn'].toString();
     refreshTokenExpiresIn = json['refreshTokenExpiresIn'];
     language = json['language'] != null
         ? new Language.fromJson(json['language'])

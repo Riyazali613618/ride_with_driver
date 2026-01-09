@@ -17,6 +17,7 @@ import 'package:r_w_r/features/vehicles/presentation/bloc/profile_state.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/vehicle/add_vehicle_screen.dart';
 import 'package:r_w_r/utils/common_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../api/api_model/user_model/my_profile_model.dart';
 import '../../../../bloc/payment/payment_bloc.dart';
@@ -46,6 +47,17 @@ class VehicleAddedSuccessfullyScreen extends StatefulWidget {
 
 class _VehicleAddedSuccessfullyScreenState
     extends State<VehicleAddedSuccessfullyScreen> {
+  bool isCheckingLimit = false;
+  SharedPreferences? pref;
+  Future<void> initPref() async {
+    pref = await SharedPreferences.getInstance();
+
+  }
+  @override
+  void initState() {
+    super.initState();
+    initPref();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -96,8 +108,35 @@ class _VehicleAddedSuccessfullyScreenState
                           }
 
                           if (state is VehicleLimitExceededState) {
-                            final userType = await getProfileData();
-                            showUpgradeDialog(context, userType);
+                           /* final userType = await getProfileData();
+                            showUpgradeDialog(context, userType);*/
+                            final profile = await getProfileData();
+                            isCheckingLimit = false;
+                            if (mounted) {
+                              setState(() {});
+                            }
+                            int limit = profile.vehicleLimit ?? 0;
+                            int totalVehicleAdded =
+                                profile.vehicles.length;
+                            if ((profile.addonVehicles ?? [])
+                                .isNotEmpty) {
+                              limit = limit +
+                                  (profile.addonVehicles?[0].addOnVehicles??0);
+                            }
+                            if (totalVehicleAdded >= limit) {
+                              showUpgradeDialog(
+                                  context, profile.usertype ?? "");
+                            } else {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AddNewVehicleScreen(
+                                    userType:
+                                    "${pref?.getString('userType')}",
+                                  ),
+                                ),
+                              );
+                            }
                           }
 
                           if (state is ProfileErrorState) {
@@ -107,10 +146,22 @@ class _VehicleAddedSuccessfullyScreenState
                           }
                         },
                         builder: (context, state) {
-                          return InkWell(
+                          return  isCheckingLimit
+                              ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child:
+                            CircularProgressIndicator(
+                              color: Colors.purple,
+                              strokeWidth: 1,
+                            ),
+                          )
+                              : InkWell(
                             onTap: state is ProfileLoading
                                 ? null
                                 : () {
+                              if (isCheckingLimit) return;
+                              isCheckingLimit = true;
                                     context
                                         .read<ProfileBloc>()
                                         .add(CheckVehicleLimitEvent());
@@ -231,12 +282,8 @@ class _VehicleAddedSuccessfullyScreenState
     );
   }
 
-  Future<String> getProfileData() async {
+  Future<MyProfileData> getProfileData() async {
     MyProfileData data = await UserProfileService().getUserProfile();
-    if (data.usertype != null) {
-      return data.usertype ?? "";
-    } else {
-      return "";
-    }
+    return data;
   }
 }

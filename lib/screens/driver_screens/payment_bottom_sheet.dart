@@ -1,7 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/transporterRegistration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/api_service/payment_service/payment_service.dart';
 import '../../bloc/payment/payment_bloc.dart';
@@ -30,7 +32,7 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
   const PaymentBottomSheetBlocView({
     super.key,
     required this.finalPrice,
-    this.isAdOns=false,
+    this.isAdOns = false,
     required this.plan,
     required this.currentCategory,
     this.vehicleCount = "",
@@ -55,7 +57,7 @@ class _PaymentBottomSheetBlocViewState
 
   void _setupPaymentListeners() {
     // The PaymentBloc handles Razorpay events internally
-    context.read<PaymentBloc>().stream.listen((state) {
+    context.read<PaymentBloc>().stream.listen((state) async {
       print('[PaymentBottomSheet] Payment state changed: ${state.runtimeType}');
       if (state is PaymentOrderCreated) {
         print(
@@ -67,7 +69,9 @@ class _PaymentBottomSheetBlocViewState
           try {
             print(
                 '[PaymentBottomSheet] Opening Razorpay in post-frame callback');
-            context.read<PaymentBloc>().openRazorpayCheckout(state.orderData,isAdOns: widget.isAdOns);
+            context
+                .read<PaymentBloc>()
+                .openRazorpayCheckout(state.orderData, isAdOns: widget.isAdOns);
             print('[PaymentBottomSheet] Razorpay checkout call completed');
           } catch (e) {
             print('[PaymentBottomSheet] Error opening Razorpay: $e');
@@ -78,7 +82,19 @@ class _PaymentBottomSheetBlocViewState
             '[PaymentBottomSheet] PaymentCompleted detected - navigating and closing');
         if (!context.mounted) Navigator.pop(context);
         if (!context.mounted) Navigator.pop(context);
-        navigateBasedOnPlanType(context, widget.planType);
+        if (widget.isAdOns) {
+          SharedPreferences? pref = await SharedPreferences.getInstance();
+
+          Navigator.of(context).pop();
+          Navigator.push(
+            context,
+            CupertinoPageRoute(
+              builder: (context) => AddNewVehicleScreen(
+                  userType: "${pref.getString('userType')}"),
+            ),
+          );
+        } else
+          navigateBasedOnPlanType(context, widget.planType);
       } else if (state is PaymentError) {
         print('[PaymentBottomSheet] PaymentError detected: ${state.message}');
       }

@@ -70,7 +70,10 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   void _handleExternalWallet(ExternalWalletResponse response) {
     // Handle external wallet
   }
-bool isAddOns=false;
+
+  bool isAddOns = false;
+  int maxVehicles = 1;
+
   Future<void> _onInitiatePayment(
     InitiatePayment event,
     Emitter<PaymentState> emit,
@@ -84,12 +87,16 @@ bool isAddOns=false;
 
       switch (event.paymentType) {
         case PaymentType.subscriptionRenewal:
+          isAddOns=false;
+          maxVehicles=1;
           orderResponse =
               await PaymentService.createOrderForSubscriptionRenewal(
             planId: event.plan.id,
           );
           break;
         case PaymentType.registrationOnly:
+          isAddOns=false;
+          maxVehicles=1;
           orderResponse = await PaymentService.createOrderForRegistrationOnly(
             category: event.category ?? event.planType,
             currentCategory: event.currentCategory ?? "",
@@ -97,6 +104,7 @@ bool isAddOns=false;
           );
           break;
         case PaymentType.registrationWithSubscription:
+          maxVehicles = event.maxvehicles ?? 1;
           orderResponse =
               await PaymentService.createOrderForRegistrationWithSubscription(
                   category: event.category ?? event.planType,
@@ -109,7 +117,10 @@ bool isAddOns=false;
                   pay_amount: event.finalPrice ?? 0);
           break;
       }
-      isAddOns=event.isAdOns;
+      isAddOns = event.isAdOns;
+      if(!isAddOns){
+        maxVehicles=1;
+      }
 
       final createOrderResponse = CreateOrderResponse.fromJson(orderResponse);
 
@@ -132,7 +143,9 @@ bool isAddOns=false;
           'key': orderData.razorpayKey,
           'amount': orderData.amount,
           'name': 'Ride with Driver',
-          'description':(event.currentCategory ?? "").isEmpty? _getPaymentDescription(event.paymentType):"SUBSCRIPTION_UPGRADE",
+          'description': (event.currentCategory ?? "").isEmpty
+              ? _getPaymentDescription(event.paymentType)
+              : "SUBSCRIPTION_UPGRADE",
           'order_id': orderData.orderId,
           'prefill': {
             'contact': profileProvider?.phoneNumber ?? '',
@@ -194,15 +207,14 @@ bool isAddOns=false;
           );
           break;
         case PaymentType.registrationWithSubscription:
-          if(isAddOns){
+          if (isAddOns) {
             await PaymentService.verifyAddonsOrder({
-              "razorpay_order_id":event.response.orderId,
-              "razorpay_payment_id":event.response.paymentId,
-              "razorpay_signature":event.response.signature,
-            }
-            );
-          }
-          else{
+              "razorpay_order_id": event.response.orderId,
+              "razorpay_payment_id": event.response.paymentId,
+              "add_on_vehicles": maxVehicles ?? 2,
+              "subscriptionPlanId": event.plan.id
+            });
+          } else {
             await PaymentService.saveOrderForRegistrationWithSubscription(
               razorpayOrderId: event.response.orderId ?? '',
               razorpayPaymentId: event.response.paymentId ?? '',
@@ -247,7 +259,8 @@ bool isAddOns=false;
     }
   }
 
-  void openRazorpayCheckout(Map<String, dynamic> options,{bool isAdOns=false}) {
+  void openRazorpayCheckout(Map<String, dynamic> options,
+      {bool isAdOns = false}) {
     try {
       print('[PaymentBloc] Opening Razorpay checkout with options: $options');
       print(

@@ -9,12 +9,14 @@ import 'package:r_w_r/screens/block/language/language_provider.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
 import 'dart:io';
 import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
+import 'package:r_w_r/screens/widgets/profile_image_capture.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../api/api_model/rating_and_reviews_model/indicar_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
 import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/become_driver_registration_service.dart';
 import '../components/app_loader.dart';
+import '../components/media_uploader_widget.dart';
 import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
@@ -614,7 +616,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
       final languageProvider =
           Provider.of<LanguageProvider>(context, listen: false);
-      langData = languageProvider.language??[];
+      langData = languageProvider.language ?? [];
       final locProvider = Provider.of<LocationProvider>(context, listen: false);
       locProvider.fetchStates(currentCountry!).then(
         (value) {
@@ -728,102 +730,6 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
     );
   }
 
-  Widget _buildProgressBar() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                height: 8,
-                margin: EdgeInsets.symmetric(horizontal: 0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Container(
-                  height: 8,
-                  width: 30 +
-                      (MediaQuery.of(context).size.width * 0.25 * currentStep),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  SizedBox(width: 1),
-                  ...List.generate(5, (index) {
-                    return Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              gradientFirst,
-                              gradientSecond,
-                            ],
-                          ),
-                          color: Color(0xFF8B5CF6)),
-                      child: Center(
-                        child: Text(
-                          '${index + 1}',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SizedBox(width: 25),
-              ...List.generate(5, (index) {
-                return Container(
-                  width: 60,
-                  child: Text(
-                    stepTitles[index],
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                );
-              }),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildCompanyDetailStep() {
     return Padding(
       padding: EdgeInsets.all(24),
@@ -840,66 +746,36 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               ),
             ),
             SizedBox(height: 40),
-            Center(
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: _showImagePickerBottomSheet,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.grey[300],
-                        border: _selectedImage != null
-                            ? Border.all(color: Color(0xFF8B5CF6), width: 3)
-                            : null,
-                      ),
-                      child: _selectedImage != null
-                          ? ClipOval(
-                              child: Image.file(
-                                _selectedImage!,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              ),
-                            )
-                          : Icon(
-                              Icons.camera_alt,
-                              size: 32,
-                              color: Colors.grey[600],
-                            ),
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: _showImagePickerBottomSheet,
-                    child: Text(
-                      _selectedImage != null
-                          ? 'Tap to change image'
-                          : 'Profile Image / Logo',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: _selectedImage != null
-                            ? Color(0xFF8B5CF6)
-                            : Colors.black87,
-                        decoration: _selectedImage != null
-                            ? TextDecoration.underline
-                            : null,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            ProfileImageCapture(
+              label: 'Profile Image/Logo',
+              useGallery: false,
+              showPreview: true,
+              showDirectImage: false,
+              icon: Icons.camera_alt,
+              kind: "profileImage",
+              useEyeBlinkDetection: true,
+              required: true,
+              onMediaUploaded: (url) {
+                setState(() {
+                  _selectedImage = File(url);
+                  _becomeDriverModel =
+                      _becomeDriverModel.copyWith(profilePhoto: url);
+                });
+              },
+              allowedExtensions: ['jpg', 'jpeg', 'png'],
             ),
             SizedBox(height: 40),
             _buildTextField('Name *', _nameController),
             SizedBox(height: 20),
-            _buildTextField('Phone Number*', _phoneNumberController,keyboardType: TextInputType.phone,
+            _buildTextField(
+              'Phone Number*',
+              _phoneNumberController,
+              keyboardType: TextInputType.phone,
               textLength: 10,
               inputFormatter: [
                 FilteringTextInputFormatter.digitsOnly,
-              ],),
+              ],
+            ),
             SizedBox(height: 20),
             _buildDateField('Date of Birth *'),
             SizedBox(height: 20),
@@ -935,29 +811,33 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           _buildTextField('Address*', _addressController,
               placeholder: '12 house no., XYZ STREET, Opp ABC Mall'),
           SizedBox(height: 20),
-          _buildTextField('Pin Code*', _pinCodeController,
-              placeholder: '788799',keyboardType: TextInputType.phone,
+          _buildTextField(
+            'Pin Code*',
+            _pinCodeController,
+            placeholder: '788799',
+            keyboardType: TextInputType.phone,
             textLength: 6,
             inputFormatter: [
               FilteringTextInputFormatter.digitsOnly,
-            ],),
+            ],
+          ),
           SizedBox(height: 20),
           _buildDropdown(
             'State',
             _selectedState,
             _stateList
                 .map((state) => DropdownMenuItem(
-              value: state.sId,
-              child: Text(state.name.toString()),
-            ))
+                      value: state.sId,
+                      child: Text(state.name.toString()),
+                    ))
                 .toList(),
-                (newValue) {
+            (newValue) {
               setState(() {
                 _selectedState = newValue;
                 _stateController.text = newValue ?? '';
                 if (newValue != null) {
                   final locProvider =
-                  Provider.of<LocationProvider>(context, listen: false);
+                      Provider.of<LocationProvider>(context, listen: false);
                   locProvider.fetchCity(newValue).then((_) {
                     setState(() {
                       _cityList = locProvider.cities;
@@ -968,7 +848,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               });
             },
             validator: (value) =>
-            value == null ? 'Please select a state' : null,
+                value == null ? 'Please select a state' : null,
           ),
           SizedBox(height: 20),
           _buildDropdown(
@@ -1088,14 +968,15 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                             maxLength: 12,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
-                            ],buildCounter: (
+                            ],
+                            buildCounter: (
                               context, {
-                                required int currentLength,
-                                required bool isFocused,
-                                required int? maxLength,
-                              }) {
-                            return null; // 👈 hides the counter
-                          },
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
                             decoration: InputDecoration.collapsed(
                               hintText: 'Enter Aadhar Card Number',
                               hintStyle: TextStyle(
@@ -1151,7 +1032,9 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             Container(
               width: double.infinity,
               child: _buildTextField(
-                  'Driving License Number', _drivingLicenseController,),
+                'Driving License Number',
+                _drivingLicenseController,
+              ),
             ),
             SizedBox(height: 24),
             Container(
@@ -1221,24 +1104,31 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               ),
             ),
             SizedBox(height: 40),
-            _buildTextField('Experience', _experienceController,
-                placeholder: 'Years of experience', keyboardType: TextInputType.phone,
+            _buildTextField(
+              'Experience',
+              _experienceController,
+              placeholder: 'Years of experience',
+              keyboardType: TextInputType.phone,
               textLength: 4,
               inputFormatter: [
                 FilteringTextInputFormatter.digitsOnly,
-              ],),
+              ],
+            ),
             SizedBox(height: 20),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Expanded(
                   child: _buildTextField(
-                      'Minimum Charge', _minimumChargeController,
-                      placeholder: '₹100', keyboardType: TextInputType.phone,
+                    'Minimum Charge',
+                    _minimumChargeController,
+                    placeholder: '₹100',
+                    keyboardType: TextInputType.phone,
                     textLength: 10,
                     inputFormatter: [
                       FilteringTextInputFormatter.digitsOnly,
-                    ],),
+                    ],
+                  ),
                 ),
                 SizedBox(width: 16),
                 Row(
@@ -1284,7 +1174,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               });
             }),
             SizedBox(height: 20),
-           // _buildLanguagePreviewItem('Spoken Languages', _selectedLangs ?? []),
+            // _buildLanguagePreviewItem('Spoken Languages', _selectedLangs ?? []),
             _languageMultiSelectDropdown(),
 
             /*_buildDropdownFieldForLanguage(
@@ -1321,7 +1211,8 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                 controller: _aboutController,
                 maxLines: null,
                 decoration: InputDecoration.collapsed(
-                  hintText: 'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
+                  hintText:
+                      'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                 ),
               ),
             ),
@@ -1332,39 +1223,9 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       ),
     );
   }
-  _buildLanguagePreviewItem(String label, List<String> langs) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              langs.join(","),
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
   bool _isDropdownOpen = false;
-  List<String> langIds=[];
+  List<String> langIds = [];
 
   Widget _languageMultiSelectDropdown() {
     return Column(
@@ -1390,9 +1251,8 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                         ? 'Select languages'
                         : '${_selectedLangs.length} selected',
                     style: TextStyle(
-                      color: _selectedLangs.isEmpty
-                          ? Colors.grey
-                          : Colors.black,
+                      color:
+                          _selectedLangs.isEmpty ? Colors.grey : Colors.black,
                     ),
                   ),
                 ),
@@ -1422,7 +1282,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                 final isSelected = _selectedLangs.contains(language.name);
                 return CheckboxListTile(
                   contentPadding:
-                  EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   value: isSelected,
                   title: Text(language.name!),
                   controlAffinity: ListTileControlAffinity.leading,
@@ -1687,6 +1547,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
   }
 
   void _showRegistrationAgreementBottomSheet() {
+    bool showScrollText = false;
     bool isAgreed = false;
     bool isScrolledToBottom = false;
     final ScrollController _scrollController = ScrollController();
@@ -1695,6 +1556,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           _scrollController.position.maxScrollExtent - 10) {
         setState(() {
           isScrolledToBottom = true;
+          showScrollText = false;
         });
       }
     });
@@ -1759,14 +1621,33 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                               ),
                             ),
                             SizedBox(height: 20),
+                            if (showScrollText)
+                              AnimatedSize(
+                                curve: Curves.easeInOutCubic,
+                                duration: Duration(milliseconds: 450),
+                                child: Text(
+                                  'Scroll to bottom to read the complete agreement and then allow the T&C.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            if (showScrollText) SizedBox(height: 20),
                             Row(
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    if(isScrolledToBottom)
-                                    setState(() {
-                                      isAgreed = !isAgreed;
-                                    });
+                                    if (isScrolledToBottom) {
+                                      setState(() {
+                                        isAgreed = !isAgreed;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        showScrollText = true;
+                                      });
+                                    }
                                   },
                                   child: Container(
                                     width: 24,
@@ -1882,16 +1763,19 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             .uploadMedia(file, kind: "document", type: "document");
         drivingLicenseUrl = photo.url!;
       }
-      List<String> lanList=[];
-      langData.forEach((element) {
-        if(_selectedLangs.contains(element.name)){
-          lanList.add(element.id??"");
-        }
-      },);
-      Address address=Address(addressLine: _addressController.text,
+      List<String> lanList = [];
+      langData.forEach(
+        (element) {
+          if (_selectedLangs.contains(element.name)) {
+            lanList.add(element.id ?? "");
+          }
+        },
+      );
+      Address address = Address(
+          addressLine: _addressController.text,
           pincode: int.parse(_pinCodeController.text),
           state: _selectedState,
-          city: _selectedCity );
+          city: _selectedCity);
       _becomeDriverModel = _becomeDriverModel.copyWith(
         drivingLicenceNumber: _drivingLicenseController.text ?? '',
         drivingLicencePhoto: drivingLicenseUrl,
@@ -1903,7 +1787,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
         businessMobileNumber: _phoneNumberController.text,
         profilePhoto: profilePhoto,
         languageSpoken: lanList,
-        vehicleType: vehicleType ?? [],
+        vehicleType: [_selectedVehicleType ?? ""],
         servicesCities: _serviceCities,
         bio: _aboutController.text,
         experience: int.parse(_experienceController.text),
@@ -2001,10 +1885,10 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
 
   Widget _buildTextField(String label, TextEditingController controller,
       {String? placeholder,
-        TextInputType keyboardType = TextInputType.text,
-        int textLength = 50,
-        TextCapitalization textCapitalization = TextCapitalization.sentences,
-        List<TextInputFormatter>? inputFormatter}) {
+      TextInputType keyboardType = TextInputType.text,
+      int textLength = 50,
+      TextCapitalization textCapitalization = TextCapitalization.sentences,
+      List<TextInputFormatter>? inputFormatter}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2028,14 +1912,15 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
             maxLength: textLength,
             keyboardType: keyboardType,
             inputFormatters: inputFormatter,
-            controller: controller,buildCounter: (
+            controller: controller,
+            buildCounter: (
               context, {
-                required int currentLength,
-                required bool isFocused,
-                required int? maxLength,
-              }) {
-            return null; // 👈 hides the counter
-          },
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) {
+              return null; // 👈 hides the counter
+            },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
               hintStyle: TextStyle(
@@ -2255,10 +2140,10 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                   ),
                 ),
               ),
-              if (adhaar.isNotEmpty) _showAadharCardImages()
+              if (adhaar.isNotEmpty)
+                _showAadharCardImages()
               else
                 SizedBox(height: 12),
-
             ],
           ),
         ),
@@ -2342,6 +2227,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       ],
     );
   }
+
   Widget _showDLImages() {
     return Stack(
       children: [
@@ -2423,6 +2309,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
       ),
     );
   }
+
   Widget _buildContinueButton() {
     return Container(
       width: double.infinity,
@@ -2458,8 +2345,6 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
   }
 
   void updateState() {
-    if(mounted)
-      setState(() {
-      });
+    if (mounted) setState(() {});
   }
 }

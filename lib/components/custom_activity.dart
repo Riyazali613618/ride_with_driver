@@ -35,7 +35,7 @@ Future<bool> logUserActivity({
         'Authorization': 'Bearer $token',
       },
       body: jsonEncode({
-        "driverId": id,
+        "partnerId": id,
         "status": true,
         "communicationType": activity.apiName,
       }),

@@ -24,6 +24,7 @@ class BecomeDriverService {
           'message': 'No authentication token available'
         };
       }
+      print(jsonEncode(model.toJson()));
 
       final url =
           Uri.parse('${ApiConstants.baseUrl}/user/become-driver');

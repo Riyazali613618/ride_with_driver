@@ -379,7 +379,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
           videos,
           kind: "vehicleVideo",
         );
-        imageUrls.add(url ?? "");
+        videoUrls.add(url ?? "");
       }
       print(videoUrls);
       List<String> rcUrls =

@@ -11,6 +11,7 @@ import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:r_w_r/screens/widgets/profile_image_capture.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_model/language/language_model.dart';
@@ -706,6 +707,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   void _showRegistrationAgreementBottomSheet() {
     bool isAgreed = false;
     bool isScrolledToBottom = false;
+    bool showScrollText = false;
 
     final ScrollController _scrollController = ScrollController();
     _scrollController.addListener(() {
@@ -713,7 +715,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           _scrollController.position.maxScrollExtent - 10) {
         setState(() {
           isScrolledToBottom = true;
-
+          showScrollText = false;
         });
       }
     });
@@ -778,6 +780,20 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                               ),
                             ),
                             SizedBox(height: 20),
+                            if (showScrollText)
+                              AnimatedSize(
+                                curve: Curves.easeInOutCubic,
+                                duration: Duration(milliseconds: 450),
+                                child: Text(
+                                  'Scroll to bottom to read the complete agreement and then allow the T&C.',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                            if (showScrollText) SizedBox(height: 20),
                             Row(
                               children: [
                                 GestureDetector(
@@ -786,10 +802,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                                       setState(() {
                                         isAgreed = !isAgreed;
                                       });
+                                    } else {
+                                      setState(() {
+                                        showScrollText = true;
+                                      });
                                     }
                                   },
                                   child: Opacity(
-                                        opacity: isScrolledToBottom ? 1.0 : 0.4,
+                                    opacity: isScrolledToBottom ? 1.0 : 0.4,
                                     child: Container(
                                       width: 24,
                                       height: 24,
@@ -1134,6 +1154,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                 ),
               ),
               SizedBox(height: 40),
+/*
               Center(
                 child: Column(
                   children: [
@@ -1185,6 +1206,24 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                     ),
                   ],
                 ),
+              ),
+*/
+              ProfileImageCapture(
+                label: 'Profile Image/Logo',
+                useGallery: false,
+                showPreview: true,
+                showDirectImage: false,
+                icon: Icons.camera_alt,
+                kind: "profileImage",
+                useEyeBlinkDetection: true,
+                required: true,
+                onMediaUploaded: (url) {
+                  setState(() {
+                    _selectedImage = File(url);
+                    _driverModel = _driverModel.copyWith(profilePhoto: url);
+                  });
+                },
+                allowedExtensions: ['jpg', 'jpeg', 'png'],
               ),
               SizedBox(height: 40),
               _buildTextField(

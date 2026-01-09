@@ -21,7 +21,7 @@ class MyProfileModel {
     );
   }
 
-  factory MyProfileModel.fromJson(Map<String, dynamic> json){
+  factory MyProfileModel.fromJson(Map<String, dynamic> json) {
     return MyProfileModel(
       success: json["success"],
       message: json["message"],
@@ -30,13 +30,13 @@ class MyProfileModel {
   }
 
   Map<String, dynamic> toJson() => {
-    "success": success,
-    "message": message,
-    "data": data?.toJson(),
-  };
+        "success": success,
+        "message": message,
+        "data": data?.toJson(),
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$success, $message, $data, ";
   }
 }
@@ -169,7 +169,7 @@ class MyProfileData {
   final List<Subscription> activeSubscriptions;
   final List<Subscription> expiredSubscriptions;
   final List<dynamic> renewalSubscriptions;
-  final List<dynamic> addonVehicles;
+  final List<AddOnVehicles>? addonVehicles;
   final int? vehicleLimit;
 
   MyProfileData copyWith({
@@ -234,7 +234,7 @@ class MyProfileData {
     List<Subscription>? activeSubscriptions,
     List<Subscription>? expiredSubscriptions,
     List<dynamic>? renewalSubscriptions,
-    List<dynamic>? addonVehicles,
+    List<AddOnVehicles>? addonVehicles,
     int? vehicleLimit,
   }) {
     return MyProfileData(
@@ -268,7 +268,8 @@ class MyProfileData {
       fleetSize: fleetSize ?? this.fleetSize,
       gender: gender ?? this.gender,
       gstin: gstin ?? this.gstin,
-      independentCarOwnerFleetSize: independentCarOwnerFleetSize ?? this.independentCarOwnerFleetSize,
+      independentCarOwnerFleetSize:
+          independentCarOwnerFleetSize ?? this.independentCarOwnerFleetSize,
       isUpgradeAccount: isUpgradeAccount ?? this.isUpgradeAccount,
       language: language ?? this.language,
       languageSpoken: languageSpoken ?? this.languageSpoken,
@@ -290,7 +291,8 @@ class MyProfileData {
       upgradedFromCategory: upgradedFromCategory ?? this.upgradedFromCategory,
       vehicleType: vehicleType ?? this.vehicleType,
       upgradeId: upgradeId ?? this.upgradeId,
-      upgradeSubscriptionId: upgradeSubscriptionId ?? this.upgradeSubscriptionId,
+      upgradeSubscriptionId:
+          upgradeSubscriptionId ?? this.upgradeSubscriptionId,
       vehicles: vehicles ?? this.vehicles,
       transportationPermit: transportationPermit ?? this.transportationPermit,
       aadharCardFront: aadharCardFront ?? this.aadharCardFront,
@@ -304,7 +306,7 @@ class MyProfileData {
     );
   }
 
-  factory MyProfileData.fromJson(Map<String, dynamic> json){
+  factory MyProfileData.fromJson(Map<String, dynamic> json) {
     return MyProfileData(
       id: json["_id"],
       mobileNumber: json["mobileNumber"],
@@ -319,12 +321,14 @@ class MyProfileData {
       v: json["__v"],
       userId: json["userId"] == null ? null : UserId.fromJson(json["userId"]),
       aadharCardNumber: json["aadharCardNumber"],
-      address: json["address"] == null ? null : Address.fromJson(json["address"]),
+      address:
+          json["address"] == null ? null : Address.fromJson(json["address"]),
       bio: json["bio"],
       businessMobileNumber: json["businessMobileNumber"],
       city: json["city"] == null ? null : MyCity.fromJson(json["city"]),
       companyName: json["companyName"],
-      country: json["country"] == null ? null : Country.fromJson(json["country"]),
+      country:
+          json["country"] == null ? null : Country.fromJson(json["country"]),
       counts: json["counts"] == null ? null : Counts.fromJson(json["counts"]),
       coverImage: json["coverImage"],
       dob: json["dob"],
@@ -336,10 +340,16 @@ class MyProfileData {
       fleetSize: json["fleetSize"],
       gender: json["gender"],
       gstin: json["gstin"],
-      independentCarOwnerFleetSize: json["independentCarOwnerFleetSize"] == null ? null : IndependentCarOwnerFleetSize.fromJson(json["independentCarOwnerFleetSize"]),
+      independentCarOwnerFleetSize: json["independentCarOwnerFleetSize"] == null
+          ? null
+          : IndependentCarOwnerFleetSize.fromJson(
+              json["independentCarOwnerFleetSize"]),
       isUpgradeAccount: json["isUpgradeAccount"],
-      language: json["language"] == null ? null : Language.fromJson(json["language"]),
-      languageSpoken: json["languageSpoken"] == null ? [] : List<dynamic>.from(json["languageSpoken"]!.map((x) => x)),
+      language:
+          json["language"] == null ? null : Language.fromJson(json["language"]),
+      languageSpoken: json["languageSpoken"] == null
+          ? []
+          : List<dynamic>.from(json["languageSpoken"]!.map((x) => x)),
       lastName: json["lastName"],
       lat: json["lat"],
       lng: json["lng"],
@@ -350,96 +360,118 @@ class MyProfileData {
       preferencesWhatsapp: json["preferencesWhatsapp"],
       profilePhoto: json["profilePhoto"],
       rating: json["rating"],
-      serviceLocation: json["serviceLocation"] == null ? null : ServiceLocation.fromJson(json["serviceLocation"]),
+      serviceLocation: json["serviceLocation"] == null
+          ? null
+          : ServiceLocation.fromJson(json["serviceLocation"]),
       state: json["state"] == null ? null : MyState.fromJson(json["state"]),
       totalRating: json["totalRating"],
       totalRatingSum: json["totalRatingSum"],
       upgradeDate: DateTime.tryParse(json["upgradeDate"] ?? ""),
       upgradedFromCategory: json["upgradedFromCategory"],
-      vehicleType: json["vehicleType"] == null ? [] : List<dynamic>.from(json["vehicleType"]!.map((x) => x)),
+      vehicleType: json["vehicleType"] == null
+          ? []
+          : List<dynamic>.from(json["vehicleType"]!.map((x) => x)),
       upgradeId: json["upgradeId"],
       upgradeSubscriptionId: json["upgradeSubscriptionId"],
-      vehicles: json["vehicles"] == null ? [] : List<Vehicle>.from(json["vehicles"]!.map((x) => Vehicle.fromJson(x))),
+      vehicles: json["vehicles"] == null
+          ? []
+          : List<Vehicle>.from(
+              json["vehicles"]!.map((x) => Vehicle.fromJson(x))),
       transportationPermit: json["transportationPermit"],
       aadharCardFront: json["aadharCardFront"],
       aadharCardBack: json["aadharCardBack"],
-      subscriptions: json["subscriptions"] == null ? [] : List<Subscription>.from(json["subscriptions"]!.map((x) => Subscription.fromJson(x))),
-      activeSubscriptions: json["active_subscriptions"] == null ? [] : List<Subscription>.from(json["active_subscriptions"]!.map((x) => Subscription.fromJson(x))),
-      expiredSubscriptions: json["expired_subscriptions"] == null ? [] : List<Subscription>.from(json["expired_subscriptions"]!.map((x) => Subscription.fromJson(x))),
-      renewalSubscriptions: json["renewal_subscriptions"] == null ? [] : List<dynamic>.from(json["renewal_subscriptions"]!.map((x) => x)),
-      addonVehicles: json["addonVehicles"] == null ? [] : List<dynamic>.from(json["addonVehicles"]!.map((x) => x)),
+      subscriptions: json["subscriptions"] == null
+          ? []
+          : List<Subscription>.from(
+              json["subscriptions"]!.map((x) => Subscription.fromJson(x))),
+      activeSubscriptions: json["active_subscriptions"] == null
+          ? []
+          : List<Subscription>.from(json["active_subscriptions"]!
+              .map((x) => Subscription.fromJson(x))),
+      expiredSubscriptions: json["expired_subscriptions"] == null
+          ? []
+          : List<Subscription>.from(json["expired_subscriptions"]!
+              .map((x) => Subscription.fromJson(x))),
+      renewalSubscriptions: json["renewal_subscriptions"] == null
+          ? []
+          : List<dynamic>.from(json["renewal_subscriptions"]!.map((x) => x)),
+      addonVehicles: json["addonVehicles"] == null
+          ? []
+          : List<AddOnVehicles>.from(json["addonVehicles"]!.map((x) => AddOnVehicles.fromJson(x))),
       vehicleLimit: json["vehicleLimit"],
     );
   }
 
   Map<String, dynamic> toJson() => {
-    "_id": id,
-    "mobileNumber": mobileNumber,
-    "otpExpiry": otpExpiry,
-    "isVerifiedByAdmin": isVerifiedByAdmin,
-    "isBlockedByAdmin": isBlockedByAdmin,
-    "usertype": usertype,
-    "refreshTokenExpiry": refreshTokenExpiry?.toIso8601String(),
-    "refreshTokenVersion": refreshTokenVersion,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
-    "userId": userId?.toJson(),
-    "aadharCardNumber": aadharCardNumber,
-    "address": address?.toJson(),
-    "bio": bio,
-    "businessMobileNumber": businessMobileNumber,
-    "city": city?.toJson(),
-    "companyName": companyName,
-    "country": country?.toJson(),
-    "counts": counts?.toJson(),
-    "coverImage": coverImage,
-    "dob": dob,
-    "drivingLicenceNumber": drivingLicenceNumber,
-    "email": email,
-    "experience": experience,
-    "fcmToken": fcmToken,
-    "firstName": firstName,
-    "fleetSize": fleetSize,
-    "gender": gender,
-    "gstin": gstin,
-    "independentCarOwnerFleetSize": independentCarOwnerFleetSize?.toJson(),
-    "isUpgradeAccount": isUpgradeAccount,
-    "language": language?.toJson(),
-    "languageSpoken": languageSpoken.map((x) => x).toList(),
-    "lastName": lastName,
-    "lat": lat,
-    "lng": lng,
-    "minimumCharges": minimumCharges,
-    "negotiable": negotiable,
-    "preferencesChat": preferencesChat,
-    "preferencesPhone": preferencesPhone,
-    "preferencesWhatsapp": preferencesWhatsapp,
-    "profilePhoto": profilePhoto,
-    "rating": rating,
-    "serviceLocation": serviceLocation?.toJson(),
-    "state": state?.toJson(),
-    "totalRating": totalRating,
-    "totalRatingSum": totalRatingSum,
-    "upgradeDate": upgradeDate?.toIso8601String(),
-    "upgradedFromCategory": upgradedFromCategory,
-    "vehicleType": vehicleType.map((x) => x).toList(),
-    "upgradeId": upgradeId,
-    "upgradeSubscriptionId": upgradeSubscriptionId,
-    "vehicles": vehicles.map((x) => x?.toJson()).toList(),
-    "transportationPermit": transportationPermit,
-    "aadharCardFront": aadharCardFront,
-    "aadharCardBack": aadharCardBack,
-    "subscriptions": subscriptions.map((x) => x?.toJson()).toList(),
-    "active_subscriptions": activeSubscriptions.map((x) => x?.toJson()).toList(),
-    "expired_subscriptions": expiredSubscriptions.map((x) => x?.toJson()).toList(),
-    "renewal_subscriptions": renewalSubscriptions.map((x) => x).toList(),
-    "addonVehicles": addonVehicles.map((x) => x).toList(),
-    "vehicleLimit": vehicleLimit,
-  };
+        "_id": id,
+        "mobileNumber": mobileNumber,
+        "otpExpiry": otpExpiry,
+        "isVerifiedByAdmin": isVerifiedByAdmin,
+        "isBlockedByAdmin": isBlockedByAdmin,
+        "usertype": usertype,
+        "refreshTokenExpiry": refreshTokenExpiry?.toIso8601String(),
+        "refreshTokenVersion": refreshTokenVersion,
+        "createdAt": createdAt?.toIso8601String(),
+        "updatedAt": updatedAt?.toIso8601String(),
+        "__v": v,
+        "userId": userId?.toJson(),
+        "aadharCardNumber": aadharCardNumber,
+        "address": address?.toJson(),
+        "bio": bio,
+        "businessMobileNumber": businessMobileNumber,
+        "city": city?.toJson(),
+        "companyName": companyName,
+        "country": country?.toJson(),
+        "counts": counts?.toJson(),
+        "coverImage": coverImage,
+        "dob": dob,
+        "drivingLicenceNumber": drivingLicenceNumber,
+        "email": email,
+        "experience": experience,
+        "fcmToken": fcmToken,
+        "firstName": firstName,
+        "fleetSize": fleetSize,
+        "gender": gender,
+        "gstin": gstin,
+        "independentCarOwnerFleetSize": independentCarOwnerFleetSize?.toJson(),
+        "isUpgradeAccount": isUpgradeAccount,
+        "language": language?.toJson(),
+        "languageSpoken": languageSpoken.map((x) => x).toList(),
+        "lastName": lastName,
+        "lat": lat,
+        "lng": lng,
+        "minimumCharges": minimumCharges,
+        "negotiable": negotiable,
+        "preferencesChat": preferencesChat,
+        "preferencesPhone": preferencesPhone,
+        "preferencesWhatsapp": preferencesWhatsapp,
+        "profilePhoto": profilePhoto,
+        "rating": rating,
+        "serviceLocation": serviceLocation?.toJson(),
+        "state": state?.toJson(),
+        "totalRating": totalRating,
+        "totalRatingSum": totalRatingSum,
+        "upgradeDate": upgradeDate?.toIso8601String(),
+        "upgradedFromCategory": upgradedFromCategory,
+        "vehicleType": vehicleType.map((x) => x).toList(),
+        "upgradeId": upgradeId,
+        "upgradeSubscriptionId": upgradeSubscriptionId,
+        "vehicles": vehicles.map((x) => x?.toJson()).toList(),
+        "transportationPermit": transportationPermit,
+        "aadharCardFront": aadharCardFront,
+        "aadharCardBack": aadharCardBack,
+        "subscriptions": subscriptions.map((x) => x?.toJson()).toList(),
+        "active_subscriptions":
+            activeSubscriptions.map((x) => x?.toJson()).toList(),
+        "expired_subscriptions":
+            expiredSubscriptions.map((x) => x?.toJson()).toList(),
+        "renewal_subscriptions": renewalSubscriptions.map((x) => x).toList(),
+        "addonVehicles": addonVehicles?.map((x) => x).toList()??[],
+        "vehicleLimit": vehicleLimit,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $mobileNumber, $otpExpiry, $isVerifiedByAdmin, $isBlockedByAdmin, $usertype, $refreshTokenExpiry, $refreshTokenVersion, $createdAt, $updatedAt, $v, $userId, $aadharCardNumber, $address, $bio, $businessMobileNumber, $city, $companyName, $country, $counts, $coverImage, $dob, $drivingLicenceNumber, $email, $experience, $fcmToken, $firstName, $fleetSize, $gender, $gstin, $independentCarOwnerFleetSize, $isUpgradeAccount, $language, $languageSpoken, $lastName, $lat, $lng, $minimumCharges, $negotiable, $preferencesChat, $preferencesPhone, $preferencesWhatsapp, $profilePhoto, $rating, $serviceLocation, $state, $totalRating, $totalRatingSum, $upgradeDate, $upgradedFromCategory, $vehicleType, $upgradeId, $upgradeSubscriptionId, $vehicles, $transportationPermit, $aadharCardFront, $aadharCardBack, $subscriptions, $activeSubscriptions, $expiredSubscriptions, $renewalSubscriptions, $addonVehicles, $vehicleLimit, ";
   }
 }
@@ -517,13 +549,14 @@ class Subscription {
       isUpgrade: isUpgrade ?? this.isUpgrade,
       upgradeFromCategory: upgradeFromCategory ?? this.upgradeFromCategory,
       upgradeId: upgradeId ?? this.upgradeId,
-      upgradeSubscriptionId: upgradeSubscriptionId ?? this.upgradeSubscriptionId,
+      upgradeSubscriptionId:
+          upgradeSubscriptionId ?? this.upgradeSubscriptionId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
-  factory Subscription.fromJson(Map<String, dynamic> json){
+  factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
       id: json["_id"],
       plan: json["plan"],
@@ -546,27 +579,27 @@ class Subscription {
   }
 
   Map<String, dynamic> toJson() => {
-    "_id": id,
-    "plan": plan,
-    "max_vehicles": maxVehicles,
-    "category": category,
-    "status": status,
-    "orderId": orderId,
-    "startDate": startDate?.toIso8601String(),
-    "endDate": endDate?.toIso8601String(),
-    "subscriptionType": subscriptionType,
-    "subscriptionAmount": subscriptionAmount,
-    "totalAmount": totalAmount,
-    "isUpgrade": isUpgrade,
-    "upgradeFromCategory": upgradeFromCategory,
-    "upgradeId": upgradeId,
-    "upgradeSubscriptionId": upgradeSubscriptionId,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-  };
+        "_id": id,
+        "plan": plan,
+        "max_vehicles": maxVehicles,
+        "category": category,
+        "status": status,
+        "orderId": orderId,
+        "startDate": startDate?.toIso8601String(),
+        "endDate": endDate?.toIso8601String(),
+        "subscriptionType": subscriptionType,
+        "subscriptionAmount": subscriptionAmount,
+        "totalAmount": totalAmount,
+        "isUpgrade": isUpgrade,
+        "upgradeFromCategory": upgradeFromCategory,
+        "upgradeId": upgradeId,
+        "upgradeSubscriptionId": upgradeSubscriptionId,
+        "createdAt": createdAt?.toIso8601String(),
+        "updatedAt": updatedAt?.toIso8601String(),
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $plan, $maxVehicles, $category, $status, $orderId, $startDate, $endDate, $subscriptionType, $subscriptionAmount, $totalAmount, $isUpgrade, $upgradeFromCategory, $upgradeId, $upgradeSubscriptionId, $createdAt, $updatedAt, ";
   }
 }
@@ -598,7 +631,7 @@ class Address {
     );
   }
 
-  factory Address.fromJson(Map<String, dynamic> json){
+  factory Address.fromJson(Map<String, dynamic> json) {
     return Address(
       addressLine: json["addressLine"],
       pincode: json["pincode"],
@@ -608,15 +641,46 @@ class Address {
   }
 
   Map<String, dynamic> toJson() => {
-    "addressLine": addressLine,
-    "pincode": pincode,
-    "city": city,
-    "state": state,
-  };
+        "addressLine": addressLine,
+        "pincode": pincode,
+        "city": city,
+        "state": state,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$addressLine, $pincode, $city, $state, ";
+  }
+}
+
+class AddOnVehicles {
+  AddOnVehicles({
+    required this.addOnVehicles,
+  });
+
+  final int? addOnVehicles;
+
+  AddOnVehicles copyWith({
+    int? addOnVehicles,
+  }) {
+    return AddOnVehicles(
+      addOnVehicles: addOnVehicles ?? this.addOnVehicles,
+    );
+  }
+
+  factory AddOnVehicles.fromJson(Map<String, dynamic> json) {
+    return AddOnVehicles(
+      addOnVehicles: json["addOnVehicles"],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        "addOnVehicles": addOnVehicles,
+      };
+
+  @override
+  String toString() {
+    return "$addOnVehicles, ";
   }
 }
 
@@ -639,7 +703,7 @@ class MyCity {
     );
   }
 
-  factory MyCity.fromJson(Map<String, dynamic> json){
+  factory MyCity.fromJson(Map<String, dynamic> json) {
     return MyCity(
       id: json["id"],
       name: json["name"],
@@ -647,15 +711,16 @@ class MyCity {
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-  };
+        "id": id,
+        "name": name,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $name, ";
   }
 }
+
 class MyState {
   MyState({
     required this.id,
@@ -675,7 +740,7 @@ class MyState {
     );
   }
 
-  factory MyState.fromJson(Map<String, dynamic> json){
+  factory MyState.fromJson(Map<String, dynamic> json) {
     return MyState(
       id: json["id"],
       name: json["name"],
@@ -683,15 +748,16 @@ class MyState {
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-  };
+        "id": id,
+        "name": name,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $name, ";
   }
 }
+
 class Language {
   Language({
     required this.id,
@@ -711,7 +777,7 @@ class Language {
     );
   }
 
-  factory Language.fromJson(Map<String, dynamic> json){
+  factory Language.fromJson(Map<String, dynamic> json) {
     return Language(
       id: json["id"],
       name: json["name"],
@@ -719,12 +785,12 @@ class Language {
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-  };
+        "id": id,
+        "name": name,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $name, ";
   }
 }
@@ -756,7 +822,7 @@ class Country {
     );
   }
 
-  factory Country.fromJson(Map<String, dynamic> json){
+  factory Country.fromJson(Map<String, dynamic> json) {
     return Country(
       id: json["id"],
       name: json["name"],
@@ -766,33 +832,31 @@ class Country {
   }
 
   Map<String, dynamic> toJson() => {
-    "id": id,
-    "name": name,
-    "country_flag": countryFlag,
-    "country_footer": countryFooter,
-  };
+        "id": id,
+        "name": name,
+        "country_flag": countryFlag,
+        "country_footer": countryFooter,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $name, $countryFlag, $countryFooter, ";
   }
 }
 
 class Counts {
   Counts({required this.json});
-  final Map<String,dynamic> json;
 
-  factory Counts.fromJson(Map<String, dynamic> json){
-    return Counts(
-        json: json
-    );
+  final Map<String, dynamic> json;
+
+  factory Counts.fromJson(Map<String, dynamic> json) {
+    return Counts(json: json);
   }
 
-  Map<String, dynamic> toJson() => {
-  };
+  Map<String, dynamic> toJson() => {};
 
   @override
-  String toString(){
+  String toString() {
     return "";
   }
 }
@@ -816,7 +880,7 @@ class IndependentCarOwnerFleetSize {
     );
   }
 
-  factory IndependentCarOwnerFleetSize.fromJson(Map<String, dynamic> json){
+  factory IndependentCarOwnerFleetSize.fromJson(Map<String, dynamic> json) {
     return IndependentCarOwnerFleetSize(
       cars: json["cars"],
       minivans: json["minivans"],
@@ -824,12 +888,12 @@ class IndependentCarOwnerFleetSize {
   }
 
   Map<String, dynamic> toJson() => {
-    "cars": cars,
-    "minivans": minivans,
-  };
+        "cars": cars,
+        "minivans": minivans,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$cars, $minivans, ";
   }
 }
@@ -853,7 +917,7 @@ class ServiceLocation {
     );
   }
 
-  factory ServiceLocation.fromJson(Map<String, dynamic> json){
+  factory ServiceLocation.fromJson(Map<String, dynamic> json) {
     return ServiceLocation(
       lat: json["lat"],
       lng: json["lng"],
@@ -861,12 +925,12 @@ class ServiceLocation {
   }
 
   Map<String, dynamic> toJson() => {
-    "lat": lat,
-    "lng": lng,
-  };
+        "lat": lat,
+        "lng": lng,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$lat, $lng, ";
   }
 }
@@ -902,7 +966,7 @@ class UserId {
     );
   }
 
-  factory UserId.fromJson(Map<String, dynamic> json){
+  factory UserId.fromJson(Map<String, dynamic> json) {
     return UserId(
       id: json["_id"],
       mobileNumber: json["mobileNumber"],
@@ -913,15 +977,15 @@ class UserId {
   }
 
   Map<String, dynamic> toJson() => {
-    "_id": id,
-    "mobileNumber": mobileNumber,
-    "isVerifiedByAdmin": isVerifiedByAdmin,
-    "isBlockedByAdmin": isBlockedByAdmin,
-    "usertype": usertype,
-  };
+        "_id": id,
+        "mobileNumber": mobileNumber,
+        "isVerifiedByAdmin": isVerifiedByAdmin,
+        "isBlockedByAdmin": isBlockedByAdmin,
+        "usertype": usertype,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $mobileNumber, $isVerifiedByAdmin, $isBlockedByAdmin, $usertype, ";
   }
 }
@@ -1008,7 +1072,8 @@ class Vehicle {
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       seatingCapacity: seatingCapacity ?? this.seatingCapacity,
       airConditioning: airConditioning ?? this.airConditioning,
-      vehicleSpecifications: vehicleSpecifications ?? this.vehicleSpecifications,
+      vehicleSpecifications:
+          vehicleSpecifications ?? this.vehicleSpecifications,
       serviceLocation: serviceLocation ?? this.serviceLocation,
       minimumChargePerHour: minimumChargePerHour ?? this.minimumChargePerHour,
       isPriceNegotiable: isPriceNegotiable ?? this.isPriceNegotiable,
@@ -1025,7 +1090,7 @@ class Vehicle {
     );
   }
 
-  factory Vehicle.fromJson(Map<String, dynamic> json){
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
     return Vehicle(
       id: json["_id"],
       userId: json["userId"],
@@ -1035,12 +1100,20 @@ class Vehicle {
       vehicleNumber: json["vehicleNumber"],
       seatingCapacity: json["seatingCapacity"],
       airConditioning: json["airConditioning"],
-      vehicleSpecifications: json["vehicleSpecifications"] == null ? [] : List<String>.from(json["vehicleSpecifications"]!.map((x) => x)),
-      serviceLocation: json["serviceLocation"] == null ? null : ServiceLocation.fromJson(json["serviceLocation"]),
+      vehicleSpecifications: json["vehicleSpecifications"] == null
+          ? []
+          : List<String>.from(json["vehicleSpecifications"]!.map((x) => x)),
+      serviceLocation: json["serviceLocation"] == null
+          ? null
+          : ServiceLocation.fromJson(json["serviceLocation"]),
       minimumChargePerHour: json["minimumChargePerHour"],
       isPriceNegotiable: json["isPriceNegotiable"],
-      images: json["images"] == null ? [] : List<String>.from(json["images"]!.map((x) => x)),
-      videos: json["videos"] == null ? [] : List<dynamic>.from(json["videos"]!.map((x) => x)),
+      images: json["images"] == null
+          ? []
+          : List<String>.from(json["images"]!.map((x) => x)),
+      videos: json["videos"] == null
+          ? []
+          : List<dynamic>.from(json["videos"]!.map((x) => x)),
       rcBookFrontPhoto: json["rcBookFrontPhoto"],
       rcBookBackPhoto: json["rcBookBackPhoto"],
       isVerifiedByAdmin: json["isVerifiedByAdmin"],
@@ -1053,32 +1126,32 @@ class Vehicle {
   }
 
   Map<String, dynamic> toJson() => {
-    "_id": id,
-    "userId": userId,
-    "vehicleType": vehicleType,
-    "vehicleName": vehicleName,
-    "brandName": brandName,
-    "vehicleNumber": vehicleNumber,
-    "seatingCapacity": seatingCapacity,
-    "airConditioning": airConditioning,
-    "vehicleSpecifications": vehicleSpecifications.map((x) => x).toList(),
-    "serviceLocation": serviceLocation?.toJson(),
-    "minimumChargePerHour": minimumChargePerHour,
-    "isPriceNegotiable": isPriceNegotiable,
-    "images": images.map((x) => x).toList(),
-    "videos": videos.map((x) => x).toList(),
-    "rcBookFrontPhoto": rcBookFrontPhoto,
-    "rcBookBackPhoto": rcBookBackPhoto,
-    "isVerifiedByAdmin": isVerifiedByAdmin,
-    "isBlockedByAdmin": isBlockedByAdmin,
-    "isDisabled": isDisabled,
-    "createdAt": createdAt?.toIso8601String(),
-    "updatedAt": updatedAt?.toIso8601String(),
-    "__v": v,
-  };
+        "_id": id,
+        "userId": userId,
+        "vehicleType": vehicleType,
+        "vehicleName": vehicleName,
+        "brandName": brandName,
+        "vehicleNumber": vehicleNumber,
+        "seatingCapacity": seatingCapacity,
+        "airConditioning": airConditioning,
+        "vehicleSpecifications": vehicleSpecifications.map((x) => x).toList(),
+        "serviceLocation": serviceLocation?.toJson(),
+        "minimumChargePerHour": minimumChargePerHour,
+        "isPriceNegotiable": isPriceNegotiable,
+        "images": images.map((x) => x).toList(),
+        "videos": videos.map((x) => x).toList(),
+        "rcBookFrontPhoto": rcBookFrontPhoto,
+        "rcBookBackPhoto": rcBookBackPhoto,
+        "isVerifiedByAdmin": isVerifiedByAdmin,
+        "isBlockedByAdmin": isBlockedByAdmin,
+        "isDisabled": isDisabled,
+        "createdAt": createdAt?.toIso8601String(),
+        "updatedAt": updatedAt?.toIso8601String(),
+        "__v": v,
+      };
 
   @override
-  String toString(){
+  String toString() {
     return "$id, $userId, $vehicleType, $vehicleName, $brandName, $vehicleNumber, $seatingCapacity, $airConditioning, $vehicleSpecifications, $serviceLocation, $minimumChargePerHour, $isPriceNegotiable, $images, $videos, $rcBookFrontPhoto, $rcBookBackPhoto, $isVerifiedByAdmin, $isBlockedByAdmin, $isDisabled, $createdAt, $updatedAt, $v, ";
   }
 }

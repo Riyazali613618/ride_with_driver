@@ -39,6 +39,7 @@ class VehiclesListingPage extends StatefulWidget {
 class _VehiclesListingPageState extends State<VehiclesListingPage> {
   SharedPreferences? pref;
   UserEligibilityModel? eligibilityModel;
+  bool isCheckingLimit = false;
 
   @override
   void initState() {
@@ -129,8 +130,33 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                     }
 
                                     if (state is VehicleLimitExceededState) {
-                                      final userType = await getProfileData();
-                                      showUpgradeDialog(context, userType);
+                                      final profile = await getProfileData();
+                                      isCheckingLimit = false;
+                                      if (mounted) {
+                                        setState(() {});
+                                      }
+                                      int limit = profile.vehicleLimit ?? 0;
+                                      int totalVehicleAdded =
+                                          profile.vehicles.length;
+                                      if ((profile.addonVehicles ?? [])
+                                          .isNotEmpty) {
+                                        limit = limit +
+                                            (profile.addonVehicles?[0].addOnVehicles??0);
+                                      }
+                                      if (totalVehicleAdded >= limit) {
+                                        showUpgradeDialog(
+                                            context, profile.usertype ?? "");
+                                      } else {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => AddNewVehicleScreen(
+                                              userType:
+                                                  "${pref?.getString('userType')}",
+                                            ),
+                                          ),
+                                        );
+                                      }
                                     }
 
                                     if (state is ProfileErrorState) {
@@ -145,15 +171,18 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                       onTap: state is ProfileLoading
                                           ? null
                                           : () async {
-                                              final profile =
-                                                  await getEligibilityData();
-                                              if (eligibilityModel != null &&
+                                              if (isCheckingLimit) return;
+                                              isCheckingLimit = true;
+                                              setState(() {});
+                                               if (eligibilityModel != null &&
                                                   eligibilityModel?.data !=
                                                       null &&
                                                   eligibilityModel
                                                           ?.data?.category
                                                           .toLowerCase() ==
                                                       "driver") {
+                                                isCheckingLimit = false;
+                                                setState(() {});
                                                 showUpgradeDialog(
                                                     context, "DRIVER");
                                               } else {
@@ -173,26 +202,37 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                             width: 0.5,
                                           ),
                                         ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.add,
-                                              color: Colors.white,
-                                              size: 15,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              "Add Vehicle",
-                                              style: TextStyle(
-                                                fontSize: 11,
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w500,
+                                        child: isCheckingLimit
+                                            ? SizedBox(
+                                                width: 16,
+                                                height: 16,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  color: Colors.white,
+                                                  strokeWidth: 1,
+                                                ),
+                                              )
+                                            : Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(
+                                                    Icons.add,
+                                                    color: Colors.white,
+                                                    size: 15,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    "Add Vehicle",
+                                                    style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.white,
+                                                      fontWeight:
+                                                          FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                ],
                                               ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                          ],
-                                        ),
                                       ),
                                     );
                                   },
@@ -238,11 +278,11 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text("Limit Exceeded"),
+        title:  Text(userType=="DRIVER"?"Upgrade User":"Limit Exceeded"),
         content: Text(
           userType == "TRANSPORTER"
               ? "You have exceed your vehicle adding limit, please upgrade your transporter plan to add more vehicle."
-              : "You have exceed your vehicle adding limit, please upgrade to transporter to add more vehicle.",
+              : userType=="DRIVER"?"Please upgrade to transporter or taxi owner to add vehicles.":"You have exceed your vehicle adding limit, please upgrade to transporter to add more vehicle.",
         ),
         actions: [
           TextButton(
@@ -257,15 +297,14 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                   context,
                   MaterialPageRoute(
                     builder: (_) => BlocProvider(
-                      create: (_) =>
-                          PaymentBloc(profileProvider: context.read<ProfileProvider>()),
+                      create: (_) => PaymentBloc(
+                          profileProvider: context.read<ProfileProvider>()),
                       child: PlanSelectionScreen(
-                        category: userType,
-                        title: "Upgrade Add ons Vehicles",
-                        count: 1,
-                        currentCategory: "",
-                        isAdOns:true
-                      ),
+                          category: userType,
+                          title: "Upgrade Add ons Vehicles",
+                          count: 1,
+                          currentCategory: "",
+                          isAdOns: true),
                     ),
                   ),
                 );
@@ -290,13 +329,9 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     );
   }
 
-  Future<String> getProfileData() async {
+  Future<MyProfileData> getProfileData() async {
     MyProfileData data = await UserProfileService().getUserProfile();
-    if (data.usertype != null) {
-      return data.usertype ?? "";
-    } else {
-      return "";
-    }
+    return data;
   }
 
   Future<UserEligibilityModel> getEligibilityData() async {
