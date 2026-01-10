@@ -24,6 +24,7 @@ class DashboardApiService {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
+      print(json);
       return DashboardResponse.fromJson(json);
     } else {
       throw Exception('Failed to load dashboard');
@@ -44,6 +45,7 @@ class DashboardApiService {
 
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);
+      print(json);
       return UpgradeablePlans.fromJson(json);
     } else {
       throw Exception('Failed to load upgradeable plans');

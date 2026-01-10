@@ -88,6 +88,7 @@ class _TransporterRegistrationFlowState
 
   final UserProfileService _profileService = UserProfileService();
   String? currentCountry;
+  MyProfileData? profile;
 
   @override
   void initState() {
@@ -112,20 +113,19 @@ class _TransporterRegistrationFlowState
 
   Future<void> _prefillData() async {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      MyProfileData? profile = await TokenManager.getProfile();
+      profile = await TokenManager.getProfile();
       if (profile == null) return;
       _contactPersonNameController.text =
-          "${profile.firstName ?? ""} ${profile.lastName ?? ""}";
+      "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
       _phoneNumberController.text =
-          profile.mobileNumber ?? profile.businessMobileNumber??"";
+          profile?.mobileNumber ?? profile?.businessMobileNumber ?? "";
       _transporterModel = _transporterModel.copyWith(
-        firstName: profile.firstName ?? '',
-        lastName: profile.lastName ?? '',
+        firstName: profile?.firstName ?? '',
+        lastName: profile?.lastName ?? '',
         contactPersonName: _contactPersonNameController.text.toString().trim(),
         phoneNumber: _phoneNumberController.text.toString().trim(),
       );
-      setState(() {
-      });
+      setState(() {});
     });
     UserPrefillUtility.prefillUserData(
       contactPersonController: _contactPersonNameController,
@@ -164,29 +164,52 @@ class _TransporterRegistrationFlowState
 
   Future<void> _loadTransporterData() async {
     WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) async {
+          (timeStamp) async {
         try {
           final prefs = await SharedPreferences.getInstance();
           String data = prefs.getString('transporter_data') ?? '';
-          if (data.isNotEmpty) {
+          /*if (data.isNotEmpty) {
             _transporterModel = TransporterModel.fromJson(jsonDecode(data));
             _transporterModel = _transporterModel.copyWith(photo: "");
-          } else {
-            MyProfileData? profile = await TokenManager.getProfile();
+          } else*/
+          {
+            profile ??= await TokenManager.getProfile();
             if (profile != null) {
               _transporterModel.copyWith(
-                  firstName: profile.firstName ?? "",
-                  lastName: profile.lastName ?? "",
-                  companyName: profile.companyName ?? "",
-                  bio: profile.bio ?? "",
-                  phoneNumber: profile.mobileNumber ?? "",
-                  gstin: profile.gstin ?? "",
+                  firstName: profile?.firstName ?? "",
+                  lastName: profile?.lastName ?? "",
+                  companyName: profile?.companyName ?? "",
+                  bio: profile?.bio ?? "",
+                  phoneNumber: profile?.mobileNumber ?? "",
+                  gstin: profile?.gstin ?? "",
                   address: _transporterModel.address.copyWith(
-                    addressLine: profile.address?.addressLine ?? "",
-                    city: profile.address?.city ?? "",
-                    state: profile.address?.state ?? "",
-                    pincode: profile.address?.pincode,
+                    addressLine: profile?.address?.addressLine ?? "",
+                    city: profile?.address?.city ?? "",
+                    state: profile?.address?.state ?? "",
+                    pincode: profile?.address?.pincode,
                   ));
+
+              _addressLineController.text = profile?.address?.addressLine ?? "";
+              _pincodeController.text =
+                  profile?.address?.pincode!.toString() ?? "";
+              if(_stateList.isNotEmpty){
+                String stateId=profile?.address?.state!.toString() ?? "";
+                for(final state in _stateList){
+                  if(state.sId==stateId){
+                    _selectedState=state.name;
+                    break;
+                  }
+                }
+              }
+              if(_cityList.isNotEmpty){
+                String cityId=profile?.address?.city!.toString() ?? "";
+                for(final city in _cityList){
+                  if(city.sId==cityId){
+                    _selectedCity=city.name;
+                    break;
+                  }
+                }
+              }
             }
           }
           populateData();
@@ -240,7 +263,7 @@ class _TransporterRegistrationFlowState
     final statusString = prefs.getString('transporter_status');
     if (statusString != null) {
       return ApplicationStatus.values.firstWhere(
-        (e) => e.toString() == statusString,
+            (e) => e.toString() == statusString,
         orElse: () => ApplicationStatus.notStarted,
       );
     }
@@ -252,7 +275,7 @@ class _TransporterRegistrationFlowState
 
     try {
       final profileProvider =
-          Provider.of<ProfileProvider>(context, listen: false);
+      Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
@@ -289,7 +312,11 @@ class _TransporterRegistrationFlowState
   }
 
   Future<void> _verifyGST(String gstNumber) async {
-    if (gstNumber.trim().isEmpty) return;
+    if (gstNumber
+        .trim()
+        .isEmpty) {
+      return;
+    }
 
     final gstError = _validateGSTINFormat(gstNumber);
     if (gstError != null) return;
@@ -320,13 +347,14 @@ class _TransporterRegistrationFlowState
   Future<void> _getGstVerificationResult(String requestId) async {
     try {
       final profileProvider =
-          Provider.of<ProfileProvider>(context, listen: false);
+      Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
       final resultResponse = await http.post(
         Uri.parse(
-            '${ApiConstants.baseUrl}/user/register/get-gst-verification-result'),
+            '${ApiConstants
+                .baseUrl}/user/register/get-gst-verification-result'),
         headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId ?? '',
@@ -383,14 +411,18 @@ class _TransporterRegistrationFlowState
 
   // Form Validation Methods
   String? _validateRequired(String? value, String fieldName) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return '$fieldName is required';
     }
     return null;
   }
 
   String? _validateMobileNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Mobile number is required';
     }
     if (value.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
@@ -400,7 +432,9 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validatePincode(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Pincode is required';
     }
     if (value.length != 6 || !RegExp(r'^[0-9]{6}$').hasMatch(value)) {
@@ -410,7 +444,9 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validateNumber(String? value, String fieldName) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return '$fieldName is required';
     }
     if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
@@ -424,7 +460,9 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validateGSTINFormat(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return null;
     }
 
@@ -438,13 +476,19 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validateAddressLine(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Address line is required';
     }
-    if (value.trim().length < 5) {
+    if (value
+        .trim()
+        .length < 5) {
       return 'Address line must be at least 5 characters';
     }
-    if (value.trim().length > 300) {
+    if (value
+        .trim()
+        .length > 300) {
       return 'Address line must be less than 300 characters';
     }
     return null;
@@ -710,8 +754,12 @@ class _TransporterRegistrationFlowState
         break;
 
       case 1: // Address
-        if (_addressLineController.text.trim().isEmpty ||
-            _pincodeController.text.trim().isEmpty ||
+        if (_addressLineController.text
+            .trim()
+            .isEmpty ||
+            _pincodeController.text
+                .trim()
+                .isEmpty ||
             _selectedCity == null ||
             _selectedCity!.isEmpty ||
             _selectedState == null ||
@@ -720,7 +768,7 @@ class _TransporterRegistrationFlowState
           isValid = false;
         } else {
           final addressError =
-              _validateAddressLine(_addressLineController.text);
+          _validateAddressLine(_addressLineController.text);
           final pincodeError = _validatePincode(_pincodeController.text);
           if (addressError != null) {
             errorMessage = addressError;
@@ -830,18 +878,20 @@ class _TransporterRegistrationFlowState
     // Find the text for state and city from their IDs
     final stateName = _stateList
         .firstWhere((s) => s.sId == _selectedState,
-            orElse: () => sm.Data(name: ''))
+        orElse: () => sm.Data(name: ''))
         .name;
     final cityName = _cityList
         .firstWhere((c) => c.sId == _selectedCity,
-            orElse: () => cm.Data(name: ''))
+        orElse: () => cm.Data(name: ''))
         .name;
 
     setState(() {
       _transporterModel = _transporterModel.copyWith(
         companyName: _companyNameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
-        bio: _bioController.text.trim().isEmpty
+        bio: _bioController.text
+            .trim()
+            .isEmpty
             ? "bio"
             : _bioController.text.trim(),
         contactPersonName: _contactPersonNameController.text.trim(),
@@ -886,7 +936,8 @@ class _TransporterRegistrationFlowState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Please fix the following errors:\n${validationErrors.join('\n')}'),
+              'Please fix the following errors:\n${validationErrors.join(
+                  '\n')}'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 5),
         ),
@@ -897,9 +948,10 @@ class _TransporterRegistrationFlowState
     final accepted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => TermsConditionsBottomSheet(
-        type: 'TRANSPORTER_AGREEMENT',
-      ),
+      builder: (context) =>
+          TermsConditionsBottomSheet(
+            type: 'TRANSPORTER_AGREEMENT',
+          ),
     );
 
     if (accepted != true) {
@@ -921,10 +973,10 @@ class _TransporterRegistrationFlowState
     }
 
     context.read<DriverBloc>().add(
-          TransporterRegistrationEvent(
-            registrationData: _transporterModel.toJson(),
-          ),
-        );
+      TransporterRegistrationEvent(
+        registrationData: _transporterModel.toJson(),
+      ),
+    );
 
     try {
       final userData = await TokenManager.getUserData();
@@ -932,7 +984,9 @@ class _TransporterRegistrationFlowState
       _transporterModel = _transporterModel.copyWith(
           profilePhoto: profilePhoto,
           firstName: _transporterModel.contactPersonName,
-          bio: _bioController.text.trim().isEmpty
+          bio: _bioController.text
+              .trim()
+              .isEmpty
               ? "bio"
               : _bioController.text.trim(),
           lastName: (_transporterModel.lastName ?? "").isEmpty
@@ -940,14 +994,14 @@ class _TransporterRegistrationFlowState
               : _transporterModel.lastName!);
       final response = isUpgrade
           ? await TransporterService().submitUpgradeTransporterApplication(
-              _transporterModel,
-              context,
-              "become-upgradable",
-              subscriptionPlanId,
-              paymentId,
-              orderId)
+          _transporterModel,
+          context,
+          "become-upgradable",
+          subscriptionPlanId,
+          paymentId,
+          orderId)
           : await TransporterService().submitTransporterApplication(
-              _transporterModel, context, "become-transporter");
+          _transporterModel, context, "become-transporter");
 
       if (response['success'] == true) {
         if (!mounted) return;
@@ -960,7 +1014,7 @@ class _TransporterRegistrationFlowState
           context,
           MaterialPageRoute(
               builder: (context) =>
-                  const AddNewVehicleScreen(userType: "Transporter")),
+              const AddNewVehicleScreen(userType: "Transporter")),
         );
       } else {
         if (!mounted) return;
@@ -985,10 +1039,14 @@ class _TransporterRegistrationFlowState
   List<String> _getValidationIssues() {
     final issues = <String>[];
 
-    if (_companyNameController.text.trim().isEmpty) {
+    if (_companyNameController.text
+        .trim()
+        .isEmpty) {
       issues.add('Company name is required');
     }
-    if (_contactPersonNameController.text.trim().isEmpty) {
+    if (_contactPersonNameController.text
+        .trim()
+        .isEmpty) {
       issues.add('Contact person name is required');
     }
     if (_validateMobileNumber(_phoneNumberController.text) != null) {
@@ -1043,7 +1101,8 @@ class _TransporterRegistrationFlowState
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => const Layout(
+              builder: (context) =>
+              const Layout(
                 initialIndex: 1,
               ),
             ),
@@ -1188,10 +1247,10 @@ class _TransporterRegistrationFlowState
                           // Apply gradient if active/completed, else solid inactive color
                           gradient: isGradientCircle
                               ? LinearGradient(
-                                  colors: gradientColors,
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                )
+                            colors: gradientColors,
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          )
                               : null,
                           color: isGradientCircle ? null : inactiveColor,
                         ),
@@ -1215,11 +1274,11 @@ class _TransporterRegistrationFlowState
                             decoration: BoxDecoration(
                               gradient: isGradientLine
                                   ? LinearGradient(
-                                      colors: gradientColors,
-                                      begin: Alignment.centerLeft,
-                                      // Horizontal gradient
-                                      end: Alignment.centerRight,
-                                    )
+                                colors: gradientColors,
+                                begin: Alignment.centerLeft,
+                                // Horizontal gradient
+                                end: Alignment.centerRight,
+                              )
                                   : null,
                               color: isGradientLine ? null : inactiveColor,
                             ),
@@ -1289,18 +1348,18 @@ class _TransporterRegistrationFlowState
                       ),
                       child: _selectedImage != null
                           ? ClipOval(
-                              child: Image.file(
-                                _selectedImage!,
-                                width: 80,
-                                height: 80,
-                                fit: BoxFit.cover,
-                              ),
-                            )
+                        child: Image.file(
+                          _selectedImage!,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
+                      )
                           : Icon(
-                              Icons.person_outline, // From Figma design
-                              size: 32,
-                              color: Colors.grey[600],
-                            ),
+                        Icons.person_outline, // From Figma design
+                        size: 32,
+                        color: Colors.grey[600],
+                      ),
                     ),
                   ),
                   SizedBox(height: 12),
@@ -1399,11 +1458,12 @@ class _TransporterRegistrationFlowState
               textInputAction: TextInputAction.next,
               validator: _validatePincode,
               keyboardType: TextInputType.number,
-              maxLength: 6, onChanged: (value) {
-            if (value.length == 6) {
-              _fetchLocationFromPinCode(value);
-            }
-          }),
+              maxLength: 6,
+              onChanged: (value) {
+                if (value.length == 6) {
+                  _fetchLocationFromPinCode(value);
+                }
+              }),
           SizedBox(height: 20),
           DropdownButtonFormField<String>(
             value: _stateList.any((s) => s.sId == _selectedState)
@@ -1433,7 +1493,7 @@ class _TransporterRegistrationFlowState
             }).toList(),
             onChanged: (String? newValue) {
               final locProvider =
-                  Provider.of<LocationProvider>(context, listen: false);
+              Provider.of<LocationProvider>(context, listen: false);
               setState(() {
                 _selectedState = newValue;
                 _selectedCity = null; // Reset city when state changes
@@ -1565,25 +1625,25 @@ class _TransporterRegistrationFlowState
                         : Colors.transparent,
                     border: Border.all(
                         color:
-                            _isGstVerified ? Colors.green : Colors.grey[300]!),
+                        _isGstVerified ? Colors.green : Colors.grey[300]!),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Center(
                     child: _isGstVerifying
                         ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                         : Text(
-                            _isGstVerified ? 'Verified' : 'Verify',
-                            style: TextStyle(
-                              color: _isGstVerified
-                                  ? Colors.green
-                                  : Colors.grey[600],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                      _isGstVerified ? 'Verified' : 'Verify',
+                      style: TextStyle(
+                        color: _isGstVerified
+                            ? Colors.green
+                            : Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1817,8 +1877,8 @@ class _TransporterRegistrationFlowState
     );
   }
 
-  Widget _buildVehicleCountField(
-      String vehicleType, TextEditingController controller) {
+  Widget _buildVehicleCountField(String vehicleType,
+      TextEditingController controller) {
     return Column(
       children: [
         Text(
@@ -1878,18 +1938,18 @@ class _TransporterRegistrationFlowState
                   ),
                   child: _selectedImage != null
                       ? ClipOval(
-                          child: Image.file(
-                            _selectedImage!,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          ),
-                        )
+                    child: Image.file(
+                      _selectedImage!,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                  )
                       : Icon(
-                          Icons.person_outline,
-                          size: 30,
-                          color: Colors.grey[600],
-                        ),
+                    Icons.person_outline,
+                    size: 30,
+                    color: Colors.grey[600],
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -2036,7 +2096,8 @@ class _TransporterRegistrationFlowState
                 ),
                 if (!_isReadyForSubmission()) ...[
                   const SizedBox(height: 8),
-                  ..._getValidationIssues().map((issue) => Padding(
+                  ..._getValidationIssues().map((issue) =>
+                      Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2),
                         child: Row(
                           children: [
@@ -2079,21 +2140,21 @@ class _TransporterRegistrationFlowState
                   ),
                   child: isSubmitting
                       ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
                       : Text(
-                          'Submit',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                    'Submit',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               );
             },
@@ -2138,15 +2199,15 @@ class _TransporterRegistrationFlowState
 
   Widget _buildTextField(String label, TextEditingController controller,
       {String? placeholder,
-      String? Function(String?)? validator,
-      TextInputType? keyboardType,
-      TextInputAction? textInputAction,
-      int? maxLines,
-      int? maxLength,
-      bool enabled = true,
-      Function(String)? onChanged,
-      Widget? suffixIcon,
-      TextCapitalization textCapitalization = TextCapitalization.none}) {
+        String? Function(String?)? validator,
+        TextInputType? keyboardType,
+        TextInputAction? textInputAction,
+        int? maxLines,
+        int? maxLength,
+        bool enabled = true,
+        Function(String)? onChanged,
+        Widget? suffixIcon,
+        TextCapitalization textCapitalization = TextCapitalization.none}) {
     return TextFormField(
       controller: controller,
       validator: validator,
@@ -2160,7 +2221,8 @@ class _TransporterRegistrationFlowState
       decoration: _dropdownDecoration(label).copyWith(
         hintText: placeholder,
         labelText: label,
-        hintStyle: TextStyle(fontSize: 12,fontWeight: FontWeight.w400,color: Colors.grey),
+        hintStyle: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.w400, color: Colors.grey),
         suffixIcon: suffixIcon,
         counterText: '', // Hide the maxLength counter
       ),
@@ -2210,7 +2272,8 @@ class _TransporterRegistrationFlowState
     _cityController.text = _transporterModel.address.city ?? "";
     _stateController.text = _transporterModel.address.state ?? "";
     _pincodeController.text =
-        _transporterModel.address.pincode!>0?_transporterModel.address.pincode.toString(): "";
+    _transporterModel.address.pincode! > 0 ? _transporterModel.address.pincode
+        .toString() : "";
     _contactPersonNameController.text =
         _transporterModel.contactPersonName ?? "";
     _phoneNumberController.text =

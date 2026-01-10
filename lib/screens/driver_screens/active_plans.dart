@@ -28,7 +28,7 @@ class SubscriptionsScreen extends StatefulWidget {
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
-  List<Subscription> _subscriptionData=[];
+  List<Subscription> _subscriptionData = [];
   bool _isInitialized = false;
 
   @override
@@ -75,12 +75,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     try {
       final data = await UserProfileService().getUserProfile();
-      _subscriptionData=data.subscriptions;
+      _subscriptionData = data.subscriptions;
       setState(() {
         _isLoading = false;
         _errorMessage = '';
       });
-
     } catch (e) {
       setState(() {
         _errorMessage = e is ApiException ? e.message : localizations.retry;
@@ -130,10 +129,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              SizedBox(height: 20,),
+              SizedBox(
+                height: 20,
+              ),
               Container(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
                 child: Row(
                   children: [
                     IconButton(
@@ -225,7 +226,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: ColorConstants.primaryColor,
                 padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -239,9 +240,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     // Check if there are no plans and no active transactions
     List<Subscription> activeSubscriptions =
-    _subscriptionData.where((s) => s.status == 'active').toList();
+        _subscriptionData.where((s) => s.status == 'active').toList();
     List<Subscription> expiredSubscription =
-    _subscriptionData.where((s) => s.status != 'active').toList();
+        _subscriptionData.where((s) => s.status != 'active').toList();
 
     if (_subscriptionData.isEmpty) {
       return Center(
@@ -308,10 +309,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             ...expiredSubscription
                 .map(
                   (transaction) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildTransactionItem(transaction),
-              ),
-            )
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _buildTransactionItem(transaction),
+                  ),
+                )
                 .toList(),
           ],
           const SizedBox(height: 24),
@@ -330,10 +331,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     final Color featureIconBorderColor = Colors.white;
     final Color featureIconBackgroundColor = Colors.transparent;
 
-    final double priceInStandardUnit = (activePlan[0].totalAmount??0)/1;
+    final double priceInStandardUnit = (activePlan[0].totalAmount ?? 0) / 1;
 
     // Safe date handling
-    final expiryDate = DateFormat("dd-MM-yyyy hh:mm a").format(activePlan[0].endDate!);
+    final expiryDate =
+        DateFormat("dd-MM-yyyy hh:mm a").format(activePlan[0].endDate!);
     // final purchaseDate = activePlan.validity;
 
     // String formattedEndDate = expiryDate != null
@@ -367,7 +369,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
             children: [
               Container(
                 padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withAlpha(50),
                   borderRadius: BorderRadius.circular(20),
@@ -409,7 +411,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            activePlan[0].category??"",
+            activePlan[0].category ?? "",
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -457,7 +459,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    localizations.expiryNotAvailable,
+                    DateFormat('yyyy-MM-dd hh:mm a')
+                        .format(activePlan[0].endDate!),
                     style: TextStyle(
                       fontSize: 14,
                       color: textColor.withAlpha(200),
@@ -469,7 +472,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ),
           const SizedBox(height: 24),
           Text(
-            activePlan[0].category??"",
+            activePlan[0].category ?? "",
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -537,7 +540,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Widget _buildTransactionItem(Subscription transaction) {
     final localizations = AppLocalizations.of(context)!;
 
-    final double amountInStandardUnit =( transaction.subscriptionAmount??0) / 1;
+    final double amountInStandardUnit =
+        (transaction.subscriptionAmount ?? 0) / 1;
 
     final transactionDate = DateTime.now();
     String formattedDate = transactionDate != null
@@ -545,8 +549,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         : 'Invalid date';
     return GestureDetector(
       onTap: () {
-        _showInvoiceBottomSheet(context, transaction.subscriptionAmount.toString());
-
+        _showInvoiceBottomSheet(
+            context, transaction.subscriptionAmount.toString());
       },
       child: Container(
         decoration: BoxDecoration(
@@ -576,7 +580,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    transaction.category??"",
+                    transaction.category ?? "",
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
@@ -606,12 +610,13 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 ),
                 Container(
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text("EXPIRED",
+                  child: Text(
+                    "EXPIRED",
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade700,
@@ -640,8 +645,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               Navigator.push(
                   context,
                   CupertinoPageRoute(
-                      builder: (context) =>
-                          PlanSelectionScreen(planType: "UPGRADE", planFor: '',countryId: '', stateId: '',)));
+                      builder: (context) => PlanSelectionScreen(
+                            planType: "UPGRADE",
+                            planFor: '',
+                            countryId: '',
+                            stateId: '',
+                          )));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: ColorConstants.primaryColor,

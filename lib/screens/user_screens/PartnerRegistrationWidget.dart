@@ -47,7 +47,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
   // ---------------------------------------------------------------------
   final List<Map<String, dynamic>> options = [
     {
-      'title': 'Transport Driver',
+      'title': 'Transport Owner',
       'icon': transporter,
       'key': "TRANSPORTER",
       'route': "TransporterRegistrationFlow",
@@ -61,14 +61,14 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       'colors': [Color(0xFFE3F2FD), Color(0xFF90CAF9)]
     },
     {
-      'title': 'Auto Rickshaw Driver',
+      'title': 'Auto Rickshaw',
       'icon': auto,
       'key': "RICKSHAW",
       'route': "AutoRickshawDriverFlow",
       'colors': [Color(0xFFF3E5F5), Color(0xFFCE93D8)]
     },
     {
-      'title': 'E Rickshaw Driver',
+      'title': 'E Rickshaw',
       'icon': erickshaw,
       'key': "E_RICKSHAW",
       'route': "ERickshawDriverFlow",
@@ -531,35 +531,3 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
 }
 
 /// Reusable list item widget
-class _RequirementItem extends StatelessWidget {
-  final String index;
-  final String text;
-
-  const _RequirementItem({
-    required this.index,
-    required this.text,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$index.',
-          style: const TextStyle(fontSize: 16),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 16,
-              height: 1.4,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}

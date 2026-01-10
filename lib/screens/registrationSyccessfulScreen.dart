@@ -36,115 +36,118 @@ class _RegistrationSuccessfulScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.0, 0.15, 0.30, 0.90],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                gradientFirst,
+                gradientSecond,
+                gradientThird,
+                Colors.white
+              ],
+              stops: [0.0, 0.15, 0.30, 0.90],
+            ),
           ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header with back button
-              /*Padding(
-                padding: EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (widget.userType != 'DRIVER') {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const Layout(isFirstTime: false)),
-                            (route) => false,
-                          );
-                        }
-                      },
-                      child: Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 24,
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Header with back button
+                /*Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          if (widget.userType != 'DRIVER') {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>
+                                      const Layout(isFirstTime: false)),
+                              (route) => false,
+                            );
+                          }
+                        },
+                        child: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),*/
-              // Main content
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Success icon
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        shape: BoxShape.circle,
-                      ),
-                      child: Stack(
-                        children: [
-                          // Star-like decoration around the circle
-                          Positioned.fill(
-                            child: CustomPaint(
-                              painter: StarDecorationPainter(),
-                            ),
-                          ),
-                          // Check mark in center
-                          Center(
-                            child: Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 50,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 50),
-                    // Success text
-                    Text(
-                      'Registration Successful',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-                    SizedBox(height: 30),
-                    // Description text
-                    (widget.userType != 'DRIVER')
-                        ? Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 40),
-                            child: Text(
-                              'Now, you may continue to list your Vehicles',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: Colors.black87,
-                                height: 1.4,
+                    ],
+                  ),
+                ),*/
+                // Main content
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Success icon
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Stack(
+                          children: [
+                            // Star-like decoration around the circle
+                            Positioned.fill(
+                              child: CustomPaint(
+                                painter: StarDecorationPainter(),
                               ),
                             ),
-                          )
-                        : Container(),
-                    SizedBox(height: 50),
-                    // Continue button
-                    _buildContinueButton(context)
-                  ],
+                            // Check mark in center
+                            Center(
+                              child: Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 50,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 50),
+                      // Success text
+                      Text(
+                        'Registration Successful',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      // Description text
+                      (widget.userType != 'DRIVER')
+                          ? Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 40),
+                              child: Text(
+                                'Now, you may continue to list your Vehicles',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black87,
+                                  height: 1.4,
+                                ),
+                              ),
+                            )
+                          : Container(),
+                      SizedBox(height: 50),
+                      // Continue button
+                      _buildContinueButton(context)
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -194,7 +197,7 @@ class _RegistrationSuccessfulScreenState
         context,
         MaterialPageRoute(
             builder: (context) =>
-                AddNewVehicleScreen(userType: widget.userType)));
+                AddNewVehicleScreen(isFromRegistration:true,userType: widget.userType)));
 
     // For now, just pop back to previous screens
     // Navigator.popUntil(context, (route) => route.isFirst);

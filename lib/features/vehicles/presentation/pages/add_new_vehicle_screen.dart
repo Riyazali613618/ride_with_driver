@@ -150,12 +150,14 @@ class AddVehicleProvider extends ChangeNotifier {
 // vehicle_registration_form.dart
 
 class AddNewVehicleScreen extends StatefulWidget {
+  final bool isFromRegistration;
   final VehicleEntity? vehicle;
   final String
       userType; // 'Transporter', 'Taxi Owner', 'Auto-Rickshaw', 'E-Rickshaw Driver'
 
   const AddNewVehicleScreen({
     super.key,
+    this.isFromRegistration = false,
     required this.userType,
     this.vehicle,
   });
@@ -457,227 +459,281 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CommonParentContainer(
-        showLargeGradient: true,
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0, left: 16, right: 16),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.pop(context);
-                      },
-                      child: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 24,
+    return WillPopScope(
+      onWillPop: _handleBackPress,
+      child: Scaffold(
+        body: CommonParentContainer(
+          showLargeGradient: true,
+          child: SafeArea(
+            child: Column(
+              children: [
+                // Header
+                Padding(
+                  padding:
+                      const EdgeInsets.only(top: 16.0, left: 16, right: 16),
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () async {
+                          final shouldPop = await _handleBackPress();
+                          if (shouldPop) {
+                            Navigator.pop(context);
+                          }
+                        },
+                        child: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      widget.vehicle == null ? 'Add Vehicle' : "Manage Vehicle",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(width: 16),
+                      Text(
+                        widget.vehicle == null
+                            ? 'Add Vehicle'
+                            : "Manage Vehicle",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              // Form Content
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Colors.transparent,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(24),
-                      topRight: Radius.circular(24),
-                    ),
+                    ],
                   ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Vehicle Type - Only for Transporter and Taxi Owner
-                          if (_shouldShowVehicleType)
-                            _buildDropdownVehicleTypeField(
-                              label: 'Vehicle Type',
-                              value: _selectedVehicleType,
-                              items: _vehicleTypes,
-                              onChanged: (value) {
-                                setState(() {
-                                  _selectedVehicleType = value;
-                                  final min = _selectedVehicleType
-                                          ?.seatingLimits?.min ??
-                                      1;
-                                  final max = _selectedVehicleType
-                                          ?.seatingLimits?.max ??
-                                      2;
-                                  _seatingCapacities = List.generate(
-                                      max - min + 1,
-                                      (index) => (min + index).toString());
-                                });
-                              },
-                              isRequired: true,
-                            ),
+                ),
+                // Form Content
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Colors.transparent,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(24),
+                        topRight: Radius.circular(24),
+                      ),
+                    ),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Vehicle Type - Only for Transporter and Taxi Owner
+                            if (_shouldShowVehicleType)
+                              _buildDropdownVehicleTypeField(
+                                label: 'Vehicle Type',
+                                value: _selectedVehicleType,
+                                items: _vehicleTypes,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedVehicleType = value;
+                                    final min = _selectedVehicleType
+                                            ?.seatingLimits?.min ??
+                                        1;
+                                    final max = _selectedVehicleType
+                                            ?.seatingLimits?.max ??
+                                        2;
+                                    _seatingCapacities = List.generate(
+                                        max - min + 1,
+                                        (index) => (min + index).toString());
+                                  });
+                                },
+                                isRequired: true,
+                              ),
 
-                          // Vehicle Name - Only for Transporter and Taxi Owner
-                          if (_shouldShowVehicleName)
+                            // Vehicle Name - Only for Transporter and Taxi Owner
+                            if (_shouldShowVehicleName)
+                              _buildTextField(
+                                label: 'Vehicle Name',
+                                controller: _vehicleNameController,
+                                isHighlighted: true,
+                              ),
+
                             _buildTextField(
-                              label: 'Vehicle Name',
-                              controller: _vehicleNameController,
+                              label: 'Vehicle Number',
+                              controller: _vehicleNumberController,
                               isHighlighted: true,
                             ),
 
-                          _buildTextField(
-                            label: 'Vehicle Number',
-                            controller: _vehicleNumberController,
-                            isHighlighted: true,
-                          ),
+                            _buildDropdownField(
+                              label: 'Seating Capacity',
+                              value: _selectedSeatingCapacity,
+                              items: _seatingCapacities,
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedSeatingCapacity = value;
+                                });
+                              },
+                            ),
 
-                          _buildDropdownField(
-                            label: 'Seating Capacity',
-                            value: _selectedSeatingCapacity,
-                            items: _seatingCapacities,
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedSeatingCapacity = value;
-                              });
-                            },
-                          ),
+                            _buildMinimumChargeField(),
 
-                          _buildMinimumChargeField(),
+                            _buildMultiSelectField(
+                              label: 'Service Locations',
+                              selectedItems: _selectedLocations,
+                              allItems: _serviceLocations,
+                              onSelectionChanged: (locations) {
+                                setState(() {
+                                  _selectedLocations = locations;
+                                });
+                              },
+                            ),
 
-                          _buildMultiSelectField(
-                            label: 'Service Locations',
-                            selectedItems: _selectedLocations,
-                            allItems: _serviceLocations,
-                            onSelectionChanged: (locations) {
-                              setState(() {
-                                _selectedLocations = locations;
-                              });
-                            },
-                          ),
+                            _buildAirConditioningField(),
 
-                          _buildAirConditioningField(),
-
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                  child: _buildMultiSelectField(
-                                label: 'Specifications',
-                                selectedItems: _selectedSpecifications,
-                                allItems: _specifications,
-                                onSelectionChanged: (specs) {
-                                  setState(() {
-                                    _selectedSpecifications = specs;
-                                  });
-                                },
-                              )),
-                              GestureDetector(
-                                onTap: () {
-                                  showAddCustomSpecificationPopup();
-                                },
-                                child: Container(
-                                  margin: EdgeInsets.only(bottom: 30, left: 10),
-                                  child: Icon(
-                                    Icons.add_circle,
-                                    color: ColorConstants.primaryColor,
-                                    size: 24,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-
-                          _buildFileUploadSection(
-                            title: 'Upload Vehicle Image',
-                            files: _vehicleImages,
-                            filesServer: _vehicleImagesServer,
-                            onAddFile: () => _pickImage('vehicle'),
-                            onRemoveFile: (index) =>
-                                _removeFile('vehicle', index),
-                            fileType: 'image',
-                          ),
-
-                          _buildFileUploadSection(
-                            title: 'Upload Vehicle Video',
-                            files: _vehicleVideos,
-                            filesServer: _vehicleVideosServer,
-                            onAddFile: () => _pickVideo(),
-                            onRemoveFile: (index) =>
-                                _removeFile('video', index),
-                            fileType: 'video',
-                          ),
-
-                          // RC Upload - Only for Transporter and Taxi Owner
-                          if (_shouldShowRCPhotos) _buildRCUploadSection(),
-
-                          const SizedBox(height: 40),
-
-                          // Submit Button
-                          Consumer<AddVehicleProvider>(
-                            builder: (context, provider, child) {
-                              return SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    (provider.isLoading || isLoading)
-                                        ? null
-                                        : _submitForm(provider);
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                    child: _buildMultiSelectField(
+                                  label: 'Specifications',
+                                  selectedItems: _selectedSpecifications,
+                                  allItems: _specifications,
+                                  onSelectionChanged: (specs) {
+                                    setState(() {
+                                      _selectedSpecifications = specs;
+                                    });
                                   },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: gradientFirst,
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                )),
+                                GestureDetector(
+                                  onTap: () {
+                                    showAddCustomSpecificationPopup();
+                                  },
+                                  child: Container(
+                                    margin:
+                                        EdgeInsets.only(bottom: 30, left: 10),
+                                    child: Icon(
+                                      Icons.add_circle,
+                                      color: ColorConstants.primaryColor,
+                                      size: 24,
                                     ),
-                                    elevation: 0,
                                   ),
-                                  child: (provider.isLoading || isLoading)
-                                      ? const SizedBox(
-                                          height: 20,
-                                          width: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
+                                )
+                              ],
+                            ),
+
+                            _buildFileUploadSection(
+                              title: 'Upload Vehicle Image',
+                              files: _vehicleImages,
+                              filesServer: _vehicleImagesServer,
+                              onAddFile: () => _pickImage('vehicle'),
+                              onRemoveFile: (index) =>
+                                  _removeFile('vehicle', index),
+                              fileType: 'image',
+                            ),
+
+                            _buildFileUploadSection(
+                              title: 'Upload Vehicle Video',
+                              files: _vehicleVideos,
+                              filesServer: _vehicleVideosServer,
+                              onAddFile: () => _pickVideo(),
+                              onRemoveFile: (index) =>
+                                  _removeFile('video', index),
+                              fileType: 'video',
+                            ),
+
+                            // RC Upload - Only for Transporter and Taxi Owner
+                            if (_shouldShowRCPhotos) _buildRCUploadSection(),
+
+                            const SizedBox(height: 40),
+
+                            // Submit Button
+                            Consumer<AddVehicleProvider>(
+                              builder: (context, provider, child) {
+                                return SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      (provider.isLoading || isLoading)
+                                          ? null
+                                          : _submitForm(provider);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: gradientFirst,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      elevation: 0,
+                                    ),
+                                    child: (provider.isLoading || isLoading)
+                                        ? const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                              color: Colors.white,
+                                              strokeWidth: 2,
+                                            ),
+                                          )
+                                        : const Text(
+                                            'Submit',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                           ),
-                                        )
-                                      : const Text(
-                                          'Submit',
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  Future<bool> _handleBackPress() async {
+    // If NOT from registration → normal back
+    if (!widget.isFromRegistration) {
+      return true;
+    }
+
+    // Show confirmation dialog
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Leave Registration?'),
+        content: const Text(
+          'Are you sure you want to leave the vehicle registration?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('No'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Yes',
+              style: TextStyle(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLeave == true) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+            builder: (context) => const Layout(isFirstTime: false)),
+        (route) => false,
+      );
+      return false; // we handled navigation ourselves
+    }
+
+    return false; // close dialog only
   }
 
   Widget _buildTextField({

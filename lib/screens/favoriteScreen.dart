@@ -8,9 +8,11 @@ import '../constants/assets_constant.dart';
 import '../l10n/app_localizations.dart';
 import '../utils/color.dart';
 import '../../api/api_model/favouriteModel.dart' as fm;
+import 'layout.dart';
 
 class FavoriteScreen extends StatefulWidget {
-  const FavoriteScreen({super.key});
+  final FavoriteController controller;
+  const FavoriteScreen({Key? key, required this.controller}) : super(key: key);
 
   @override
   State<FavoriteScreen> createState() => _FavoriteScreenState();
@@ -30,8 +32,12 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    getFavourites();
+    widget.controller.refresh = getFavourites;
 
+  }
+
+  void updateData(){
+    getFavourites();
   }
   bool getFavs=false;
   Future<void> getFavourites() async {
@@ -76,10 +82,10 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10.0),
                 child: Row(
                   children: [
-                    IconButton(
+                 /*   IconButton(
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
-                    ),
+                    ),*/
                     const Expanded(
                       child: Text(
                         'Favorite',

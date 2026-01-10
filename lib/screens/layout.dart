@@ -47,6 +47,7 @@ class _LayoutState extends State<Layout> {
   String _errorMessage = '';
   ErrorType _errorType = ErrorType.unknown;
   DateTime? _lastPressed;
+  final FavoriteController _favoriteController = FavoriteController();
 
   final ChatListController _chatListController = ChatListController();
   VerifyOtpService _verifyOtpService = VerifyOtpService();
@@ -168,7 +169,7 @@ class _LayoutState extends State<Layout> {
           showDriverSubscription: false,
           isFirstTime: widget.isFirstTime,
         ),
-        FavoriteScreen(),
+        FavoriteScreen(controller: _favoriteController),
         if (showDashboard) const DashboardScreenNew(),
         // PartnerRegistrationWidget(),
         ChatListScreen(controller: _chatListController),
@@ -186,7 +187,7 @@ class _LayoutState extends State<Layout> {
       ),
       // const TransportApp(showDriverSubscription: true),
       //  PartnerRegistrationWidget(),
-      FavoriteScreen(),
+      FavoriteScreen(controller: _favoriteController),
       /*SubscriptionsScreen(
         baseUrl: ApiConstants.baseUrl,
       ),*/
@@ -276,6 +277,10 @@ class _LayoutState extends State<Layout> {
 
   Future<void> _onItemTapped(int index, List<Widget> pages) async {
     if (!mounted) return;
+    final favoriteTabIndex = 1;
+    if (index == favoriteTabIndex) {
+      _favoriteController.refresh?.call(); // 🔥 REFRESH API
+    }
     if (index == pages.length - 1) {
       final userType = await TokenManager.getUserType() ?? "user";
 
@@ -675,3 +680,8 @@ enum UserTypes {
   user,
   partner,
 }
+
+class FavoriteController {
+  VoidCallback? refresh;
+}
+
