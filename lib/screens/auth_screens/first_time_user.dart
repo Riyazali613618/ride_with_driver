@@ -262,7 +262,8 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
 
   void _initializeLocation() {
     final langProvider = Provider.of<LocationProvider>(context, listen: false);
-    currentCountry = langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
+    currentCountry =
+        langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
 
     langProvider.fetchStates(currentCountry!).then((_) {
       if (mounted) {
@@ -418,15 +419,16 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
             // Update stored user data with new name
             final userData = await TokenManager.getUserData();
             if (userData != null) {
-              userData['firstName'] =_firstNameController.text.trim();
-              userData['lastName'] =_lastNameController.text.trim();
+              userData['firstName'] = _firstNameController.text.trim();
+              userData['lastName'] = _lastNameController.text.trim();
               userData['name'] =
                   '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
               await TokenManager.saveUserData(userData);
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => const Layout(isFirstTime: true)),(route) => false,
+                    builder: (context) => const Layout(isFirstTime: true)),
+                (route) => false,
               );
             }
 
@@ -718,9 +720,14 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
               gradientFirst,
               gradientSecond,
               gradientThird,
-              Colors.white
+              Colors.white,
+              Colors.white,
+              Colors.white,
+              Colors.white,
+              Colors.white,
+              Colors.white,
+              Colors.white,
             ],
-            stops: [0.0, 0.25, 0.45, .90],
           ),
         ),
         child: SafeArea(
@@ -734,7 +741,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                   children: [
                     const SizedBox(height: 20),
                     // Welcome text
-                    Text(
+                    /*  Text(
                       localizations.welcome,
                       style: TextStyle(
                         fontSize: 28,
@@ -749,20 +756,18 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                         fontSize: 16,
                         color: Colors.white,
                       ),
-                    ),
+                    ),*/
                     const SizedBox(height: 40),
                     Center(
                       child: GestureDetector(
                         onTap: _showImagePickerBottomSheet,
                         child: Container(
-                          width: 80,
-                          height: 80,
+                          width: 100,
+                          height: 100,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             color: Colors.grey[300],
-                            border: _selectedImage != null
-                                ? Border.all(color: Color(0xFF8B5CF6), width: 3)
-                                : null,
+                            border: Border.all(color: Colors.white, width: 10),
                           ),
                           child: _selectedImage != null
                               ? ClipOval(
@@ -774,23 +779,25 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                                   ),
                                 )
                               : Icon(
-                                  Icons.camera_alt,
-                                  size: 32,
+                                  Icons.person,
+                                  size: 40,
                                   color: Colors.grey[600],
                                 ),
                         ),
                       ),
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 10),
                     Center(
                       child: GestureDetector(
                         onTap: _showImagePickerBottomSheet,
                         child: Text(
                           _selectedImage != null
                               ? 'Tap to change image'
-                              : 'Profile Image / Logo',
+                              : 'Add Profile Image',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontFamily: AppConstants.ptSansFont,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                             color: _selectedImage != null
                                 ? Color(0xFF8B5CF6)
                                 : Colors.black87,
@@ -810,12 +817,23 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                         labelStyle: const TextStyle(color: Colors.black54),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Color(0xffBD8CE8)),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -839,12 +857,23 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                         labelStyle: const TextStyle(color: Colors.black54),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide:
+                              BorderSide(color: ColorConstants.primaryColor),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Color(0xffBD8CE8)),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -862,12 +891,23 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                         labelStyle: const TextStyle(color: Colors.black54),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
+                        ),
+                        disabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide:
-                              const BorderSide(color: Color(0xffBD8CE8)),
+                          borderSide: const BorderSide(
+                              color: ColorConstants.primaryColor, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -984,15 +1024,15 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                                   height: 56,
                                   width: double.infinity,
                                   decoration: BoxDecoration(
-                                    color: ColorConstants.primaryColorLight,
-                                    borderRadius: BorderRadius.circular(28),
+                                    color: ColorConstants.primaryColor,
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: const Center(
                                     child: SizedBox(
                                       height: 24,
                                       width: 24,
                                       child: CircularProgressIndicator(
-                                        color: ColorConstants.primaryColor,
+                                        color: ColorConstants.white,
                                         strokeWidth: 2.5,
                                       ),
                                     ),
@@ -1004,7 +1044,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                                   backgroundColor: gradientFirst,
                                   isFullWidth: true,
                                   height: 56,
-                                  borderRadius: 17,
+                                  borderRadius: 10,
                                   textColor: Colors.white,
                                 ),
                           const SizedBox(height: 18),
@@ -1039,11 +1079,23 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
             labelStyle: const TextStyle(color: Colors.black54),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(
+                  color: ColorConstants.primaryColor, width: 2),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                  color: ColorConstants.primaryColor, width: 2),
+            ),
+            disabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(
+                  color: ColorConstants.primaryColor, width: 2),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xffBD8CE8)),
+              borderSide: const BorderSide(
+                  color: ColorConstants.primaryColor, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,

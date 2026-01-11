@@ -13,6 +13,7 @@ import 'package:r_w_r/utils/images.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../bloc/payment/payment_bloc.dart';
+import '../../constants/api_constants.dart';
 import '../../l10n/app_localizations.dart';
 import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../../plan/presentation/bloc/plan_event.dart';
@@ -248,7 +249,8 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             centerTitle: false,
             titleSpacing: 0,
           ),
-          body: Column(children: [
+          body: Column(
+              children: [
             const SizedBox(
               height: 100,
             ),
@@ -266,7 +268,27 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
                   fontWeight: FontWeight.w400,
                   color: Colors.black),
             ),
-            Expanded(child: _buildScrollableContent())
+            Expanded(child: _buildScrollableContent()),
+            SizedBox(
+              height: 20,
+            ),
+            RichText(
+                text: TextSpan(children: [
+                  TextSpan(
+                      text: "No commission • No middleman ",
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w400,
+                          fontFamily: AppConstants.ptSansFont,
+                          color: Color(0xFF595959))),
+                  TextSpan(
+                      text: " • Direct contact",
+                      style: TextStyle(
+                          fontSize: 4,
+                          fontWeight: FontWeight.w700,
+                          fontFamily: AppConstants.ptSansFont,
+                          color: Color(0xFF595959))),
+                ]))
           ]),
         ),
       ),
@@ -323,10 +345,10 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
               padding: const EdgeInsets.only(top: 20, left: 10, right: 10),
               sliver: SliverGrid(
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 3,
+                  crossAxisCount: 2,
                   crossAxisSpacing: 8,
                   mainAxisSpacing: 12,
-                  childAspectRatio: 1 / 1.1,
+                  childAspectRatio: 1 / 0.8,
                 ),
                 delegate: SliverChildBuilderDelegate(
                   childCount: filteredOptions.length,
@@ -349,6 +371,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+        alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: option['colors'],
@@ -365,6 +388,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
           ],
         ),
         child: Stack(
+          alignment: Alignment.center,
           children: [
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -375,7 +399,8 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
                   option['title'],
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 11,
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 14,
                     fontWeight: FontWeight.w400,
                     color: ColorConstants.black2,
                   ),
@@ -384,11 +409,13 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
                   getDescription(option['key']),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
                     color: ColorConstants.black2,
                   ),
                 ),
+
               ],
             ),
             Align(
@@ -452,10 +479,10 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
           "Drivers who operate their own or rented car (Limited to one or two vehicles).";
     }
 
-    showStandAloneDriverDialog(title,desc,category);
+    showStandAloneDriverDialog(title, desc, category);
   }
 
-  void showStandAloneDriverDialog(String title,String desc,String category) {
+  void showStandAloneDriverDialog(String title, String desc, String category) {
     showDialog(
       context: context,
       barrierDismissible: true,
@@ -471,45 +498,47 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Title
-               Text(
+              Text(
                 category,
                 style: TextStyle(
-                  fontSize: 22,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               // Subtitle
-               Text(
+              Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
-                  height: 1.4,
-                ),
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400),
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Section title
               const Text(
                 'Mandatory Requirements',
                 style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
                 ),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Text(
                 desc,
                 style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.4,
-                ),
+                    fontSize: 12,
+                    fontFamily: AppConstants.ptSansFont,
+                    fontWeight: FontWeight.w400),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
 
               // Optional action button
               Align(

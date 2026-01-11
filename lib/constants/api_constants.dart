@@ -23,6 +23,7 @@ class ApiConstants {
 }
 
 class AppConstants {
+  static const String ptSansFont = "PTSans";
   static const String planEligibilityKey = 'plan_eligibility_key';
   static const String preRegistration = "PRE_REGISTRATION";
 

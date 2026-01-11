@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:r_w_r/constants/api_constants.dart';
 
 class CustomButton extends StatelessWidget {
   final String text;
@@ -71,6 +72,7 @@ class CustomButton extends StatelessWidget {
             Text(
               text,
               style: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
                 fontSize: fontSize ?? 16,
                 fontWeight: fontWeight ?? FontWeight.w600,
               ),

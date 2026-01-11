@@ -10,10 +10,13 @@ import '../../bloc/auth/auth_event.dart';
 import '../../bloc/auth/auth_state.dart';
 import '../../components/app_button.dart';
 import '../../components/app_snackbar.dart';
+import '../../constants/api_constants.dart';
 import '../../constants/color_constants.dart';
+import '../../core/helper/country_phone_codes.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/color.dart';
 import '../block/language/language_provider.dart';
+import 'int_number.dart';
 import 'otp_screen.dart';
 import 'package:r_w_r/api/api_model/countryModel.dart' as cm;
 
@@ -30,17 +33,26 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
   bool _isPhoneValid = false;
   bool _isLoading = false;
-  List<cm.Data> countryModel=[];
-  LocationProvider locationProvider=LocationProvider();
+  List<cm.Data> countryModel = [];
+  LocationProvider locationProvider = LocationProvider();
+  CountryPhoneCode? selectedCountry;
+  final GlobalKey<FormState> _key = GlobalKey<FormState>();
+  bool isValidNumber = false;
 
   @override
   void initState() {
     super.initState();
+    selectedCountry = CountryPhoneCode(
+        countryName: 'India',
+        countryCode: 'IN',
+        dialCode: '+91',
+        flag: '🇮🇳',
+        phoneNumberLength: 10);
     _phoneController.addListener(_validatePhoneNumber);
     fetchSelectedCountry();
   }
 
-  void fetchSelectedCountry(){
+  void fetchSelectedCountry() {
     locationProvider.fetchCountries();
   }
 
@@ -74,10 +86,10 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_isPhoneValid) return;
     // Get just the phone number without country code for the API
     final phoneNumber = _phoneController.text;
-    countryModel=locationProvider.countries;
-    final cCode=_selectedCountryCode.replaceAll('+', '');
-    for(var cm in countryModel){
-      if(cm.dialCode==cCode){
+    countryModel = locationProvider.countries;
+    final cCode = _selectedCountryCode.replaceAll('+', '');
+    for (var cm in countryModel) {
+      if (cm.dialCode == cCode) {
         locationProvider.setSelectedCountry(cm.id!);
         break;
       }
@@ -118,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
             CupertinoPageRoute(
               builder: (_) => OtpVerificationScreen(
                 phoneNumber: fullPhoneNumber,
-                countryId:locationProvider.selectedCountry??"",
+                countryId: locationProvider.selectedCountry ?? "",
               ),
             ),
           );
@@ -136,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors:[
+              colors: [
                 gradientFirst,
                 gradientSecond,
                 gradientThird,
@@ -155,12 +167,33 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text(
                     localizations.log_in,
                     style: const TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 105),
+                  PhoneInputField(
+                    ctr: _phoneController,
+                    inputPhone: true,
+                    length: 10,
+                    // This is legacy, actual validation uses country-specific length
+                    initialCountry: selectedCountry,
+                    onValidationChanged: (isValid) {
+                      setState(() {
+                        isValidNumber = isValid;
+                      });
+                    },
+                    onCountryChanged: (country) {
+                      setState(() {
+                        selectedCountry = country;
+                      });
+                    },
+                    // Custom validation will be used based on selected country
+                  ),
+
+/*
                   Row(
                     children: [
                       Container(
@@ -271,12 +304,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ],
                   ),
+*/
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
                       _errorMessage ?? "",
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: Colors.black,
+                        fontFamily: AppConstants.ptSansFont,
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.end,
@@ -288,11 +323,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (_isLoading)
                     Center(
                         child: Container(
-                            height: 50,
+                            height: 54,
                             width: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.purple,
-                              borderRadius: BorderRadius.circular(30),
+                              color: ColorConstants.primaryColor,
+                              borderRadius: BorderRadius.circular(10),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.2),
@@ -308,7 +343,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   height: 30,
                                   width: 30,
                                   child: CircularProgressIndicator(
-                                    color: ColorConstants.primaryColor,
+                                    color: ColorConstants.white,
                                   ),
                                 ),
                               ],
@@ -316,7 +351,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   else
                     Container(
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(28),
+                        borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.2),
@@ -326,24 +361,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                       child: CustomButton(
-                        text: localizations.continue_co,
+                        text: "Send OTP",
                         fontSize: 20,
                         fontWeight: FontWeight.w700,
                         onPressed: _isPhoneValid && !_isLoading
                             ? _handleContinue
                             : () {
-                          if (!_isPhoneValid) {
-                            CustomSnackBar.showCustomSnackBar(
-                              context: context,
-                              message: localizations.enter_correct_phone,
-                              success: false,
-                            );
-                          }
-                        },
-                        backgroundColor:gradientFirst,
+                                if (!_isPhoneValid) {
+                                  CustomSnackBar.showCustomSnackBar(
+                                    context: context,
+                                    message: localizations.enter_correct_phone,
+                                    success: false,
+                                  );
+                                }
+                              },
+                        backgroundColor: gradientFirst,
                         textColor: Colors.white,
-                        height: 56,
-                        borderRadius: 15,
+                        height: 54,
+                        borderRadius: 10,
                         isFullWidth: true,
                       ),
                     ),

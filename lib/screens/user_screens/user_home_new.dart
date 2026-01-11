@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +31,7 @@ import '../../constants/api_constants.dart';
 import '../../constants/assets_constant.dart';
 import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
+import '../../features/vehicles/presentation/pages/vehicle_type_model.dart';
 import '../../plan/data/repositories/plan_repository.dart';
 import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../Eligibility/bloc/eligibility_bloc.dart';
@@ -373,6 +375,8 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   @override
   void initState() {
     super.initState();
+    addVehicles();
+    getVehicleTypeList();
     startAutoScroll();
     _containerSearchController.addListener(() {
       setState(() {});
@@ -422,11 +426,12 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _currentSubscriptionVisibility =
               widget.showDriverSubscription ?? false;
         });
+      }
     }
   }
 
@@ -485,50 +490,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     super.dispose();
   }
 
-  final List<VehicleType> vehicles = [
-    VehicleType(
-      name: 'Car',
-      assetImagePath: AssetsConstant.car,
-      color: const Color(0xFFEF9A9A),
-      color1: const Color(0xFFFFEBEE),
-    ),
-    VehicleType(
-      name: 'Auto',
-      assetImagePath: AssetsConstant.tukTuk,
-      color: const Color(0xFFFFE082),
-      color1: const Color(0xFFFFF8E1),
-    ),
-    VehicleType(
-      name: 'E-Rickshaw',
-      assetImagePath: AssetsConstant.auto,
-      color: const Color(0xFF9575CD),
-      color1: const Color(0xFFEDE7F6),
-    ),
-    VehicleType(
-      name: 'SUV',
-      assetImagePath: AssetsConstant.suv,
-      color: const Color(0xFFFFAB91),
-      color1: const Color(0xFFFFEBE9),
-    ),
-    VehicleType(
-      name: 'MiniVan',
-      assetImagePath: AssetsConstant.minivan,
-      color: const Color(0xFFF48FB1),
-      color1: const Color(0xFFFCE4EC),
-    ),
-    VehicleType(
-      name: 'Bus',
-      assetImagePath: AssetsConstant.bus,
-      color: const Color(0xFFA5D6A7),
-      color1: const Color(0xFFE8F5E9),
-    ),
-    VehicleType(
-      name: 'Driver',
-      assetImagePath: AssetsConstant.driverBus,
-      color: const Color(0xFF81D4FA),
-      color1: const Color(0xFFE1F5FE),
-    ),
-  ];
+  List<VehicleType> vehicles = [];
 
   String selectedLanguage = 'En';
 
@@ -1253,8 +1215,9 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                       Text(
                                         'Hi, ${profileProvider.fullName ?? "Getting Name"}',
                                         style: const TextStyle(
+                                          fontFamily: AppConstants.ptSansFont,
                                           color: Colors.white,
-                                          fontSize: 14,
+                                          fontSize: 16,
                                           fontWeight: FontWeight.w700,
                                         ),
                                         overflow: TextOverflow.ellipsis,
@@ -1262,7 +1225,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                       ),
                                       Text(
                                         currentLocationName,
-                                        style: const TextStyle(
+                                        style: GoogleFonts.inter(
                                           color: Colors.white,
                                           fontSize: 12,
                                           fontWeight: FontWeight.w400,
@@ -1306,7 +1269,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                 languageProvider.currentLanguage
                                                         ?.name ??
                                                     'En',
-                                                style: const TextStyle(
+                                                style: GoogleFonts.lexendDeca(
                                                   color: Colors.white,
                                                   fontSize: 17,
                                                   fontWeight: FontWeight.w500,
@@ -1413,9 +1376,11 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                   child: Text(
                                                     "All Services",
                                                     style: TextStyle(
+                                                      fontFamily: AppConstants
+                                                          .ptSansFont,
                                                       fontSize: 14,
                                                       fontWeight:
-                                                          FontWeight.w400,
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ),
@@ -2023,4 +1988,133 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       });
     }
   }
+  List<Categories> _vehicleTypes = [];
+
+  Future<void> getVehicleTypeList() async {
+    WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) async {
+        final data = await UserProfileService().getVehicleTypeList();
+        if (data.data != null) {
+          _vehicleTypes = data.data?.categories ?? [];
+
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  void addVehicles() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        final localizations = AppLocalizations.of(context)!;
+        vehicles = [
+          VehicleType(
+            name: localizations.car,
+            assetImagePath: AssetsConstant.car,
+            color: const Color(0xFFEF9A9A),
+            color1: const Color(0xFFFFEBEE),
+          ),
+          VehicleType(
+            name: localizations.auto,
+            assetImagePath: AssetsConstant.tukTuk,
+            color: const Color(0xFFFFE082),
+            color1: const Color(0xFFFFF8E1),
+          ),
+          VehicleType(
+            name: localizations.eRickshaw,
+            assetImagePath: AssetsConstant.auto,
+            color: const Color(0xFF9575CD),
+            color1: const Color(0xFFEDE7F6),
+          ),
+          VehicleType(
+            name: localizations.suv,
+            assetImagePath: AssetsConstant.suv,
+            color: const Color(0xFFFFAB91),
+            color1: const Color(0xFFFFEBE9),
+          ),
+          VehicleType(
+            name: localizations.minivan,
+            assetImagePath: AssetsConstant.minivan,
+            color: const Color(0xFFF48FB1),
+            color1: const Color(0xFFFCE4EC),
+          ),
+          VehicleType(
+            name: localizations.bus,
+            assetImagePath: AssetsConstant.bus,
+            color: const Color(0xFFA5D6A7),
+            color1: const Color(0xFFE8F5E9),
+          ),
+          VehicleType(
+            name: localizations.driver,
+            assetImagePath: AssetsConstant.driverBus,
+            color: const Color(0xFF81D4FA),
+            color1: const Color(0xFFE1F5FE),
+          ),
+          VehicleType(
+            name: "Luxury",
+            assetImagePath: AssetsConstant.driverBus,
+            color: const Color(0xFFFFAB91),
+            color1: const Color(0xFFE1F5FE),
+          ),
+        ];
+      },
+    );
+  }
+
+
+}
+
+List<Map<String, dynamic>> getLocalizedSuggestions(BuildContext context) {
+  final localizations = AppLocalizations.of(context)!;
+  return [
+    {
+      "key": "car",
+      "label": localizations.car,
+      "asset": AssetsConstant.car,
+      "color": const Color(0xFFEF9A9A),
+      "color1": const Color(0xFFFFEBEE),
+    },
+    {
+      "key": "auto",
+      "label": localizations.auto,
+      "asset": AssetsConstant.tukTuk,
+      "color": const Color(0xFFFFE082),
+      "color1": const Color(0xFFFFF8E1),
+    },
+    {
+      "key": "eRickshaw",
+      "label": localizations.eRickshaw,
+      "asset": AssetsConstant.auto,
+      "color": const Color(0xFF9575CD),
+      "color1": const Color(0xFFEDE7F6),
+    },
+    {
+      "key": "suv",
+      "label": localizations.suv,
+      "asset": AssetsConstant.suv,
+      "color": const Color(0xFFFFAB91),
+      "color1": const Color(0xFFFFEBE9),
+    },
+    {
+      "key": "miniVan",
+      "label": localizations.minivan,
+      "asset": AssetsConstant.minivan,
+      "color": const Color(0xFFF48FB1),
+      "color1": const Color(0xFFFCE4EC),
+    },
+    {
+      "key": "bus",
+      "label": localizations.bus,
+      "asset": AssetsConstant.bus,
+      "color": const Color(0xFFA5D6A7),
+      "color1": const Color(0xFFE8F5E9),
+    },
+    {
+      "key": "driver",
+      "label": localizations.driver,
+      "asset": AssetsConstant.driverBus,
+      "color": Color(0xFF81D4FA),
+      "color1": Color(0xFFE1F5FE),
+    },
+  ];
 }

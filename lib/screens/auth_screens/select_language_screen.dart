@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_model/language/language_model.dart';
+import 'package:r_w_r/constants/api_constants.dart';
+import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/screens/auth_screens/login_screen.dart';
 import 'package:r_w_r/screens/layout.dart';
 import 'package:r_w_r/l10n/app_localizations.dart';
@@ -11,16 +13,18 @@ import '../block/language/language_provider.dart';
 
 class LanguageSelectionScreen extends StatefulWidget {
   final bool isRegistration;
-  const LanguageSelectionScreen({this.isRegistration=false,super.key});
+
+  const LanguageSelectionScreen({this.isRegistration = false, super.key});
 
   @override
-  State<LanguageSelectionScreen> createState() => _LanguageSelectionScreenState();
+  State<LanguageSelectionScreen> createState() =>
+      _LanguageSelectionScreenState();
 }
 
 class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
   Language? selectedLanguage;
   bool _initialized = false;
-  List<lm.Data> langData=[];
+  List<lm.Data> langData = [];
 
   @override
   void initState() {
@@ -28,11 +32,11 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeSelectedLanguage();
     });
-
   }
 
   Future<void> _initializeSelectedLanguage() async {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
     selectedLanguage = languageProvider.currentLanguage;
     languageProvider.fetchLanguagesFromApi();
     if (mounted) {
@@ -122,7 +126,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        localizations?.change_language("") ?? 'Changing language...',
+                        localizations?.change_language("") ??
+                            'Changing language...',
                         style: const TextStyle(fontSize: 16),
                       ),
                     ],
@@ -132,7 +137,8 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
               // Error message
               if (provider.error != null)
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.red.withOpacity(0.1),
@@ -167,12 +173,14 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                         itemCount: provider.languages.length,
                         itemBuilder: (context, index) {
                           final language = provider.languages[index];
-                          final isSelected = selectedLanguage?.code == language.code;
+                          final isSelected =
+                              selectedLanguage?.code == language.code;
 
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.95),
+                              color:
+                                  isSelected ? Color(0x1F641BB4) : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: isSelected
                                   ? Border.all(color: Colors.purple, width: 2)
@@ -187,9 +195,9 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                             ),
                             foregroundDecoration: isSelected
                                 ? BoxDecoration(
-                              color: Colors.purple.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(16),
-                            )
+                                    color: Colors.purple.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(16),
+                                  )
                                 : null,
                             child: ListTile(
                               contentPadding: const EdgeInsets.symmetric(
@@ -236,20 +244,19 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                                 ),
                                 child: isSelected
                                     ? const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 20,
-                                )
+                                        Icons.check,
+                                        color: Colors.white,
+                                        size: 20,
+                                      )
                                     : null,
                               ),
                               onTap: provider.isLoading
                                   ? null
                                   : () async {
-                                setState(() {
-                                  selectedLanguage = language;
-                                });
-                                await _handleLanguageChange(context, language);
-                              },
+                                      setState(() {
+                                        selectedLanguage = language;
+                                      });
+                                    },
                             ),
                           );
                         },
@@ -258,6 +265,30 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                   ),
                 ),
               ),
+              GestureDetector(
+                onTap: () async {
+                  if (selectedLanguage != null) {
+                    await _handleLanguageChange(context, selectedLanguage!);
+                  }
+                },
+                child: Container(
+                  alignment: Alignment.center,
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                      color: ColorConstants.primaryColor,
+                      borderRadius: BorderRadius.all(Radius.circular(10))),
+                  margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+                  child: Text(
+                    "Continue",
+                    style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.white),
+                  ),
+                ),
+              )
             ],
           ),
         ),
@@ -265,22 +296,25 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
     );
   }
 
-  Future<void> _handleLanguageChange(BuildContext context, Language language) async {
-    final languageProvider = Provider.of<LanguageProvider>(context, listen: false);
+  Future<void> _handleLanguageChange(
+      BuildContext context, Language language) async {
+    final languageProvider =
+        Provider.of<LanguageProvider>(context, listen: false);
 
     if (languageProvider.isLoading) return;
 
-    if (language.code != languageProvider.currentLanguage?.code || language.code == 'en') {
+    if (language.code != languageProvider.currentLanguage?.code ||
+        language.code == 'en') {
       await languageProvider.changeLanguage(language);
 
       if (languageProvider.error == null && context.mounted) {
+        langData = languageProvider.language!;
 
-        langData=languageProvider.language!;
-
-        if(langData.isNotEmpty){
-          for(var lang in langData){
-            if(languageProvider.currentLanguage?.code==lang.code){
-              print("langData:${lang.id} ${languageProvider.currentLanguage?.code}");
+        if (langData.isNotEmpty) {
+          for (var lang in langData) {
+            if (languageProvider.currentLanguage?.code == lang.code) {
+              print(
+                  "langData:${lang.id} ${languageProvider.currentLanguage?.code}");
               languageProvider.setLangCode(lang.id!);
               Navigator.of(context).pop();
               return;
