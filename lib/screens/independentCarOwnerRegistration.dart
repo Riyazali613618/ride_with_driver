@@ -11,7 +11,10 @@ import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:r_w_r/screens/widgets/common_submit_button.dart';
+import 'package:r_w_r/screens/widgets/gradient_button.dart';
 import 'package:r_w_r/screens/widgets/profile_image_capture.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_model/language/language_model.dart';
@@ -22,6 +25,7 @@ import '../api/api_service/registration_services/indi_car_service.dart';
 import '../api/api_service/registration_services/transporter_service.dart';
 import '../components/app_loader.dart';
 import '../constants/api_constants.dart';
+import '../constants/color_constants.dart';
 import '../constants/token_manager.dart';
 import '../utils/color.dart';
 import 'block/provider/profile_provider.dart';
@@ -250,6 +254,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   // Document picker methods
   void _showDocumentPickerBottomSheet(String from) {
+    FocusManager.instance.primaryFocus?.unfocus();
     if (from == "AADHAAR" && adhaar.length == 2) {
       return;
     } else if (from == "DRIVING LICENSE" && drivingLicense.length == 1) {
@@ -398,7 +403,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           image = null;
         }
         setState(() {});
-        _showSuccessSnackBar('Document captured successfully');
+        // _showSuccessSnackBar('Document captured successfully');
       }
     } catch (e) {
       _showErrorSnackBar('Failed to capture document from camera');
@@ -424,7 +429,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         }
         print(adhaar);
         updateState();
-        _showSuccessSnackBar('Document selected from gallery');
+        // _showSuccessSnackBar('Document selected from gallery');
       }
     } catch (e) {
       _showErrorSnackBar('Failed to pick document from gallery');
@@ -1148,8 +1153,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               Text(
                 'Self Detail',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
                   color: Colors.black,
                 ),
               ),
@@ -1209,7 +1215,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               ),
 */
               ProfileImageCapture(
-                label: 'Profile Image/Logo',
+                label: 'Profile Image',
                 useGallery: false,
                 showPreview: true,
                 showDirectImage: false,
@@ -1257,11 +1263,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             children: [
               Text(
                 'Address',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 40),
               _buildTextField(
@@ -1342,7 +1344,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   Widget _buildDocumentStep() {
     return Padding(
-      padding: EdgeInsets.all(24),
+      padding: EdgeInsets.all(16),
       child: Form(
         key: _documentFormKey,
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1352,128 +1354,135 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               Text(
                 'Document',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
                   color: Colors.black,
                 ),
               ),
-              SizedBox(height: 40),
-              // Aadhar Card Container with both field and verify button
-              SizedBox(
-                width: double.infinity,
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 5.0),
-                      child: Text(
-                        'Aadhar Card No.*',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black,
-                        ),
+                    SizedBox(height: 10),
+                    // Aadhar Card Container with both field and verify button
+                    SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5.0),
+                            child: Text(
+                              'Aadhar Card No.*',
+                              style: CommonUtils.commonTextLabelsStyle(),
+                            ),
+                          ),
+                          SizedBox(
+                            height: 5,
+                          ),
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 5),
+                            decoration: CommonUtils.commonInputBoxDecoration(),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    textAlign: TextAlign.start,
+                                    maxLength: 12,
+                                    buildCounter: (
+                                      context, {
+                                      required int currentLength,
+                                      required bool isFocused,
+                                      required int? maxLength,
+                                    }) {
+                                      return null; // 👈 hides the counter
+                                    },
+                                    controller: _aadharCardController,
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.digitsOnly,
+                                    ],
+                                    keyboardType: TextInputType.phone,
+                                    decoration: InputDecoration.collapsed(
+                                      hintText: 'Enter Aadhar Card Number',
+                                      hintStyle: TextStyle(
+                                        color: Colors.grey[400],
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    onChanged: (value) {
+                                      if (value.length == 12) {
+                                        _verifyAadhaar(value);
+                                      }
+                                    },
+                                  ),
+                                ),
+                                SizedBox(width: 12),
+                                Container(
+                                  height: 30,
+                                  padding: EdgeInsets.symmetric(horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Color(0xFF1FAF38), width: 1),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Center(
+                                    child: _isAadhaarVerifying
+                                        ? SizedBox(
+                                            width: 16,
+                                            height: 16,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2),
+                                          )
+                                        : Text(
+                                            _isAadhaarVerified
+                                                ? 'Verified'
+                                                : 'Verify',
+                                            style: TextStyle(
+                                              color: Color(0xFF1FAF38),
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
+                    SizedBox(height: 24),
                     SizedBox(
-                      height: 10,
+                      width: double.infinity,
+                      child: _buildAadhaarFileUploadSection(
+                          'Upload Aadhar Card (Front & Back)', "AADHAAR"),
                     ),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            height: 35,
-                            alignment: Alignment.center,
-                            padding: EdgeInsets.symmetric(horizontal: 5),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.grey[400]!),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: TextField(
-                              textAlign: TextAlign.start,
-                              maxLength: 12,
-                              buildCounter: (
-                                context, {
-                                required int currentLength,
-                                required bool isFocused,
-                                required int? maxLength,
-                              }) {
-                                return null; // 👈 hides the counter
-                              },
-                              controller: _aadharCardController,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration.collapsed(
-                                hintText: 'Enter Aadhar Card Number',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey[400],
-                                  fontSize: 14,
-                                ),
-                              ),
-                              onChanged: (value) {
-                                if (value.length == 12) {
-                                  _verifyAadhaar(value);
-                                }
-                              },
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Container(
-                          height: 30,
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.green),
-                            borderRadius: BorderRadius.circular(24),
-                          ),
-                          child: Center(
-                            child: _isAadhaarVerifying
-                                ? SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                        strokeWidth: 2),
-                                  )
-                                : Text(
-                                    _isAadhaarVerified ? 'Verified' : 'Verify',
-                                    style: TextStyle(
-                                      color: Colors.green,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
+                    SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _buildTextField(
+                          'Driving License Number', _drivingLicenseController),
                     ),
+                    SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: _buildFileUploadSection(
+                          'Upload Driving License', 'DRIVING LICENSE'),
+                    ),
+                    SizedBox(height: 24),
+                    Container(
+                      width: double.infinity,
+                      child: _buildPermitFileUploadSection(
+                          'Upload Permit', 'PERMIT'),
+                    ),
+                    SizedBox(height: 40),
                   ],
                 ),
-              ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: _buildAadhaarFileUploadSection(
-                    'Upload Aadhar Card (Front & Back)', "AADHAAR"),
-              ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: _buildTextField(
-                    'Driving License Number', _drivingLicenseController),
-              ),
-              SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: _buildFileUploadSection(
-                    'Upload Driving License', 'DRIVING LICENSE'),
-              ),
-              SizedBox(height: 24),
-              Container(
-                width: double.infinity,
-                child: _buildPermitFileUploadSection('Upload Permit', 'PERMIT'),
-              ),
-              SizedBox(height: 40),
+              )
             ],
           )),
           _buildContinueButton(),
@@ -1484,20 +1493,17 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   Widget _buildAadhaarFileUploadSection(String title, String from) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
-          width: MediaQuery.of(context).size.width,
+          width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: ColorConstants.inputFieldBorderColor),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1511,44 +1517,24 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 4),
               Text(
                 'png, pdf, jpg, docx accepted',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
+                  fontSize: 10,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
                 ),
               ),
               SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet("AADHAAR"),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet("AADHAAR");
+                },
               ),
               if (adhaar.isNotEmpty)
                 _showAadharCardImages()
@@ -1581,11 +1567,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                     color: Colors.grey.shade400,
                     border: Border.all(color: AppColors.blue, width: 1),
                   ),
-                  child: Image.file(
-                    File(adhaar[index]?.path ?? ""),
-                    width: 50,
-                    fit: BoxFit.cover,
-                    height: 50,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                    child: Image.file(
+                      File(adhaar[index]?.path ?? ""),
+                      width: 50,
+                      fit: BoxFit.cover,
+                      height: 50,
+                    ),
                   )),
               Positioned(
                   right: 5,
@@ -1619,11 +1608,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               color: Colors.grey.shade400,
               border: Border.all(color: AppColors.blue, width: 1),
             ),
-            child: Image.file(
-              File(drivingLicense[0]?.path ?? ""),
-              width: 50,
-              fit: BoxFit.cover,
-              height: 50,
+            child: ClipRRect(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              child: Image.file(
+                File(drivingLicense[0]?.path ?? ""),
+                width: 50,
+                fit: BoxFit.cover,
+                height: 50,
+              ),
             )),
         Positioned(
             right: 5,
@@ -1680,20 +1672,17 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   Widget _buildFileUploadSection(String title, String from) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: ColorConstants.inputFieldBorderColor),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1707,20 +1696,27 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 4),
               Text(
                 'png, pdf, jpg, docx accepted',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
+                  fontSize: 10,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
                 ),
               ),
               SizedBox(height: 12),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet(from);
+                },
+              ),
+
+/*
               GestureDetector(
                 onTap: () => _showDocumentPickerBottomSheet(from),
                 child: Container(
@@ -1746,6 +1742,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                   ),
                 ),
               ),
+*/
               if (drivingLicense.isNotEmpty)
                 _showDLImages()
               else
@@ -1761,20 +1758,17 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   Widget _buildPermitFileUploadSection(String title, String from) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
           width: MediaQuery.of(context).size.width,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color: ColorConstants.inputFieldBorderColor),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -1788,44 +1782,24 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 4),
               Text(
                 'png, pdf, jpg, docx accepted',
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
+                  fontSize: 10,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
                 ),
               ),
               SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet(from),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet(from);
+                },
               ),
               if (permit.isNotEmpty)
                 _showPermitImage()
@@ -1841,426 +1815,413 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   Widget _buildAboutStep() {
+    double boxWidth = 36;
+    double boxHeight = 43;
     return Padding(
-      padding: EdgeInsets.all(24),
+      padding: EdgeInsets.all(20),
       child: Form(
         key: _aboutFormKey,
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'About',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'About',
+              style: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 20,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
-              SizedBox(height: 40),
-              Text(
-                'Vehicle Counts',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 12),
-              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                Expanded(
-                    child: Column(
+            ),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: ListView(
                   children: [
+                    SizedBox(height: 20),
                     Text(
-                      "Car",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      'Vehicle Counts',
+                      style: CommonUtils.commonTextLabelsStyle(),
                     ),
-                    SizedBox(height: 4),
-                    GestureDetector(
-                      child: Container(
-                        width: 40,
-                        alignment: Alignment.center,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[50],
-                        ),
-                        child: Center(
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            maxLength: 2,
-                            buildCounter: (
-                              context, {
-                              required int currentLength,
-                              required bool isFocused,
-                              required int? maxLength,
-                            }) {
-                              return null; // 👈 hides the counter
-                            },
-                            controller: _carCountController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            onChanged: (value) {
-                              updateVehicleCount();
-                            },
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration.collapsed(
-                              hintText: '0',
-                              hintStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
+                    SizedBox(height: 12),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Car",
+                                style: vehicleCountStyle(),
                               ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )),
-                Expanded(
-                    child: Column(
-                  children: [
-                    Text(
-                      "SUV",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    GestureDetector(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[50],
-                        ),
-                        child: Center(
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            maxLength: 2,
-                            buildCounter: (
-                              context, {
-                              required int currentLength,
-                              required bool isFocused,
-                              required int? maxLength,
-                            }) {
-                              return null; // 👈 hides the counter
-                            },
-                            onChanged: (value) {
-                              updateVehicleCount();
-                            },
-                            controller: _suvCountController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration.collapsed(
-                              hintText: '0',
-                              hintStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )),
-                Expanded(
-                    child: Column(
-                  children: [
-                    Text(
-                      "Mini Van",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    GestureDetector(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[50],
-                        ),
-                        child: Center(
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            maxLength: 2,
-                            buildCounter: (
-                              context, {
-                              required int currentLength,
-                              required bool isFocused,
-                              required int? maxLength,
-                            }) {
-                              return null; // 👈 hides the counter
-                            },
-                            controller: _miniVanCountController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            onChanged: (value) {
-                              updateVehicleCount();
-                            },
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration.collapsed(
-                              hintText: '0',
-                              hintStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )),
-                Expanded(
-                    child: Column(
-                  children: [
-                    Text(
-                      "Bus",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    GestureDetector(
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[300]!),
-                          borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[50],
-                        ),
-                        child: Center(
-                          child: TextField(
-                            textAlign: TextAlign.center,
-                            maxLength: 2,
-                            buildCounter: (
-                              context, {
-                              required int currentLength,
-                              required bool isFocused,
-                              required int? maxLength,
-                            }) {
-                              return null; // 👈 hides the counter
-                            },
-                            controller: _busCountController,
-                            onChanged: (value) {
-                              updateVehicleCount();
-                            },
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                            ],
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration.collapsed(
-                              hintText: '0',
-                              hintStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                )),
-              ]),
-              SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              'Total Number of Vehicles',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black,
-                              ),
-                            ),
-                            SizedBox(width: 8),
-                            GestureDetector(
-                              onTap: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: Text('Vehicle Count Info'),
-                                    content: Text(
-                                      'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text('OK'),
-                                      ),
-                                    ],
+                              SizedBox(width: 4),
+                              GestureDetector(
+                                child: Container(
+                                  width: boxWidth,
+                                  alignment: Alignment.center,
+                                  height: boxHeight,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: ColorConstants
+                                            .inputFieldBorderColor),
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.grey[50],
                                   ),
-                                );
-                              },
-                              child: Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.grey[400],
-                                ),
-                                child: Icon(
-                                  Icons.info_outline,
-                                  size: 12,
-                                  color: Colors.white,
+                                  child: Center(
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      maxLength: 2,
+                                      style: vehicleCountStyle(),
+                                      buildCounter: (
+                                        context, {
+                                        required int currentLength,
+                                        required bool isFocused,
+                                        required int? maxLength,
+                                      }) {
+                                        return null; // 👈 hides the counter
+                                      },
+                                      controller: _carCountController,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      onChanged: (value) {
+                                        updateVehicleCount();
+                                      },
+                                      keyboardType: TextInputType.phone,
+                                      decoration: InputDecoration.collapsed(
+                                        hintText: '0',
+                                        hintStyle: vehicleCountStyle(),
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: TextField(
-                            textAlign: TextAlign.start,
-                            maxLength: 2,
-                            buildCounter: (
-                              context, {
-                              required int currentLength,
-                              required bool isFocused,
-                              required int? maxLength,
-                            }) {
-                              return null; // 👈 hides the counter
-                            },
-                            readOnly: true,
-                            controller: _totalVehicleCountController,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
                             ],
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration.collapsed(
-                              hintText: '0',
-                              hintStyle: TextStyle(
-                                color: Colors.black,
-                                fontSize: 14,
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                "SUV",
+                                style: vehicleCountStyle(),
                               ),
-                            ),
+                              SizedBox(width: 4),
+                              GestureDetector(
+                                child: Container(
+                                  width: boxWidth,
+                                  height: boxHeight,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: ColorConstants
+                                            .inputFieldBorderColor),
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: Center(
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      maxLength: 2,
+                                      style: vehicleCountStyle(),
+                                      buildCounter: (
+                                        context, {
+                                        required int currentLength,
+                                        required bool isFocused,
+                                        required int? maxLength,
+                                      }) {
+                                        return null; // 👈 hides the counter
+                                      },
+                                      onChanged: (value) {
+                                        updateVehicleCount();
+                                      },
+                                      controller: _suvCountController,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      keyboardType: TextInputType.phone,
+                                      decoration: InputDecoration.collapsed(
+                                        hintText: '0',
+                                        hintStyle: vehicleCountStyle(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Mini Van",
+                                style: vehicleCountStyle(),
+                              ),
+                              SizedBox(width: 4),
+                              GestureDetector(
+                                child: Container(
+                                  width: boxWidth,
+                                  height: boxHeight,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: ColorConstants
+                                            .inputFieldBorderColor),
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: Center(
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      maxLength: 2,
+                                      style: vehicleCountStyle(),
+                                      buildCounter: (
+                                        context, {
+                                        required int currentLength,
+                                        required bool isFocused,
+                                        required int? maxLength,
+                                      }) {
+                                        return null; // 👈 hides the counter
+                                      },
+                                      controller: _miniVanCountController,
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      onChanged: (value) {
+                                        updateVehicleCount();
+                                      },
+                                      keyboardType: TextInputType.phone,
+                                      decoration: InputDecoration.collapsed(
+                                        hintText: '0',
+                                        hintStyle: vehicleCountStyle(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Bus",
+                                style: vehicleCountStyle(),
+                              ),
+                              SizedBox(width: 4),
+                              GestureDetector(
+                                child: Container(
+                                  width: boxWidth,
+                                  height: boxHeight,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: ColorConstants
+                                            .inputFieldBorderColor),
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Colors.grey[50],
+                                  ),
+                                  child: Center(
+                                    child: TextField(
+                                      textAlign: TextAlign.center,
+                                      maxLength: 2,
+                                      style: vehicleCountStyle(),
+                                      buildCounter: (
+                                        context, {
+                                        required int currentLength,
+                                        required bool isFocused,
+                                        required int? maxLength,
+                                      }) {
+                                        return null; // 👈 hides the counter
+                                      },
+                                      controller: _busCountController,
+                                      onChanged: (value) {
+                                        updateVehicleCount();
+                                      },
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                      keyboardType: TextInputType.phone,
+                                      decoration: InputDecoration.collapsed(
+                                        hintText: '0',
+                                        hintStyle: vehicleCountStyle(),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ]),
+                    SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Text(
+                                    'Total Number of Vehicles',
+                                    style: CommonUtils.commonTextLabelsStyle(),
+                                  ),
+                                  SizedBox(width: 8),
+                                  GestureDetector(
+                                    onTap: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text('Vehicle Count Info'),
+                                          content: Text(
+                                            'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: Text('OK'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      width: 20,
+                                      height: 20,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: Colors.grey[400],
+                                      ),
+                                      child: Icon(
+                                        Icons.info_outline,
+                                        size: 12,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                      color:
+                                          ColorConstants.inputFieldBorderColor),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: TextField(
+                                  textAlign: TextAlign.start,
+                                  maxLength: 2,
+                                  buildCounter: (
+                                    context, {
+                                    required int currentLength,
+                                    required bool isFocused,
+                                    required int? maxLength,
+                                  }) {
+                                    return null; // 👈 hides the counter
+                                  },
+                                  style: CommonUtils.commonInputTextStyle(),
+                                  readOnly: true,
+                                  controller: _totalVehicleCountController,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  keyboardType: TextInputType.phone,
+                                  decoration: InputDecoration.collapsed(
+                                    hintText: '0',
+                                    hintStyle:
+                                        CommonUtils.commonHintTextStyle(),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24),
-              Text(
-                'About',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
+                    SizedBox(height: 24),
+                    Text('About', style: CommonUtils.commonTextLabelsStyle()),
+                    SizedBox(height: 8),
+                    Container(
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                            color: ColorConstants.inputFieldBorderColor),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: TextField(
+                        controller: _aboutController,
+                        maxLines: null,
+                        decoration: InputDecoration.collapsed(
+                          hintStyle: CommonUtils.commonHintTextStyle(),
+                          hintText:
+                              'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                  ],
                 ),
               ),
-              SizedBox(height: 8),
-              Container(
-                height: 120,
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: TextField(
-                  controller: _aboutController,
-                  maxLines: null,
-                  decoration: InputDecoration.collapsed(
-                    hintText:
-                        'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
-                  ),
-                ),
-              ),
-              SizedBox(height: 40),
-              _buildContinueButton(),
-            ],
-          ),
+            ),
+            _buildContinueButton(),
+          ],
         ),
       ),
     );
   }
 
   Widget _buildPreviewStep() {
+    String? cityName = _cityList.firstWhere(
+      (c) => c.sId == _selectedCity,
+    ).name;
+    String? stateName = _stateList.firstWhere(
+      (element) => element.sId == _selectedState,
+    ).name;
+
     return Padding(
       padding: EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Preview',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 20),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[300],
-                    border: _selectedImage != null
-                        ? Border.all(color: Color(0xFF8B5CF6), width: 2)
-                        : null,
-                  ),
-                  child: _selectedImage != null
-                      ? ClipOval(
-                          child: Image.file(
-                            _selectedImage!,
-                            width: 60,
-                            height: 60,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                      : Icon(
-                          Icons.person,
-                          size: 30,
-                          color: Colors.grey[600],
-                        ),
+          Stack(
+            children: [
+              Text('Preview',
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 20)),
+              SizedBox(height: 20),
+              Center(
+                child: Column(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.grey[300],
+                        border: _selectedImage != null
+                            ? Border.all(color: Color(0xFF8B5CF6), width: 2)
+                            : null,
+                      ),
+                      child: _selectedImage != null
+                          ? ClipOval(
+                              child: Image.file(
+                                _selectedImage!,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Icon(
+                              Icons.person,
+                              size: 30,
+                              color: Colors.grey[600],
+                            ),
+                    ),
+                    SizedBox(height: 8),
+                    Text('Profile Image',
+                        style: CommonUtils.commonTextLabelsStyle(fontSize: 12)),
+                  ],
                 ),
-                SizedBox(height: 8),
-                Text(
-                  'Profile Image / Logo',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
           SizedBox(height: 24),
           Expanded(
@@ -2286,16 +2247,8 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                     _pinCodeController.text.isEmpty
                         ? 'Not specified'
                         : _pinCodeController.text),
-                _buildPreviewItem(
-                    'City',
-                    _cityController.text.isEmpty
-                        ? 'Not specified'
-                        : _cityController.text),
-                _buildPreviewItem(
-                    'State',
-                    _stateController.text.isEmpty
-                        ? 'Not specified'
-                        : _stateController.text),
+                _buildPreviewItem('City', cityName ?? ""),
+                _buildPreviewItem('State', stateName ?? ""),
                 _buildPreviewItem(
                     'Aadhar Card No.',
                     _aadharCardController.text.isEmpty
@@ -2315,8 +2268,9 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                     Text(
                       'About',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        fontFamily: AppConstants.ptSansFont,
+                        fontWeight: FontWeight.w700,
                         color: Colors.black,
                       ),
                     ),
@@ -2326,53 +2280,36 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                           ? 'Not specified'
                           : _aboutController.text,
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                        fontFamily: AppConstants.ptSansFont,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black,
                         height: 1.4,
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 24),
-                _buildSubmitButton(),
               ],
             ),
           ),
+          _buildSubmitButton(),
         ],
       ),
     );
   }
 
   Widget _buildSubmitButton() {
+
     return Container(
-      width: double.infinity,
-      child: ElevatedButton(
+      alignment:Alignment.bottomRight,
+      child: CommonSubmitButton(
+        gradientColors: [gradientFirst,gradientSecond],
         onPressed: submittingForm ? null : nextStep,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF8B5CF6),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          elevation: 0,
-        ),
-        child: submittingForm
-            ? SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.blue,
-                  strokeWidth: 2,
-                ),
-              )
-            : Text(
-                'Submit',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+        text: "Submit",
+        borderRadius: 12,
+        isLoading:submittingForm ,
+
       ),
     );
   }
@@ -2384,23 +2321,29 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
+            flex: 5,
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
                 color: Colors.black,
               ),
             ),
           ),
+          SizedBox(
+            width: 10,
+          ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             ),
           ),
@@ -2423,25 +2366,19 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: CommonUtils.commonInputBoxDecoration(),
           child: TextFormField(
             controller: controller,
             validator: validator,
             keyboardType: keyboardType,
             maxLength: maxLength,
             onChanged: onChanged,
+            style: CommonUtils.commonInputTextStyle(),
             buildCounter: (
               context, {
               required int currentLength,
@@ -2452,10 +2389,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
             },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
-              hintStyle: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 16,
-              ),
+              hintStyle: CommonUtils.commonHintTextStyle(),
             ),
           ),
         ),
@@ -2475,11 +2409,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         DropdownButtonFormField<T>(
@@ -2487,12 +2417,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           decoration: InputDecoration(
             contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(6),
+              borderSide:
+                  BorderSide(color: ColorConstants.inputFieldBorderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(color: Colors.grey[300]!),
+              borderSide:
+                  BorderSide(color: ColorConstants.inputFieldBorderColor),
             ),
           ),
           items: items,
@@ -2520,7 +2452,7 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
           width: MediaQuery.of(context).size.width,
           height: 150,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
+            border: Border.all(color:  ColorConstants.inputFieldBorderColor),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
@@ -2583,25 +2515,14 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
   Widget _buildContinueButton() {
     return Container(
-      width: double.infinity,
-      child: ElevatedButton(
+      alignment:Alignment.bottomRight,
+      child: CommonSubmitButton(
+        gradientColors: [gradientFirst,gradientSecond],
         onPressed: nextStep,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF8B5CF6),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          'Continue',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        text: "Continue",
+        borderRadius: 12,
+        isLoading:submittingForm ,
+
       ),
     );
   }
@@ -2626,5 +2547,12 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
 
     totalVehicles = car + bus + van + suv;
     _totalVehicleCountController.text = totalVehicles.toString();
+  }
+
+  vehicleCountStyle() {
+    return TextStyle(
+      fontSize: 10,
+      color: Color(0xFF9E9E9E),
+    );
   }
 }

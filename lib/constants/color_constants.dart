@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 class ColorConstants {
   static const Color primaryColor = Color(0xFF641BB4);
   static const Color primaryColorLight = Color(0xFFB28DDA);
-  static const Color primaryColorNew =  Color(0xFF471396);
+  static const Color primaryColorNew = Color(0xFF471396);
   static const Color redColorNew = Color(0xFFE74C3C);
   static const Color whiteNew = Color(0xFFFFF3E0);
-
 
   static const Color white = Color(0xFFFFFFFF);
   static const Color red = Color(0xFFF44336);
@@ -61,4 +60,6 @@ class ColorConstants {
   static const Color verifiedColor = Color(0xFF4CAF50);
   static const Color negotiableColor = Color(0xFFFF9800);
   static const Color shadowColor = Color(0x1A000000);
+
+  static const Color inputFieldBorderColor = Color(0x40000000);
 }

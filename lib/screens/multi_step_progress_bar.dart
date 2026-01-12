@@ -28,8 +28,8 @@ class MultiStepProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     // Define default colors
     final List<Color> finalGradientColors =
-        gradientColors ?? [Colors.blue, Colors.purple];
-    final Color finalInactiveColor = inactiveColor ?? Colors.grey.shade500;
+        gradientColors ?? [Colors.green, Color(0xFF9E9E9E)];
+    final Color finalInactiveColor = inactiveColor ?? Color(0XFFD9D9D9);
     final int stepCount = stepTitles.length;
 
     return Container(
@@ -46,7 +46,7 @@ class MultiStepProgressBar extends StatelessWidget {
                 // The margin ensures the line stops at the center of the first/last circles
                 margin: const EdgeInsets.symmetric(horizontal: 18),
                 // 36 / 2
-                color: finalInactiveColor,
+                color: Color(0xFF9E9E9E),
               ),
 
               // 1b. Progress Line (gradient)
@@ -79,22 +79,14 @@ class MultiStepProgressBar extends StatelessWidget {
                 children: List.generate(stepCount, (index) {
                   final bool isActive = index == currentStep;
                   final bool isCompleted = index < currentStep;
-                  final bool isGradientCircle = isActive || isCompleted;
 
                   return Container(
                     width: 30,
                     height: 30,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      // Apply gradient if active/completed, else solid inactive color
-                      gradient: isGradientCircle
-                          ? LinearGradient(
-                              colors: finalGradientColors,
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            )
-                          : null,
-                      color: isGradientCircle ? null : finalInactiveColor,
+
+                      color: isActive?Color(0xFFB66A53):isCompleted?Colors.green:finalInactiveColor,
                     ),
                     child: Center(
                       child: Text(

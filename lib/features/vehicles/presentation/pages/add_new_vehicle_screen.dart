@@ -1,14 +1,21 @@
 // vehicle_registration_provider.dart
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_places_flutter/google_places_flutter.dart';
+import 'package:google_places_flutter/model/place_type.dart';
+import 'package:google_places_flutter/model/prediction.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_service/media_service.dart';
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
+import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/color_constants.dart';
@@ -16,11 +23,17 @@ import 'package:r_w_r/features/vehicles/domain/entities/vehicle_entity.dart';
 import 'package:r_w_r/features/vehicles/presentation/bloc/profile_repository.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_added_successfully_screen.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_type_model.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
+import '../../../../api/api_model/location_model/location_model.dart';
+import '../../../../api/api_service/location_service/location_service.dart';
+import '../../../../constants/GoogleLocationSearchService.dart';
 import '../../../../constants/token_manager.dart';
 import '../../../../screens/Eligibility/bloc/eligibility_bloc.dart';
 import '../../../../screens/Eligibility/bloc/eligibility_event.dart';
 import '../../../../screens/layout.dart';
+import '../../../../screens/user_screens/more/filterScreen.dart';
+import '../../../../screens/widgets/common_submit_button.dart';
 import '../../../../utils/color.dart';
 import '../bloc/profile_bloc.dart';
 
@@ -101,10 +114,12 @@ class AddVehicleProvider extends ChangeNotifier {
         if (rcBookBackPhoto != null)
           requestBody["rcBookBackPhoto"] = rcBookBackPhoto;
       }*/
-      if (rcBookFrontPhoto != null)
+      if (rcBookFrontPhoto != null) {
         requestBody["rcBookFrontPhoto"] = rcBookFrontPhoto;
-      if (rcBookBackPhoto != null)
+      }
+      if (rcBookBackPhoto != null) {
         requestBody["rcBookBackPhoto"] = rcBookBackPhoto;
+      }
       print(requestBody);
       request.body = json.encode(requestBody);
       request.headers.addAll(headers);
@@ -568,19 +583,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
                             _buildMinimumChargeField(),
 
-                            _buildMultiSelectField(
-                              label: 'Service Locations',
-                              selectedItems: _selectedLocations,
-                              allItems: _serviceLocations,
-                              onSelectionChanged: (locations) {
-                                setState(() {
-                                  _selectedLocations = locations;
-                                });
-                              },
-                            ),
-
+                            _googlePlaceSearch(),
+                            const SizedBox(height: 16),
                             _buildAirConditioningField(),
-
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -589,29 +594,15 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                                   label: 'Specifications',
                                   selectedItems: _selectedSpecifications,
                                   allItems: _specifications,
+                                  addButton: true,
                                   onSelectionChanged: (specs) {
                                     setState(() {
                                       _selectedSpecifications = specs;
                                     });
                                   },
                                 )),
-                                GestureDetector(
-                                  onTap: () {
-                                    showAddCustomSpecificationPopup();
-                                  },
-                                  child: Container(
-                                    margin:
-                                        EdgeInsets.only(bottom: 30, left: 10),
-                                    child: Icon(
-                                      Icons.add_circle,
-                                      color: ColorConstants.primaryColor,
-                                      size: 24,
-                                    ),
-                                  ),
-                                )
                               ],
                             ),
-
                             _buildFileUploadSection(
                               title: 'Upload Vehicle Image',
                               files: _vehicleImages,
@@ -640,6 +631,24 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                             // Submit Button
                             Consumer<AddVehicleProvider>(
                               builder: (context, provider, child) {
+                                return Container(
+                                  alignment: Alignment.bottomRight,
+                                  child: CommonSubmitButton(
+                                    gradientColors: [
+                                      gradientFirst,
+                                      gradientSecond
+                                    ],
+                                    onPressed: () {
+                                      if (provider.isLoading || isLoading) {
+                                        return;
+                                      }
+                                      _submitForm(provider);
+                                    },
+                                    text: "Submit",
+                                    borderRadius: 12,
+                                    isLoading: isLoading,
+                                  ),
+                                );
                                 return SizedBox(
                                   width: double.infinity,
                                   child: ElevatedButton(
@@ -748,28 +757,26 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(),
           ),
           const SizedBox(height: 8),
           TextFormField(
             controller: controller,
+            style: CommonUtils.commonInputTextStyle(),
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isHighlighted ? Colors.grey : Colors.grey.shade300,
-                  width: 2,
+                  color: AppColors.commonBorderColor,
+                  width: 1,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                    color: isHighlighted ? Colors.grey : Colors.grey.shade300,
-                    width: 1),
+                  color: AppColors.commonBorderColor,
+                  width: 1,
+                ),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -796,33 +803,26 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(),
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: value,
             decoration: InputDecoration(
               hintText: 'Select Type',
+              hintStyle: CommonUtils.commonTextLabelsStyle(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isRequired && value == null
-                      ? Colors.grey
-                      : Colors.grey.shade300,
-                  width: isRequired && value == null ? 2 : 1,
+                  color: AppColors.commonBorderColor,
+                  width: 1,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isRequired && value == null
-                      ? Colors.grey
-                      : Colors.grey.shade300,
-                  width: isRequired && value == null ? 2 : 1,
+                  color: AppColors.commonBorderColor,
+                  width: 1,
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
@@ -833,7 +833,10 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
             items: items.map((String item) {
               return DropdownMenuItem<String>(
                 value: item,
-                child: Text(item),
+                child: Text(
+                  item,
+                  style: CommonUtils.commonTextLabelsStyle(),
+                ),
               );
             }).toList(),
             onChanged: onChanged,
@@ -857,33 +860,26 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(),
           ),
           const SizedBox(height: 8),
           DropdownButtonFormField<Categories>(
             value: value,
             decoration: InputDecoration(
               hintText: 'Select Type',
+              hintStyle: CommonUtils.commonHintTextStyle(),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isRequired && value == null
-                      ? Colors.grey
-                      : Colors.grey.shade300,
-                  width: isRequired && value == null ? 2 : 1,
+                  color: AppColors.commonBorderColor,
+                  width: 1,
                 ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
                 borderSide: BorderSide(
-                  color: isRequired && value == null
-                      ? Colors.grey
-                      : Colors.grey.shade300,
-                  width: isRequired && value == null ? 2 : 1,
+                  color: AppColors.commonBorderColor,
+                  width: 1,
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
@@ -910,13 +906,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Minimum Charge Per Hour',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(),
           ),
           const SizedBox(height: 8),
           Row(
@@ -926,10 +918,14 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                 child: TextFormField(
                   controller: _minimumChargeController,
                   keyboardType: TextInputType.number,
+                  style: CommonUtils.commonInputTextStyle(),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(
+                        color: AppColors.commonBorderColor,
+                        width: 1,
+                      ),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -953,9 +949,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
                       },
                       activeColor: Colors.green,
                     ),
-                    const Text(
+                    Text(
                       'Negotiable',
-                      style: TextStyle(fontSize: 14),
+                      style: CommonUtils.commonTextLabelsStyle(),
                     ),
                   ],
                 ),
@@ -971,6 +967,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
     required String label,
     required List<String> selectedItems,
     required List<String> allItems,
+    bool addButton = false,
     required Function(List<String>) onSelectionChanged,
   }) {
     return Padding(
@@ -987,75 +984,119 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
             ),
           ),
           const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                hint: Text('Search $label'),
-                isExpanded: true,
-                items: allItems.map((String item) {
-                  return DropdownMenuItem<String>(
-                    value: item,
-                    child: Text(item),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  if (value != null && !selectedItems.contains(value)) {
-                    final newList = List<String>.from(selectedItems)
-                      ..add(value);
-                    onSelectionChanged(newList);
-                  }
-                },
-              ),
-            ),
-          ),
+          Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        hint: Text('Search $label'),
+                        isExpanded: true,
+                        items: allItems.map((String item) {
+                          return DropdownMenuItem<String>(
+                            value: item,
+                            child: Text(item),
+                          );
+                        }).toList(),
+                        onChanged: (String? value) {
+                          if (value != null && !selectedItems.contains(value)) {
+                            final newList = List<String>.from(selectedItems)
+                              ..add(value);
+                            onSelectionChanged(newList);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                if (addButton)
+                  GestureDetector(
+                    onTap: () {
+                      showAddCustomSpecificationPopup();
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(left: 10),
+                      child: Icon(
+                        Icons.add_circle,
+                        color: ColorConstants.primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                  )
+              ]),
           if (selectedItems.isNotEmpty) ...[
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: selectedItems.map((item) {
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF9C27B0).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: const Color(0xFF9C27B0).withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        item,
-                        style: const TextStyle(
-                          color: Color(0xFF9C27B0),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                return Stack(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0x1F641BB4).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFF641BB4).withOpacity(0.3),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      GestureDetector(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item,
+                            style: const TextStyle(
+                              color: Color(0xFF9C27B0),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: GestureDetector(
                         onTap: () {
                           final newList = List<String>.from(selectedItems)
                             ..remove(item);
                           onSelectionChanged(newList);
                         },
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Color(0xFF9C27B0),
+                        child: Padding(
+                          padding:
+                              EdgeInsets.only(left: 10, right: 0, bottom: 5),
+                          child: Container(
+                            decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(30)),
+                                border:
+                                    Border.all(color: Colors.black, width: 1)),
+                            child: const Icon(
+                              Icons.close,
+                              size: 10,
+                              color: Color(0xFF9C27B0),
+                            ),
+                          ),
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               }).toList(),
             ),
@@ -1071,20 +1112,19 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Air Conditioning',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(),
           ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: RadioListTile<String>(
-                  title: const Text('AC'),
+                  title: Text(
+                    'AC',
+                    style: CommonUtils.commonTextLabelsStyle(),
+                  ),
                   value: 'AC',
                   groupValue: _selectedAirConditioning,
                   onChanged: (value) {
@@ -1098,7 +1138,10 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
               ),
               Expanded(
                 child: RadioListTile<String>(
-                  title: const Text('Non AC'),
+                  title: Text(
+                    'Non AC',
+                    style: CommonUtils.commonTextLabelsStyle(),
+                  ),
                   value: 'Non-AC',
                   groupValue: _selectedAirConditioning,
                   onChanged: (value) {
@@ -1132,154 +1175,311 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         children: [
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(),
           ),
           const SizedBox(height: 8),
-          if (files.isNotEmpty) ...[
-            SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: files.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey.shade200,
-                          ),
-                          child: fileType == 'video'
-                              ? const Icon(Icons.video_file, size: 40)
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.file(
-                                    files[index],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                        ),
-                        Positioned(
-                          top: -4,
-                          right: -4,
-                          child: GestureDetector(
-                            onTap: () => onRemoveFile(index),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-          if (filesServer.isNotEmpty) ...[
-            SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: filesServer.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            color: Colors.grey.shade200,
-                          ),
-                          child: fileType == 'video'
-                              ? const Icon(Icons.video_file, size: 40)
-                              : ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: CachedNetworkImage(
-                                    imageUrl: filesServer[index],
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                        ),
-                        Positioned(
-                          top: -4,
-                          right: -4,
-                          child: GestureDetector(
-                            onTap: () => onRemoveFile(index),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 12),
-          ],
-          GestureDetector(
-            onTap: onAddFile,
-            child: Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300, width: 2),
-                borderRadius: BorderRadius.circular(8),
-                color: Colors.grey.shade50,
-              ),
-              child: const Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, color: Colors.grey, size: 24),
-                  Text(
-                    'Add',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            GestureDetector(
+              onTap: onAddFile,
+              child: DottedBorder(
+                options: RoundedRectDottedBorderOptions(
+                  color: Color(0x80000000),
+                  strokeWidth: 1,
+                  dashPattern: [5, 2],
+                  radius: Radius.circular(6),
+                ),
+                child: SizedBox(
+                  width: 75,
+                  height: 75,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.add, color: Colors.black, size: 16),
+                      Text(
+                        'Add',
+                        style: CommonUtils.commonTextLabelsStyle(),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 8),
+            if (files.isNotEmpty)
+              Expanded(
+                child: SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: files.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey.shade200,
+                              ),
+                              child: fileType == 'video'
+                                  ? const Icon(Icons.video_file, size: 40)
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        files[index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                            ),
+                            Positioned(
+                              top: -4,
+                              right: -4,
+                              child: GestureDetector(
+                                onTap: () => onRemoveFile(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            const SizedBox(width: 8),
+            if (filesServer.isNotEmpty)
+              Expanded(
+                child: SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: filesServer.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                                color: Colors.grey.shade200,
+                              ),
+                              child: fileType == 'video'
+                                  ? const Icon(Icons.video_file, size: 40)
+                                  : ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: filesServer[index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                            ),
+                            Positioned(
+                              top: -4,
+                              right: -4,
+                              child: GestureDetector(
+                                onTap: () => onRemoveFile(index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+          ]),
         ],
       ),
     );
   }
 
   Widget _buildRCUploadSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "RC (Front & Back)",
+          style: CommonUtils.commonTextLabelsStyle(),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            border: Border.all(color: ColorConstants.inputFieldBorderColor),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_upload_outlined,
+                size: 32,
+                color: Color(0xFF8B5CF6),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'select your file or drag and drop',
+                style: CommonUtils.commonTextLabelsStyle(),
+              ),
+              SizedBox(height: 4),
+              Text(
+                'png, pdf, jpg, docx accepted',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontWeight: FontWeight.w400,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 12),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _pickImage("rc");
+                },
+              ),
+              if (_rcImages.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _rcImages.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _rcImages[index],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: -4,
+                              right: -4,
+                              child: GestureDetector(
+                                onTap: () => _removeFile('rc', index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+              if (_rcImagesServer.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 80,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _rcImagesServer.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  imageUrl: _rcImagesServer[index],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              top: -4,
+                              right: -4,
+                              child: GestureDetector(
+                                onTap: () => _removeFile('rc', index),
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRCUploadSectionOld() {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -1574,41 +1774,261 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
       ),
     );
   }
+
+  static Future<Map<String, dynamic>?> getCurrentLocationWithDetails() async {
+    try {
+      final locationData =
+          await GoogleLocationSearchService.getCurrentLocationWithDetails();
+    } catch (e) {
+      print('Error getting current location with details: $e');
+      return null;
+    }
+  }
+
+  final searchLocationController = TextEditingController();
+  Timer? _searchDebounceTimer;
+
+  _googlePlaceSearch() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Service Locations",
+          style: CommonUtils.commonTextLabelsStyle(),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          alignment: Alignment.center,
+          padding: const EdgeInsets.only(left: 16),
+          decoration: CommonUtils.commonInputBoxDecoration(),
+          child: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            Expanded(
+              child: TextField(
+                controller: searchLocationController,
+                decoration: InputDecoration(
+                  hintText: "Service Location",
+                  border: InputBorder.none,
+                  suffixIcon: !isLoadingLocation &&
+                          searchLocationController.text.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(
+                            Icons.cancel_outlined,
+                            size: 16,
+                          ),
+                          onPressed: () {
+                            searchLocationController.clear();
+                            setState(() {
+                              _suggestions.clear();
+                              _showDropdown = false;
+                            });
+                          },
+                        )
+                      : null,
+                ),
+                onChanged: (value) {
+                  _searchDebounceTimer?.cancel();
+                  _searchDebounceTimer = Timer(
+                    const Duration(milliseconds: 500),
+                    () => _searchLocationsWithService(value),
+                  );
+                },
+              ),
+            ),
+            if (isLoadingLocation)
+              SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    color: Colors.purple,
+                    strokeWidth: 1,
+                  )),
+            if (isLoadingLocation)
+              SizedBox(
+                width: 16,
+              )
+          ]),
+        ),
+
+        /// Dropdown
+        if (_showDropdown)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border.all(color: Colors.grey.shade300),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _suggestions.length,
+              itemBuilder: (context, index) {
+                final item = _suggestions[index];
+                return ListTile(
+                  title: Text(item.mainText),
+                  subtitle: Text(item.secondaryText),
+                  onTap: () {
+                    searchLocationController.text = "";
+                    _selectedLocations.add(item.mainText);
+                    setState(() {
+                      _showDropdown = false;
+                    });
+
+                    /// You now have placeId
+                    print("Selected placeId: ${item.placeId}");
+                  },
+                );
+              },
+            ),
+          ),
+        if (_selectedLocations.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 4,
+            runSpacing: 0,
+            alignment: WrapAlignment.start,
+            children: _selectedLocations.map((item) {
+              return Stack(
+                children: [
+                  Container(
+                    margin:
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0x1F641BB4).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF641BB4).withOpacity(0.3),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          item,
+                          style: const TextStyle(
+                            color: Color(0xFF9C27B0),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: () {
+                        final newList = List<String>.from(_selectedLocations)
+                          ..remove(item);
+                        setState(() {
+                          _selectedLocations = newList;
+                        });
+                      },
+                      child: Padding(
+                        padding: EdgeInsets.only(left: 10, right: 0, bottom: 5),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(30)),
+                              border:
+                                  Border.all(color: Colors.black, width: 1)),
+                          child: const Icon(
+                            Icons.close,
+                            size: 10,
+                            color: Color(0xFF9C27B0),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ],
+      ],
+    );
+  }
+
+  List<PlaceSuggestion> _suggestions = [];
+  bool _showDropdown = false;
+
+  void _searchLocationsWithService(String value) async {
+    final results = await searchPlaces(value);
+
+    setState(() {
+      _suggestions = results;
+      _showDropdown = results.isNotEmpty;
+    });
+  }
+
+  bool isLoadingLocation = false;
+
+  Future<List<PlaceSuggestion>> searchPlaces(String input) async {
+    if (input.isEmpty) return [];
+    if (mounted) {
+      setState(() {
+        isLoadingLocation = true;
+      });
+    }
+    final url = Uri.parse(
+      'https://places.googleapis.com/v1/places:autocomplete',
+    );
+
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': ApiConstants.apiKey,
+        'X-Goog-FieldMask': 'suggestions.placePrediction',
+      },
+      body: jsonEncode({
+        "input": input,
+        "locationBias": {
+          "rectangle": {
+            "low": {"latitude": 6.0, "longitude": 68.0},
+            "high": {"latitude": 36.0, "longitude": 98.0}
+          }
+        }
+      }),
+    );
+    if (mounted) {
+      setState(() {
+        isLoadingLocation = false;
+      });
+    }
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return (data['suggestions'] as List)
+          .map((e) => PlaceSuggestion.fromJson(e))
+          .toList();
+    } else {
+      throw Exception('Failed to fetch places');
+    }
+  }
 }
 
-// USAGE EXAMPLE:
-// How to navigate to this form with different user types:
+class PlaceSuggestion {
+  final String placeId;
+  final String mainText;
+  final String secondaryText;
 
-/*
-// For Transporter
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => VehicleRegistrationForm(userType: 'Transporter'),
-  ),
-);
+  PlaceSuggestion({
+    required this.placeId,
+    required this.mainText,
+    required this.secondaryText,
+  });
 
-// For Taxi Owner
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => VehicleRegistrationForm(userType: 'Taxi Owner'),
-  ),
-);
-
-// For Auto-Rickshaw
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => VehicleRegistrationForm(userType: 'Auto-Rickshaw'),
-  ),
-);
-
-// For E-Rickshaw Driver
-Navigator.push(
-  context,
-  MaterialPageRoute(
-    builder: (context) => VehicleRegistrationForm(userType: 'E-Rickshaw Driver'),
-  ),
-);
-*/
+  factory PlaceSuggestion.fromJson(Map<String, dynamic> json) {
+    final structured = json['placePrediction']['structuredFormat'];
+    return PlaceSuggestion(
+      placeId: json['placePrediction']['placeId'],
+      mainText: structured['mainText']['text'],
+      secondaryText: structured['secondaryText']['text'],
+    );
+  }
+}

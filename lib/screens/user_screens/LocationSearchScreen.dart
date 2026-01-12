@@ -147,7 +147,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         final locationName = locationData['name'] as String;
 
         print("🔍 Setting current location: $locationName");
-
+        _searchController.text = locationName;
         setState(() {
           currentLocationCoordinates = coordinates;
           currentLocation = LocationData(
@@ -477,9 +477,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         : Colors.white.withOpacity(0.3),
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
-                      color: isSelected
-                          ? AppColors.blue
-                          : Color(0x73FFFFFF),
+                      color: isSelected ? AppColors.blue : Color(0x73FFFFFF),
                       width: 1.5,
                     ),
                     boxShadow: isSelected

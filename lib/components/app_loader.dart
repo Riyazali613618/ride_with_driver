@@ -95,7 +95,9 @@ class AppColors {
   static const Color blue = Color(0xFF641BB4);
   static const Color appBlack = Color(0xFF2B2A29);
 
-  static const Color darkGrey=Color(0xFF757575); // Gray
+  static const Color darkGrey=Color(0xFF757575);
+
+  static const Color commonBorderColor=Color(0x40000000); // Gray
 }
 
 class AppIcons {
