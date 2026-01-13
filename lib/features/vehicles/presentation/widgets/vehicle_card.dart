@@ -3,6 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:r_w_r/constants/api_constants.dart';
 import '../../../../components/app_loader.dart';
 import '../../../../constants/color_constants.dart';
 import '../../../../utils/color.dart';
@@ -27,9 +28,9 @@ class _VehicleCardState extends State<VehicleCard> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Color(0xFFF0EBF6),
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 1)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,6 +60,7 @@ class _VehicleCardState extends State<VehicleCard> {
                   child: Text(
                     "${currentIndex + 1}/${widget.vehicle.images.length}",
                     style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
                         fontWeight: FontWeight.w500,
                         fontSize: 12,
                         color: Colors.white),
@@ -138,6 +140,7 @@ class _VehicleCardState extends State<VehicleCard> {
                     Text(
                       widget.vehicle.vehicleName ?? "",
                       style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
@@ -151,6 +154,7 @@ class _VehicleCardState extends State<VehicleCard> {
                       child: Text(
                         widget.vehicle.vehicleType,
                         style: TextStyle(
+                          fontFamily: AppConstants.ptSansFont,
                           fontSize: 12,
                           color: ColorConstants.black2,
                           fontWeight: FontWeight.w400,
@@ -179,7 +183,8 @@ class _VehicleCardState extends State<VehicleCard> {
                             ),
                             child: Text(
                               "Manage Vehicle",
-                              style: GoogleFonts.poppins(
+                              style: TextStyle(
+                                fontFamily: AppConstants.ptSansFont,
                                 color: Colors.white,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w400,
@@ -195,11 +200,12 @@ class _VehicleCardState extends State<VehicleCard> {
                   spacing: 8,
                   children: [
                     _buildFeatureTag(
+                      bg:"no",
                       icon: "assets/img/seats.png",
                       text: '${widget.vehicle.seatingCapacity ?? 'N/A'} Seats',
                     ),
                     _buildFeatureTag(
-                      icon: "assets/img/seats.png",
+                      icon: "",
                       text: '${widget.vehicle.airConditioning}',
                     ),
                   ],
@@ -226,22 +232,27 @@ class _VehicleCardState extends State<VehicleCard> {
                   children: [
                     Text('Minimum Charge',
                         style: const TextStyle(
-                            fontWeight: FontWeight.w400, fontSize: 10)),
+                            fontFamily: AppConstants.ptSansFont,
+                            fontWeight: FontWeight.w400, fontSize: 12)),
                     Text('₹ ${widget.vehicle.minimumCharge}/hour',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 11)),
+                            fontFamily: AppConstants.ptSansFont,
+                            fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
                 ),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 4,
                   children: [
-                    Text('Vehicle No:',
+                    Text('Vehicle No',
                         style: const TextStyle(
-                            fontWeight: FontWeight.w400, fontSize: 11)),
+                            fontFamily: AppConstants.ptSansFont,
+                            fontWeight: FontWeight.w400, fontSize: 12)),
+                    SizedBox(width: 30,),
                     Text('${widget.vehicle.vehicleNumber}',
                         style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 11)),
+                            fontFamily: AppConstants.ptSansFont,
+                            fontWeight: FontWeight.bold, fontSize: 12)),
                   ],
                 ),
               ],
@@ -530,17 +541,17 @@ class _VehicleCardState extends State<VehicleCard> {
   }
 
   Widget _buildFeatureTag(
-      {required String icon, Color? color, required String text}) {
+      {String bg="",required String icon, Color? color, required String text}) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-      decoration: BoxDecoration(
+      decoration:bg.isEmpty? BoxDecoration(
         color: color ?? gradientFirst.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: color ?? AppColors.blue,
           width: 0.5,
         ),
-      ),
+      ):null,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -549,9 +560,10 @@ class _VehicleCardState extends State<VehicleCard> {
           Text(
             text,
             style: TextStyle(
-              fontSize: 11,
+              fontFamily: AppConstants.ptSansFont,
+              fontSize: 10,
               color: color != null ? Colors.white : Colors.grey[700],
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w400,
             ),
           ),
           const SizedBox(width: 4),

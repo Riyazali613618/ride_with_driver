@@ -124,6 +124,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                   child: Text(
                                     'Total Vehicles (${state.vehicles.length}/$limit)',
                                     style: TextStyle(
+                                      fontFamily: AppConstants.ptSansFont,
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -244,6 +245,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                                   Text(
                                                     "Add Vehicle",
                                                     style: TextStyle(
+                                                      fontFamily: AppConstants.ptSansFont,
                                                       fontSize: 11,
                                                       color: Colors.white,
                                                       fontWeight:
@@ -257,6 +259,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                     );
                                   },
                                 ),
+                                SizedBox(width: 15,)
                               ],
                             ),
                           ),
