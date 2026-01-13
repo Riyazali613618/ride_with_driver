@@ -87,16 +87,16 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
       switch (event.paymentType) {
         case PaymentType.subscriptionRenewal:
-          isAddOns=false;
-          maxVehicles=1;
+          isAddOns = false;
+          maxVehicles = 1;
           orderResponse =
               await PaymentService.createOrderForSubscriptionRenewal(
             planId: event.plan.id,
           );
           break;
         case PaymentType.registrationOnly:
-          isAddOns=false;
-          maxVehicles=1;
+          isAddOns = false;
+          maxVehicles = 1;
           orderResponse = await PaymentService.createOrderForRegistrationOnly(
             category: event.category ?? event.planType,
             currentCategory: event.currentCategory ?? "",
@@ -114,12 +114,24 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   maxvehicles: event.maxvehicles ?? 1,
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
+                  pay_amount: double.parse((event.finalPrice?.toInt()).toString()) ?? 0);
+        case PaymentType.addOns:
+          maxVehicles = event.maxvehicles ?? 1;
+          orderResponse =
+              await PaymentService.createOrderForRegistrationWithSubscription(
+                  category: event.category ?? event.planType,
+                  currentCategory: event.currentCategory ?? "",
+                  planId: event.plan.id,
+                  isAdOns: event.isAdOns,
+                  maxvehicles: event.maxvehicles ?? 1,
+                  durationInMonths: event.duration ?? 0,
+                  earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
                   pay_amount: event.finalPrice ?? 0);
           break;
       }
       isAddOns = event.isAdOns;
-      if(!isAddOns){
-        maxVehicles=1;
+      if (!isAddOns) {
+        maxVehicles = 1;
       }
 
       final createOrderResponse = CreateOrderResponse.fromJson(orderResponse);
@@ -141,7 +153,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
         var options = {
           'key': orderData.razorpayKey,
-          'amount': orderData.amount,
+          'amount': event.finalPrice,
           'name': 'Ride with Driver',
           'description': (event.currentCategory ?? "").isEmpty
               ? _getPaymentDescription(event.paymentType)
@@ -175,7 +187,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       }
     } catch (e) {
       emit(PaymentError(
-          "Error: Please complete another process or they have bought plan"));
+          e.toString()));
     }
   }
 
@@ -226,6 +238,14 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             );
           }
           break;
+        case PaymentType.addOns:
+          await PaymentService.verifyAddonsOrder({
+            "razorpay_order_id": event.response.orderId,
+            "razorpay_payment_id": event.response.paymentId,
+            "add_on_vehicles": maxVehicles ?? 2,
+            "subscriptionPlanId": event.plan.id
+          });
+          break;
       }
 
       emit(PaymentCompleted(event.planType));
@@ -255,6 +275,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       case PaymentType.registrationOnly:
         return 'Subscription';
       case PaymentType.registrationWithSubscription:
+        return 'Subscription';
+      case PaymentType.addOns:
         return 'Subscription';
     }
   }

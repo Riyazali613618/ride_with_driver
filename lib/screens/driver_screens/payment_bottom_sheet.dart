@@ -80,8 +80,8 @@ class _PaymentBottomSheetBlocViewState
       } else if (state is PaymentCompleted) {
         print(
             '[PaymentBottomSheet] PaymentCompleted detected - navigating and closing');
-        if (!context.mounted) Navigator.pop(context);
-        if (!context.mounted) Navigator.pop(context);
+        if (context.mounted) Navigator.pop(context);
+        if (context.mounted) Navigator.pop(context);
         if (widget.isAdOns) {
           SharedPreferences? pref = await SharedPreferences.getInstance();
 
@@ -269,7 +269,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
   context.read<EligibilityBloc>().add(RefreshEligibilityEvent());
   if (planType == 'DRIVER') {
     Navigator.of(context).pop();
-    Navigator.of(context).pop();
+   // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -278,7 +278,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'RICKSHAW') {
     Navigator.of(context).pop();
-    Navigator.of(context).pop();
+   // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -287,7 +287,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'E_RICKSHAW') {
     Navigator.of(context).pop();
-    Navigator.of(context).pop();
+   // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -296,7 +296,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'TRANSPORTER') {
     Navigator.of(context).pop();
-    Navigator.of(context).pop();
+   // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -305,7 +305,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'INDEPENDENT_CAR_OWNER') {
     Navigator.of(context).pop();
-    Navigator.of(context).pop();
+   // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(

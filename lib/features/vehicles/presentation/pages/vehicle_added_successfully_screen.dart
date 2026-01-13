@@ -102,6 +102,7 @@ class _VehicleAddedSuccessfullyScreenState
                               MaterialPageRoute(
                                 builder: (_) => AddNewVehicleScreen(
                                   userType: widget.userType,
+                                  isFromRegistration: true,
                                 ),
                               ),
                             );
@@ -131,6 +132,7 @@ class _VehicleAddedSuccessfullyScreenState
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => AddNewVehicleScreen(
+                                    isFromRegistration: true,
                                     userType:
                                     "${pref?.getString('userType')}",
                                   ),

@@ -9,20 +9,18 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-
 // API and BLoC imports
 import 'package:r_w_r/api/api_service/api_repository.dart';
 import 'package:r_w_r/api/api_service/countryStateProviderService.dart';
-import 'package:r_w_r/bloc/auth/auth_bloc.dart';
-import 'package:r_w_r/bloc/home/home_bloc.dart';
-import 'package:r_w_r/bloc/user_profile/user_profile_bloc.dart';
-import 'package:r_w_r/bloc/vehicle/vehicle_bloc.dart';
-import 'package:r_w_r/bloc/chat/chat_bloc.dart';
-import 'package:r_w_r/bloc/driver/driver_bloc.dart';
-import 'package:r_w_r/bloc/payment/payment_bloc.dart';
-
 // Screen and service imports
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
+import 'package:r_w_r/bloc/auth/auth_bloc.dart';
+import 'package:r_w_r/bloc/chat/chat_bloc.dart';
+import 'package:r_w_r/bloc/driver/driver_bloc.dart';
+import 'package:r_w_r/bloc/home/home_bloc.dart';
+import 'package:r_w_r/bloc/payment/payment_bloc.dart';
+import 'package:r_w_r/bloc/user_profile/user_profile_bloc.dart';
+import 'package:r_w_r/bloc/vehicle/vehicle_bloc.dart';
 import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_bloc.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/firebase_options.dart';
@@ -32,24 +30,11 @@ import 'package:r_w_r/screens/Eligibility/bloc/eligibility_bloc.dart';
 import 'package:r_w_r/screens/Eligibility/bloc/eligibility_event.dart';
 import 'package:r_w_r/screens/Eligibility/eligibility_remote_source.dart';
 import 'package:r_w_r/screens/Eligibility/eligibility_repository.dart';
-import 'package:r_w_r/screens/auth_screens/first_time_user.dart';
-import 'package:r_w_r/screens/auth_screens/login_screen.dart';
-import 'package:r_w_r/screens/auth_screens/otp_screen.dart';
 import 'package:r_w_r/screens/auth_screens/splash_screen.dart';
-import 'package:r_w_r/screens/autoRikshawDriverRegistration.dart';
 import 'package:r_w_r/screens/block/home/home_provider.dart';
 import 'package:r_w_r/screens/block/language/language_provider.dart';
 import 'package:r_w_r/screens/block/provider/profile_provider.dart';
 import 'package:r_w_r/screens/dashboard/dashboard_bloc.dart';
-import 'package:r_w_r/screens/dashboard/dashboard_state.dart';
-import 'package:r_w_r/screens/driverRegistrationScreen.dart';
-import 'package:r_w_r/screens/driver_screens/dashbord.dart';
-import 'package:r_w_r/screens/eRickshawRegistration.dart';
-import 'package:r_w_r/screens/independentCarOwnerRegistration.dart'
-    hide ProfileProvider, LocationProvider;
-import 'package:r_w_r/screens/registration_screens/indipendent_car_owner_registration_screen.dart';
-import 'package:r_w_r/screens/transporterRegistration.dart';
-import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
 import 'package:r_w_r/viewModel/profileViewModel.dart';
 
 import 'api/api_service/notification_globle_service.dart';
@@ -226,8 +211,7 @@ class MyApp extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ProfileProvider()),
             ChangeNotifierProvider(create: (_) => HomeDataProvider()),
             ChangeNotifierProvider(create: (_) => ProfileViewModel()),
-            ChangeNotifierProvider(
-                create: (_) => VehicleRegistrationProvider()),
+
             ChangeNotifierProvider(create: (_) => AddVehicleProvider()),
             ChangeNotifierProvider(create: (_) => LocationProvider()),
 

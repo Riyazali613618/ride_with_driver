@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -11,26 +12,25 @@ import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart'
     hide Counts;
-import 'package:r_w_r/api/api_model/user_model/user_profile_model.dart';
 import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/layout.dart';
-import 'package:r_w_r/screens/vehicle/vehicleRegistrationScreen.dart';
-import 'package:r_w_r/screens/widgets/gradient_button.dart';
+import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:r_w_r/screens/widgets/common_submit_button.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../api/api_model/language/language_model.dart';
 import '../../api/api_model/registrations/transporter_model.dart';
 import '../../api/api_service/registration_services/transporter_service.dart';
 import '../../bloc/driver/driver_bloc.dart';
 import '../../bloc/driver/driver_event.dart';
 import '../../bloc/driver/driver_state.dart';
-import '../../components/media_uploader_widget.dart';
 import '../../constants/token_manager.dart';
 import '../api/api_model/user_model/user_eligibility_model.dart';
 import '../api/api_service/countryStateProviderService.dart';
+import '../api/api_service/media_service.dart';
 import '../api/api_service/user_service/user_profile_service.dart';
-import '../transporterRegistration/presentation/widget/gradient_progress_bar.dart';
+import '../components/app_loader.dart';
+import '../constants/color_constants.dart';
 import '../utils/color.dart';
 import 'block/provider/profile_provider.dart';
 import 'multi_step_progress_bar.dart';
@@ -66,9 +66,11 @@ class _TransporterRegistrationFlowState
   final _contactPersonNameController = TextEditingController();
   final _gstinController = TextEditingController();
 
-  final _carCountController = TextEditingController(text: '0');
-  final _vanCountController = TextEditingController(text: '0');
-  final _busCountController = TextEditingController(text: '0');
+  final _carCountController = TextEditingController(text: '');
+  final _vanCountController = TextEditingController(text: '');
+  final _suvCountController = TextEditingController(text: '');
+  final _busCountController = TextEditingController(text: '');
+  final _totalVehicleCountController = TextEditingController(text: '');
 
   String? _selectedFleetSize;
   File? _selectedImage;
@@ -116,7 +118,7 @@ class _TransporterRegistrationFlowState
       profile = await TokenManager.getProfile();
       if (profile == null) return;
       _contactPersonNameController.text =
-      "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
+          "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
       _phoneNumberController.text =
           profile?.mobileNumber ?? profile?.businessMobileNumber ?? "";
       _transporterModel = _transporterModel.copyWith(
@@ -164,7 +166,7 @@ class _TransporterRegistrationFlowState
 
   Future<void> _loadTransporterData() async {
     WidgetsBinding.instance.addPostFrameCallback(
-          (timeStamp) async {
+      (timeStamp) async {
         try {
           final prefs = await SharedPreferences.getInstance();
           String data = prefs.getString('transporter_data') ?? '';
@@ -192,20 +194,20 @@ class _TransporterRegistrationFlowState
               _addressLineController.text = profile?.address?.addressLine ?? "";
               _pincodeController.text =
                   profile?.address?.pincode!.toString() ?? "";
-              if(_stateList.isNotEmpty){
-                String stateId=profile?.address?.state!.toString() ?? "";
-                for(final state in _stateList){
-                  if(state.sId==stateId){
-                    _selectedState=state.name;
+              if (_stateList.isNotEmpty) {
+                String stateId = profile?.address?.state!.toString() ?? "";
+                for (final state in _stateList) {
+                  if (state.sId == stateId) {
+                    _selectedState = state.name;
                     break;
                   }
                 }
               }
-              if(_cityList.isNotEmpty){
-                String cityId=profile?.address?.city!.toString() ?? "";
-                for(final city in _cityList){
-                  if(city.sId==cityId){
-                    _selectedCity=city.name;
+              if (_cityList.isNotEmpty) {
+                String cityId = profile?.address?.city!.toString() ?? "";
+                for (final city in _cityList) {
+                  if (city.sId == cityId) {
+                    _selectedCity = city.name;
                     break;
                   }
                 }
@@ -263,7 +265,7 @@ class _TransporterRegistrationFlowState
     final statusString = prefs.getString('transporter_status');
     if (statusString != null) {
       return ApplicationStatus.values.firstWhere(
-            (e) => e.toString() == statusString,
+        (e) => e.toString() == statusString,
         orElse: () => ApplicationStatus.notStarted,
       );
     }
@@ -275,7 +277,7 @@ class _TransporterRegistrationFlowState
 
     try {
       final profileProvider =
-      Provider.of<ProfileProvider>(context, listen: false);
+          Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
@@ -312,9 +314,7 @@ class _TransporterRegistrationFlowState
   }
 
   Future<void> _verifyGST(String gstNumber) async {
-    if (gstNumber
-        .trim()
-        .isEmpty) {
+    if (gstNumber.trim().isEmpty) {
       return;
     }
 
@@ -347,14 +347,13 @@ class _TransporterRegistrationFlowState
   Future<void> _getGstVerificationResult(String requestId) async {
     try {
       final profileProvider =
-      Provider.of<ProfileProvider>(context, listen: false);
+          Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
       final resultResponse = await http.post(
         Uri.parse(
-            '${ApiConstants
-                .baseUrl}/user/register/get-gst-verification-result'),
+            '${ApiConstants.baseUrl}/user/register/get-gst-verification-result'),
         headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId ?? '',
@@ -411,18 +410,14 @@ class _TransporterRegistrationFlowState
 
   // Form Validation Methods
   String? _validateRequired(String? value, String fieldName) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return '$fieldName is required';
     }
     return null;
   }
 
   String? _validateMobileNumber(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Mobile number is required';
     }
     if (value.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
@@ -432,9 +427,7 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validatePincode(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Pincode is required';
     }
     if (value.length != 6 || !RegExp(r'^[0-9]{6}$').hasMatch(value)) {
@@ -444,9 +437,7 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validateNumber(String? value, String fieldName) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return '$fieldName is required';
     }
     if (!RegExp(r'^[0-9]+$').hasMatch(value)) {
@@ -460,9 +451,7 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validateGSTINFormat(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return null;
     }
 
@@ -476,19 +465,13 @@ class _TransporterRegistrationFlowState
   }
 
   String? _validateAddressLine(String? value) {
-    if (value == null || value
-        .trim()
-        .isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return 'Address line is required';
     }
-    if (value
-        .trim()
-        .length < 5) {
+    if (value.trim().length < 5) {
       return 'Address line must be at least 5 characters';
     }
-    if (value
-        .trim()
-        .length > 300) {
+    if (value.trim().length > 300) {
       return 'Address line must be less than 300 characters';
     }
     return null;
@@ -526,7 +509,8 @@ class _TransporterRegistrationFlowState
     final cars = int.tryParse(_carCountController.text) ?? 0;
     final vans = int.tryParse(_vanCountController.text) ?? 0;
     final buses = int.tryParse(_busCountController.text) ?? 0;
-    return cars + vans + buses;
+    final suv = int.tryParse(_suvCountController.text) ?? 0;
+    return cars + vans + buses + suv;
   }
 
   // Image picker methods
@@ -754,12 +738,8 @@ class _TransporterRegistrationFlowState
         break;
 
       case 1: // Address
-        if (_addressLineController.text
-            .trim()
-            .isEmpty ||
-            _pincodeController.text
-                .trim()
-                .isEmpty ||
+        if (_addressLineController.text.trim().isEmpty ||
+            _pincodeController.text.trim().isEmpty ||
             _selectedCity == null ||
             _selectedCity!.isEmpty ||
             _selectedState == null ||
@@ -768,7 +748,7 @@ class _TransporterRegistrationFlowState
           isValid = false;
         } else {
           final addressError =
-          _validateAddressLine(_addressLineController.text);
+              _validateAddressLine(_addressLineController.text);
           final pincodeError = _validatePincode(_pincodeController.text);
           if (addressError != null) {
             errorMessage = addressError;
@@ -878,20 +858,18 @@ class _TransporterRegistrationFlowState
     // Find the text for state and city from their IDs
     final stateName = _stateList
         .firstWhere((s) => s.sId == _selectedState,
-        orElse: () => sm.Data(name: ''))
+            orElse: () => sm.Data(name: ''))
         .name;
     final cityName = _cityList
         .firstWhere((c) => c.sId == _selectedCity,
-        orElse: () => cm.Data(name: ''))
+            orElse: () => cm.Data(name: ''))
         .name;
 
     setState(() {
       _transporterModel = _transporterModel.copyWith(
         companyName: _companyNameController.text.trim(),
         phoneNumber: _phoneNumberController.text.trim(),
-        bio: _bioController.text
-            .trim()
-            .isEmpty
+        bio: _bioController.text.trim().isEmpty
             ? "bio"
             : _bioController.text.trim(),
         contactPersonName: _contactPersonNameController.text.trim(),
@@ -929,6 +907,8 @@ class _TransporterRegistrationFlowState
     });
   }
 
+  bool isSubmitting = false;
+
   Future<void> _submitApplication() async {
     final validationErrors = _getValidationIssues();
 
@@ -936,8 +916,7 @@ class _TransporterRegistrationFlowState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              'Please fix the following errors:\n${validationErrors.join(
-                  '\n')}'),
+              'Please fix the following errors:\n${validationErrors.join('\n')}'),
           backgroundColor: Colors.red,
           duration: const Duration(seconds: 5),
         ),
@@ -948,10 +927,9 @@ class _TransporterRegistrationFlowState
     final accepted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      builder: (context) =>
-          TermsConditionsBottomSheet(
-            type: 'TRANSPORTER_AGREEMENT',
-          ),
+      builder: (context) => TermsConditionsBottomSheet(
+        type: 'TRANSPORTER_AGREEMENT',
+      ),
     );
 
     if (accepted != true) {
@@ -973,20 +951,36 @@ class _TransporterRegistrationFlowState
     }
 
     context.read<DriverBloc>().add(
-      TransporterRegistrationEvent(
-        registrationData: _transporterModel.toJson(),
-      ),
-    );
+          TransporterRegistrationEvent(
+            registrationData: _transporterModel.toJson(),
+          ),
+        );
 
     try {
+      isSubmitting = true;
+      updateState();
       final userData = await TokenManager.getUserData();
+      if (_transporterModel.photo != null &&
+          _transporterModel.photo!.isNotEmpty &&
+          !_transporterModel.photo!.startsWith("https")) {
+        final XFile photo = XFile(_transporterModel.photo ?? "");
+        final photoUrl = await MediaService()
+            .uploadMedia(photo, kind: "coverImage", type: "coverImage");
+        _transporterModel =
+            _transporterModel.copyWith(photo: photoUrl.url ?? "");
+      }
       final profilePhoto = userData?['profilePhoto'] ?? _transporterModel.photo;
+      if (permit != null) {
+        final XFile photo = XFile(permit!.path);
+        final documentUrl = await MediaService()
+            .uploadMedia(photo, kind: "document", type: "document");
+        _transporterModel = _transporterModel.copyWith(
+            transportationPermit: documentUrl.url ?? "");
+      }
       _transporterModel = _transporterModel.copyWith(
           profilePhoto: profilePhoto,
           firstName: _transporterModel.contactPersonName,
-          bio: _bioController.text
-              .trim()
-              .isEmpty
+          bio: _bioController.text.trim().isEmpty
               ? "bio"
               : _bioController.text.trim(),
           lastName: (_transporterModel.lastName ?? "").isEmpty
@@ -994,15 +988,16 @@ class _TransporterRegistrationFlowState
               : _transporterModel.lastName!);
       final response = isUpgrade
           ? await TransporterService().submitUpgradeTransporterApplication(
-          _transporterModel,
-          context,
-          "become-upgradable",
-          subscriptionPlanId,
-          paymentId,
-          orderId)
+              _transporterModel,
+              context,
+              "become-upgradable",
+              subscriptionPlanId,
+              paymentId,
+              orderId)
           : await TransporterService().submitTransporterApplication(
-          _transporterModel, context, "become-transporter");
-
+              _transporterModel, context, "become-transporter");
+      isSubmitting = false;
+      updateState();
       if (response['success'] == true) {
         if (!mounted) return;
         _clearSavedStep();
@@ -1014,7 +1009,7 @@ class _TransporterRegistrationFlowState
           context,
           MaterialPageRoute(
               builder: (context) =>
-              const AddNewVehicleScreen(userType: "Transporter")),
+                  const RegistrationSuccessfulScreen(userType: "Transporter")),
         );
       } else {
         if (!mounted) return;
@@ -1024,6 +1019,8 @@ class _TransporterRegistrationFlowState
         );
       }
     } catch (e) {
+      isSubmitting = false;
+      updateState();
       if (!mounted) return;
       TransporterService.showApiErrorSnackBar(
         context,
@@ -1039,14 +1036,10 @@ class _TransporterRegistrationFlowState
   List<String> _getValidationIssues() {
     final issues = <String>[];
 
-    if (_companyNameController.text
-        .trim()
-        .isEmpty) {
+    if (_companyNameController.text.trim().isEmpty) {
       issues.add('Company name is required');
     }
-    if (_contactPersonNameController.text
-        .trim()
-        .isEmpty) {
+    if (_contactPersonNameController.text.trim().isEmpty) {
       issues.add('Contact person name is required');
     }
     if (_validateMobileNumber(_phoneNumberController.text) != null) {
@@ -1101,8 +1094,7 @@ class _TransporterRegistrationFlowState
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-              const Layout(
+              builder: (context) => const Layout(
                 initialIndex: 1,
               ),
             ),
@@ -1137,9 +1129,13 @@ class _TransporterRegistrationFlowState
                     gradientFirst,
                     gradientSecond,
                     gradientThird,
-                    Colors.white
+                    Colors.white,
+                    Colors.white,
+                    Colors.white,
+                    Colors.white,
+                    Colors.white,
+                    Colors.white,
                   ],
-                  stops: [0.0, 0.15, 0.30, .90],
                 ),
               ),
               child: SafeArea(
@@ -1247,10 +1243,10 @@ class _TransporterRegistrationFlowState
                           // Apply gradient if active/completed, else solid inactive color
                           gradient: isGradientCircle
                               ? LinearGradient(
-                            colors: gradientColors,
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          )
+                                  colors: gradientColors,
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                )
                               : null,
                           color: isGradientCircle ? null : inactiveColor,
                         ),
@@ -1274,11 +1270,11 @@ class _TransporterRegistrationFlowState
                             decoration: BoxDecoration(
                               gradient: isGradientLine
                                   ? LinearGradient(
-                                colors: gradientColors,
-                                begin: Alignment.centerLeft,
-                                // Horizontal gradient
-                                end: Alignment.centerRight,
-                              )
+                                      colors: gradientColors,
+                                      begin: Alignment.centerLeft,
+                                      // Horizontal gradient
+                                      end: Alignment.centerRight,
+                                    )
                                   : null,
                               color: isGradientLine ? null : inactiveColor,
                             ),
@@ -1324,11 +1320,8 @@ class _TransporterRegistrationFlowState
           children: [
             Text(
               'Company Detail',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-                color: Colors.black,
-              ),
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 20, weight: FontWeight.w400, color: Colors.black),
             ),
             SizedBox(height: 40),
             Center(
@@ -1348,18 +1341,18 @@ class _TransporterRegistrationFlowState
                       ),
                       child: _selectedImage != null
                           ? ClipOval(
-                        child: Image.file(
-                          _selectedImage!,
-                          width: 80,
-                          height: 80,
-                          fit: BoxFit.cover,
-                        ),
-                      )
+                              child: Image.file(
+                                _selectedImage!,
+                                width: 80,
+                                height: 80,
+                                fit: BoxFit.cover,
+                              ),
+                            )
                           : Icon(
-                        Icons.person_outline, // From Figma design
-                        size: 32,
-                        color: Colors.grey[600],
-                      ),
+                              Icons.person_outline, // From Figma design
+                              size: 32,
+                              color: Colors.grey[600],
+                            ),
                     ),
                   ),
                   SizedBox(height: 12),
@@ -1370,6 +1363,8 @@ class _TransporterRegistrationFlowState
                           ? 'Tap to change image'
                           : 'Profile Image / Logo',
                       style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        fontWeight: FontWeight.w400,
                         fontSize: 16,
                         color: _selectedImage != null
                             ? Color(0xFF8B5CF6)
@@ -1403,10 +1398,15 @@ class _TransporterRegistrationFlowState
   }
 
   Widget _buildContinueButton() {
-    return GradientButton(
-      text: _currentStep == 4 ? 'Submit' : 'Continue',
-      onPressed: nextStep,
-      gradientColors: [gradientFirst, gradientSecond],
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: CommonSubmitButton(
+        gradientColors: [gradientFirst, gradientSecond],
+        onPressed: nextStep,
+        text: _currentStep == 4 ? 'Submit' : 'Continue',
+        borderRadius: 12,
+        isLoading: false,
+      ),
     );
     return SizedBox(
       width: double.infinity,
@@ -1441,8 +1441,9 @@ class _TransporterRegistrationFlowState
           Text(
             'Address',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
+              fontSize: 20,
+              fontFamily: AppConstants.ptSansFont,
+              fontWeight: FontWeight.w400,
               color: Colors.black,
             ),
           ),
@@ -1453,18 +1454,23 @@ class _TransporterRegistrationFlowState
               validator: _validateAddressLine,
               maxLines: 1),
           SizedBox(height: 20),
+
           _buildTextField('Pin Code*', _pincodeController,
               placeholder: '788799',
               textInputAction: TextInputAction.next,
               validator: _validatePincode,
               keyboardType: TextInputType.number,
-              maxLength: 6,
-              onChanged: (value) {
-                if (value.length == 6) {
-                  _fetchLocationFromPinCode(value);
-                }
-              }),
+              maxLength: 6, onChanged: (value) {
+            if (value.length == 6) {
+              _fetchLocationFromPinCode(value);
+            }
+          }),
           SizedBox(height: 20),
+          Text(
+            "State*",
+            style: CommonUtils.commonTextLabelsStyle(),
+          ),
+          SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: _stateList.any((s) => s.sId == _selectedState)
                 ? _selectedState
@@ -1493,7 +1499,7 @@ class _TransporterRegistrationFlowState
             }).toList(),
             onChanged: (String? newValue) {
               final locProvider =
-              Provider.of<LocationProvider>(context, listen: false);
+                  Provider.of<LocationProvider>(context, listen: false);
               setState(() {
                 _selectedState = newValue;
                 _selectedCity = null; // Reset city when state changes
@@ -1515,6 +1521,11 @@ class _TransporterRegistrationFlowState
             },
           ),
           SizedBox(height: 20),
+          Text(
+            "City*",
+            style: CommonUtils.commonTextLabelsStyle(),
+          ),
+          SizedBox(height: 8),
           DropdownButtonFormField<String>(
             value: _cityList.any((s) => s.sId == _selectedCity)
                 ? _selectedCity
@@ -1551,7 +1562,7 @@ class _TransporterRegistrationFlowState
 
   InputDecoration _dropdownDecoration(String label) {
     return InputDecoration(
-      labelText: label,
+      labelText: "",
       labelStyle: TextStyle(
         color: Colors.grey[600],
         fontSize: 16,
@@ -1560,22 +1571,22 @@ class _TransporterRegistrationFlowState
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+        borderSide: BorderSide(color: ColorConstants.inputFieldBorderColor),
+        borderRadius: BorderRadius.circular(8),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!, width: 1),
+        borderSide: BorderSide(color: ColorConstants.inputFieldBorderColor),
+        borderRadius: BorderRadius.circular(8),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Color(0xFF8B5CF6), width: 2),
+        borderSide: BorderSide(color: ColorConstants.inputFieldBorderColor),
+        borderRadius: BorderRadius.circular(8),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.red, width: 1),
+        borderSide: BorderSide(color: ColorConstants.inputFieldBorderColor),
+        borderRadius: BorderRadius.circular(8),
       ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
     );
   }
 
@@ -1590,8 +1601,9 @@ class _TransporterRegistrationFlowState
             Text(
               'Document',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                fontFamily: AppConstants.ptSansFont,
+                fontWeight: FontWeight.w400,
                 color: Colors.black,
               ),
             ),
@@ -1617,33 +1629,33 @@ class _TransporterRegistrationFlowState
                   }
                 },
                 child: Container(
-                  width: 80,
-                  margin: EdgeInsets.all(6),
+                  width: 70,
+                  margin: EdgeInsets.symmetric(horizontal: 6, vertical: 10),
                   decoration: BoxDecoration(
-                    color: _isGstVerified
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.transparent,
+                    color: Colors.transparent,
                     border: Border.all(
-                        color:
-                        _isGstVerified ? Colors.green : Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(24),
+                        color: _isGstVerified
+                            ? Color(0xFF1FAF38)
+                            : Color(0xFF1FAF38)),
+                    borderRadius: BorderRadius.circular(30),
                   ),
                   child: Center(
                     child: _isGstVerifying
                         ? SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : Text(
-                      _isGstVerified ? 'Verified' : 'Verify',
-                      style: TextStyle(
-                        color: _isGstVerified
-                            ? Colors.green
-                            : Colors.grey[600],
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                            _isGstVerified ? 'Verified' : 'Verify',
+                            style: TextStyle(
+                              fontFamily: AppConstants.ptSansFont,
+                              color: _isGstVerified
+                                  ? Color(0xFF1FAF38)
+                                  : Color(0xFF1FAF38),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -1661,33 +1673,62 @@ class _TransporterRegistrationFlowState
               ),
             SizedBox(height: 24),
             // Transport Permit Uploader
-            Text(
-              'Transportation Permit (Optional)',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              child: MediaUploader(
-                label: 'select your file or drag and drop',
-                kind: "document",
-                showPreview: true,
-                showDirectImage: true,
-                initialUrl: _transporterModel.transportationPermit,
-                onMediaUploaded: (url) {
-                  setState(() {
-                    _transporterModel = _transporterModel.copyWith(
-                      transportationPermit: url,
-                    );
-                  });
-                },
-                required: false,
-                allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-              ),
+
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Transportation Permit (Optional)',
+                  style: CommonUtils.commonTextLabelsStyle(),
+                ),
+                SizedBox(height: 8),
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  decoration: BoxDecoration(
+                    border:
+                        Border.all(color: ColorConstants.inputFieldBorderColor),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.cloud_upload_outlined,
+                        size: 32,
+                        color: Color(0xFF8B5CF6),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'select your file or drag and drop',
+                        style: CommonUtils.commonTextLabelsStyle(),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'png, pdf, jpg, docx accepted',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontFamily: AppConstants.ptSansFont,
+                          fontWeight: FontWeight.w400,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 12),
+                      CommonUtils.commonGradientBorderButton(
+                        text: "browse",
+                        onTap: () {
+                          _showDocumentPickerBottomSheet();
+                        },
+                      ),
+                      if (permit != null)
+                        _showPermitImage()
+                      else
+                        SizedBox(
+                          height: 10,
+                        )
+                    ],
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: 24),
             Container(
@@ -1726,6 +1767,196 @@ class _TransporterRegistrationFlowState
     );
   }
 
+  Widget _showPermitImage() {
+    return Stack(
+      children: [
+        Container(
+            clipBehavior: Clip.hardEdge,
+            margin: EdgeInsets.symmetric(vertical: 20, horizontal: 10),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              color: Colors.grey.shade400,
+              border: Border.all(color: AppColors.blue, width: 1),
+            ),
+            child: Image.file(
+              File(permit?.path ?? ""),
+              width: 50,
+              fit: BoxFit.cover,
+              height: 50,
+            )),
+        Positioned(
+            right: 5,
+            top: 12,
+            child: GestureDetector(
+              onTap: () {
+                permit = null;
+                updateState();
+              },
+              child: SvgPicture.asset(
+                "assets/svg/cross.svg",
+                width: 15,
+                height: 15,
+              ),
+            ))
+      ],
+    );
+  }
+
+  void _showDocumentPickerBottomSheet() {
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Text(
+                        'Upload Document',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildDocumentSourceOption(
+                            icon: Icons.camera_alt,
+                            label: 'Camera',
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickDocumentFromCamera();
+                            },
+                          ),
+                          _buildDocumentSourceOption(
+                            icon: Icons.photo_library,
+                            label: 'Gallery',
+                            onTap: () {
+                              Navigator.pop(context);
+                              _pickDocumentFromGallery();
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  XFile? permit;
+
+  Future<void> _pickDocumentFromCamera() async {
+    try {
+      XFile? image = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        permit = image;
+        updateState();
+      }
+    } catch (e) {
+      _showErrorSnackBar('Failed to capture document from camera');
+    }
+  }
+
+  Future<void> _pickDocumentFromGallery() async {
+    try {
+      XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+      if (image != null) {
+        permit = image;
+        updateState();
+        // _showSuccessSnackBar('Document selected from gallery');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Failed to pick document from gallery');
+    }
+  }
+
+  Widget _buildDocumentSourceOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  gradientFirst.withOpacity(0.2),
+                  gradientSecond.withOpacity(0.2),
+                ],
+              ),
+              border: Border.all(
+                color: color ?? Color(0xFF8B5CF6),
+                width: 2,
+              ),
+            ),
+            child: Icon(
+              icon,
+              size: 28,
+              color: color ?? Color(0xFF8B5CF6),
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: color ?? Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAboutStep() {
     return SingleChildScrollView(
       padding: EdgeInsets.all(24),
@@ -1737,19 +1968,16 @@ class _TransporterRegistrationFlowState
             Text(
               'About',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
+                fontSize: 20,
+                fontFamily: AppConstants.ptSansFont,
+                fontWeight: FontWeight.w400,
                 color: Colors.black,
               ),
             ),
             SizedBox(height: 40),
             Text(
               'Fleet Size*',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
+              style: CommonUtils.commonTextLabelsStyle(),
             ),
             SizedBox(height: 8),
             DropdownButtonFormField<String>(
@@ -1764,60 +1992,70 @@ class _TransporterRegistrationFlowState
               items: [
                 DropdownMenuItem(
                   value: 'small',
-                  child: Text('Small (1-5 vehicles)'),
+                  child: Text(
+                    'Small (1-5 vehicles)',
+                    style: CommonUtils.commonTextLabelsStyle(),
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'medium',
-                  child: Text('Medium (6-10 vehicles)'),
+                  child: Text(
+                    'Medium (6-10 vehicles)',
+                    style: CommonUtils.commonTextLabelsStyle(),
+                  ),
                 ),
                 DropdownMenuItem(
                   value: 'large',
-                  child: Text('Large (11+ vehicles)'),
+                  child: Text(
+                    'Large (11+ vehicles)',
+                    style: CommonUtils.commonTextLabelsStyle(),
+                  ),
                 ),
               ],
             ),
             SizedBox(height: 24),
             Text(
               'Vehicle Counts*',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
+              style: CommonUtils.commonTextLabelsStyle(),
             ),
             SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildVehicleCountField('Car', _carCountController),
-                _buildVehicleCountField('Van', _vanCountController),
-                _buildVehicleCountField('Bus', _busCountController),
+                _buildVehicleCountField(),
+                /* _buildVehicleCountField('Van', _vanCountController),
+                _buildVehicleCountField('Bus', _busCountController),*/
               ],
             ),
             SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                border: Border.all(color: ColorConstants.inputFieldBorderColor),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total Vehicles:',
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                  Text(
-                    '${_getTotalVehicleCount()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                      color: Colors.blue.shade700,
-                    ),
-                  ),
+              child: TextField(
+                textAlign: TextAlign.start,
+                maxLength: 2,
+                buildCounter: (
+                  context, {
+                  required int currentLength,
+                  required bool isFocused,
+                  required int? maxLength,
+                }) {
+                  return null; // 👈 hides the counter
+                },
+                style: CommonUtils.commonInputTextStyle(),
+                readOnly: true,
+                controller: _totalVehicleCountController,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
                 ],
+                keyboardType: TextInputType.phone,
+                decoration: InputDecoration.collapsed(
+                  hintText: '0',
+                  hintStyle: CommonUtils.commonHintTextStyle(),
+                ),
               ),
             ),
             SizedBox(height: 16),
@@ -1866,7 +2104,8 @@ class _TransporterRegistrationFlowState
             _buildTextField(
               'About (Optional)',
               _bioController,
-              placeholder: 'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
+              placeholder:
+                  'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
               maxLines: 5,
             ),
             SizedBox(height: 40),
@@ -1877,283 +2116,480 @@ class _TransporterRegistrationFlowState
     );
   }
 
-  Widget _buildVehicleCountField(String vehicleType,
-      TextEditingController controller) {
-    return Column(
-      children: [
-        Text(
-          vehicleType,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey[600],
+  Widget _buildVehicleCountField() {
+    double boxWidth = 36;
+    double boxHeight = 43;
+
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+      Row(
+        children: [
+          Text(
+            "Car",
+            style: vehicleCountStyle(),
           ),
-        ),
-        SizedBox(height: 4),
-        Container(
-          width: 80,
-          height: 50,
-          child: TextFormField(
-            controller: controller,
-            textAlign: TextAlign.center,
-            keyboardType: TextInputType.number,
-            validator: (value) => _validateNumber(value, '$vehicleType count'),
-            decoration: _dropdownDecoration('').copyWith(
-              hintText: '0',
-              contentPadding: EdgeInsets.zero,
+          SizedBox(width: 4),
+          GestureDetector(
+            child: Container(
+              width: boxWidth,
+              alignment: Alignment.center,
+              height: boxHeight,
+              decoration: BoxDecoration(
+                border: Border.all(color: ColorConstants.inputFieldBorderColor),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[50],
+              ),
+              child: Center(
+                child: TextField(
+                  textAlign: TextAlign.center,
+                  maxLength: 2,
+                  style: vehicleCountStyle(),
+                  buildCounter: (
+                    context, {
+                    required int currentLength,
+                    required bool isFocused,
+                    required int? maxLength,
+                  }) {
+                    return null; // 👈 hides the counter
+                  },
+                  controller: _carCountController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  onChanged: (value) {
+                    updateVehicleCount();
+                  },
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration.collapsed(
+                    hintText: '0',
+                    hintStyle: vehicleCountStyle(),
+                  ),
+                ),
+              ),
             ),
-            onChanged: (value) => setState(() {}),
           ),
-        ),
-      ],
+        ],
+      ),
+      SizedBox(
+        width: 10,
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            "SUV",
+            style: vehicleCountStyle(),
+          ),
+          SizedBox(width: 4),
+          GestureDetector(
+            child: Container(
+              width: boxWidth,
+              height: boxHeight,
+              decoration: BoxDecoration(
+                border: Border.all(color: ColorConstants.inputFieldBorderColor),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[50],
+              ),
+              child: Center(
+                child: TextField(
+                  textAlign: TextAlign.center,
+                  maxLength: 2,
+                  style: vehicleCountStyle(),
+                  buildCounter: (
+                    context, {
+                    required int currentLength,
+                    required bool isFocused,
+                    required int? maxLength,
+                  }) {
+                    return null; // 👈 hides the counter
+                  },
+                  onChanged: (value) {
+                    updateVehicleCount();
+                  },
+                  controller: _suvCountController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration.collapsed(
+                    hintText: '0',
+                    hintStyle: vehicleCountStyle(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      SizedBox(
+        width: 10,
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            "Mini Van",
+            style: vehicleCountStyle(),
+          ),
+          SizedBox(width: 4),
+          GestureDetector(
+            child: Container(
+              width: boxWidth,
+              height: boxHeight,
+              decoration: BoxDecoration(
+                border: Border.all(color: ColorConstants.inputFieldBorderColor),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[50],
+              ),
+              child: Center(
+                child: TextField(
+                  textAlign: TextAlign.center,
+                  maxLength: 2,
+                  style: vehicleCountStyle(),
+                  buildCounter: (
+                    context, {
+                    required int currentLength,
+                    required bool isFocused,
+                    required int? maxLength,
+                  }) {
+                    return null; // 👈 hides the counter
+                  },
+                  controller: _vanCountController,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  onChanged: (value) {
+                    updateVehicleCount();
+                  },
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration.collapsed(
+                    hintText: '0',
+                    hintStyle: vehicleCountStyle(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+      SizedBox(
+        width: 10,
+      ),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(
+            "Bus",
+            style: vehicleCountStyle(),
+          ),
+          SizedBox(width: 4),
+          GestureDetector(
+            child: Container(
+              width: boxWidth,
+              height: boxHeight,
+              decoration: BoxDecoration(
+                border: Border.all(color: ColorConstants.inputFieldBorderColor),
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[50],
+              ),
+              child: Center(
+                child: TextField(
+                  textAlign: TextAlign.center,
+                  maxLength: 2,
+                  style: vehicleCountStyle(),
+                  buildCounter: (
+                    context, {
+                    required int currentLength,
+                    required bool isFocused,
+                    required int? maxLength,
+                  }) {
+                    return null; // 👈 hides the counter
+                  },
+                  controller: _busCountController,
+                  onChanged: (value) {
+                    updateVehicleCount();
+                  },
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration.collapsed(
+                    hintText: '0',
+                    hintStyle: vehicleCountStyle(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ]);
+  }
+
+  int totalVehicles = 0;
+
+  void updateVehicleCount() {
+    int car = _carCountController.text.toString().isNotEmpty
+        ? int.parse(_carCountController.text.toString())
+        : 0;
+    int bus = _busCountController.text.toString().isNotEmpty
+        ? int.parse(_busCountController.text.toString())
+        : 0;
+    int van = _vanCountController.text.toString().isNotEmpty
+        ? int.parse(_vanCountController.text.toString())
+        : 0;
+    int suv = _suvCountController.text.toString().isNotEmpty
+        ? int.parse(_suvCountController.text.toString())
+        : 0;
+
+    totalVehicles = car + bus + van + suv;
+    _totalVehicleCountController.text = totalVehicles.toString();
+  }
+
+  vehicleCountStyle() {
+    return TextStyle(
+      fontSize: 10,
+      color: Color(0xFF9E9E9E),
     );
   }
 
   Widget _buildPreviewStep() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.all(24),
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Preview',
             style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
+              fontFamily: AppConstants.ptSansFont,
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
               color: Colors.black,
             ),
           ),
-          SizedBox(height: 20),
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[200],
-                    border: _selectedImage != null
-                        ? Border.all(color: Color(0xFF8B5CF6), width: 2)
-                        : Border.all(color: Colors.grey[300]!),
-                  ),
-                  child: _selectedImage != null
-                      ? ClipOval(
-                    child: Image.file(
-                      _selectedImage!,
+          Expanded(
+              child: ListView(
+            children: [
+              SizedBox(height: 20),
+              Center(
+                child: Column(
+                  children: [
+                    Container(
                       width: 60,
                       height: 60,
-                      fit: BoxFit.cover,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.grey[200],
+                        border: _selectedImage != null
+                            ? Border.all(color: Color(0xFF8B5CF6), width: 2)
+                            : Border.all(color: Colors.grey[300]!),
+                      ),
+                      child: _selectedImage != null
+                          ? ClipOval(
+                              child: Image.file(
+                                _selectedImage!,
+                                width: 60,
+                                height: 60,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : Icon(
+                              Icons.person_outline,
+                              size: 30,
+                              color: Colors.grey[600],
+                            ),
                     ),
-                  )
-                      : Icon(
-                    Icons.person_outline,
-                    size: 30,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Profile Image / Logo',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-          _buildPreviewItem(
-              'Company Name',
-              _companyNameController.text.isEmpty
-                  ? 'Not specified'
-                  : _companyNameController.text),
-          _buildPreviewItem(
-              'Contact Person',
-              _contactPersonNameController.text.isEmpty
-                  ? 'Not specified'
-                  : _contactPersonNameController.text),
-          _buildPreviewItem(
-              'Phone Number',
-              _phoneNumberController.text.isEmpty
-                  ? 'Not specified'
-                  : '+91 ${_phoneNumberController.text}'),
-          _buildPreviewItem(
-              'Address Line',
-              _addressLineController.text.isEmpty
-                  ? 'Not specified'
-                  : _addressLineController.text),
-          _buildPreviewItem(
-              'Pin Code',
-              _pincodeController.text.isEmpty
-                  ? 'Not specified'
-                  : _pincodeController.text),
-          _buildPreviewItem(
-              'City',
-              _cityController.text.isEmpty
-                  ? 'Not specified'
-                  : _cityController.text),
-          _buildPreviewItem(
-              'State',
-              _stateController.text.isEmpty
-                  ? 'Not specified'
-                  : _stateController.text),
-          _buildPreviewItem(
-              'GST No.',
-              _gstinController.text.isEmpty
-                  ? 'Not provided'
-                  : _gstinController.text),
-          _buildPreviewItem(
-              'Transport Permit',
-              _transporterModel.transportationPermit?.isNotEmpty == true
-                  ? 'Uploaded'
-                  : 'Not uploaded (Optional)'),
-          _buildPreviewItem(
-              'Fleet Size', _selectedFleetSize ?? 'Not specified'),
-          _buildPreviewItem(
-              'Cars',
-              _carCountController.text.isEmpty
-                  ? '0'
-                  : _carCountController.text),
-          _buildPreviewItem(
-              'Vans',
-              _vanCountController.text.isEmpty
-                  ? '0'
-                  : _vanCountController.text),
-          _buildPreviewItem(
-              'Buses',
-              _busCountController.text.isEmpty
-                  ? '0'
-                  : _busCountController.text),
-          _buildPreviewItem(
-              'Total Number of Vehicles', _getTotalVehicleCount().toString()),
-          SizedBox(height: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'About',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                _bioController.text.isEmpty
-                    ? 'Not specified'
-                    : _bioController.text,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[600],
-                  height: 1.4,
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 32),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: _isReadyForSubmission()
-                  ? Colors.green.shade50
-                  : Colors.red.shade50,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _isReadyForSubmission()
-                    ? Colors.green.shade200
-                    : Colors.red.shade200,
-              ),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      _isReadyForSubmission()
-                          ? Icons.check_circle
-                          : Icons.warning,
-                      color: _isReadyForSubmission()
-                          ? Colors.green.shade600
-                          : Colors.red.shade600,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        _isReadyForSubmission()
-                            ? 'Application ready for submission!'
-                            : 'Please review and fix the issues:',
-                        style: TextStyle(
-                          color: _isReadyForSubmission()
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Profile Image / Logo',
+                      style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
                 ),
-                if (!_isReadyForSubmission()) ...[
-                  const SizedBox(height: 8),
-                  ..._getValidationIssues().map((issue) =>
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 24),
-                            Icon(Icons.error_outline,
-                                color: Colors.red.shade600, size: 16),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                issue,
-                                style: TextStyle(
-                                  color: Colors.red.shade700,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )),
+              ),
+              SizedBox(height: 24),
+              _buildPreviewItem(
+                  'Company Name',
+                  _companyNameController.text.isEmpty
+                      ? 'Not specified'
+                      : _companyNameController.text),
+              _buildPreviewItem(
+                  'Contact Person',
+                  _contactPersonNameController.text.isEmpty
+                      ? 'Not specified'
+                      : _contactPersonNameController.text),
+              _buildPreviewItem(
+                  'Phone Number',
+                  _phoneNumberController.text.isEmpty
+                      ? 'Not specified'
+                      : '+91 ${_phoneNumberController.text}'),
+              _buildPreviewItem(
+                  'Address Line',
+                  _addressLineController.text.isEmpty
+                      ? 'Not specified'
+                      : _addressLineController.text),
+              _buildPreviewItem(
+                  'Pin Code',
+                  _pincodeController.text.isEmpty
+                      ? 'Not specified'
+                      : _pincodeController.text),
+              _buildPreviewItem(
+                  'City',
+                  _cityController.text.isEmpty
+                      ? 'Not specified'
+                      : _cityController.text),
+              _buildPreviewItem(
+                  'State',
+                  _stateController.text.isEmpty
+                      ? 'Not specified'
+                      : _stateController.text),
+              _buildPreviewItem(
+                  'GST No.',
+                  _gstinController.text.isEmpty
+                      ? 'Not provided'
+                      : _gstinController.text),
+              _buildPreviewItem(
+                  'Transport Permit',
+                  _transporterModel.transportationPermit?.isNotEmpty == true
+                      ? 'Uploaded'
+                      : 'Not uploaded (Optional)'),
+              _buildPreviewItem(
+                  'Fleet Size', _selectedFleetSize ?? 'Not specified'),
+              _buildPreviewItem(
+                  'Cars',
+                  _carCountController.text.isEmpty
+                      ? '0'
+                      : _carCountController.text),
+              _buildPreviewItem(
+                  'Vans',
+                  _vanCountController.text.isEmpty
+                      ? '0'
+                      : _vanCountController.text),
+              _buildPreviewItem(
+                  'Buses',
+                  _busCountController.text.isEmpty
+                      ? '0'
+                      : _busCountController.text),
+              _buildPreviewItem('Total Number of Vehicles',
+                  _getTotalVehicleCount().toString()),
+              SizedBox(height: 16),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'About',
+                    style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    _bioController.text.isEmpty
+                        ? 'Not specified'
+                        : _bioController.text,
+                    style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 12,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w400,
+                      height: 1.4,
+                    ),
+                  ),
                 ],
-              ],
-            ),
-          ),
-          SizedBox(height: 20),
+              ),
+              SizedBox(height: 32),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: _isReadyForSubmission()
+                      ? Colors.green.shade50
+                      : Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _isReadyForSubmission()
+                        ? Colors.green.shade200
+                        : Colors.red.shade200,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          _isReadyForSubmission()
+                              ? Icons.check_circle
+                              : Icons.warning,
+                          color: _isReadyForSubmission()
+                              ? Colors.green.shade600
+                              : Colors.red.shade600,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _isReadyForSubmission()
+                                ? 'Application ready for submission!'
+                                : 'Please review and fix the issues:',
+                            style: TextStyle(
+                              color: _isReadyForSubmission()
+                                  ? Colors.green.shade700
+                                  : Colors.red.shade700,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (!_isReadyForSubmission()) ...[
+                      const SizedBox(height: 8),
+                      ..._getValidationIssues().map((issue) => Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 24),
+                                Icon(Icons.error_outline,
+                                    color: Colors.red.shade600, size: 16),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    issue,
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )),
+                    ],
+                  ],
+                ),
+              ),
+              SizedBox(height: 20),
+            ],
+          )),
           BlocBuilder<DriverBloc, DriverState>(
             builder: (context, state) {
-              final bool isSubmitting = state is DriverRegistrationLoading;
+              final bool isLoading = state is DriverRegistrationLoading;
 
-              return Container(
+              return SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: isSubmitting ? null : nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF8B5CF6),
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: isSubmitting
-                      ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                      : Text(
-                    'Submit',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                child: Container(
+                  alignment: Alignment.bottomRight,
+                  child: CommonSubmitButton(
+                    gradientColors: [gradientFirst, gradientSecond],
+                    onPressed: isSubmitting ? null : nextStep,
+                    text: "Submit",
+                    borderRadius: 12,
+                    isLoading: isSubmitting,
                   ),
                 ),
               );
@@ -2172,24 +2608,19 @@ class _TransporterRegistrationFlowState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
+            flex: 5,
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
+              style: CommonUtils.commonTitleStyle(
+                  color: Colors.black, fontSize: 12, weight: FontWeight.w700),
             ),
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               value,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: CommonUtils.commonTitleStyle(
+                  color: Colors.black, fontSize: 12, weight: FontWeight.w400),
             ),
           ),
         ],
@@ -2199,37 +2630,49 @@ class _TransporterRegistrationFlowState
 
   Widget _buildTextField(String label, TextEditingController controller,
       {String? placeholder,
-        String? Function(String?)? validator,
-        TextInputType? keyboardType,
-        TextInputAction? textInputAction,
-        int? maxLines,
-        int? maxLength,
-        bool enabled = true,
-        Function(String)? onChanged,
-        Widget? suffixIcon,
-        TextCapitalization textCapitalization = TextCapitalization.none}) {
-    return TextFormField(
-      controller: controller,
-      validator: validator,
-      keyboardType: keyboardType,
-      maxLines: maxLines ?? 1,
-      maxLength: maxLength,
-      enabled: enabled,
-      textInputAction: textInputAction ?? TextInputAction.done,
-      onChanged: onChanged,
-      textCapitalization: textCapitalization,
-      decoration: _dropdownDecoration(label).copyWith(
-        hintText: placeholder,
-        labelText: label,
-        hintStyle: TextStyle(
-            fontSize: 12, fontWeight: FontWeight.w400, color: Colors.grey),
-        suffixIcon: suffixIcon,
-        counterText: '', // Hide the maxLength counter
+      String? Function(String?)? validator,
+      TextInputType? keyboardType,
+      TextInputAction? textInputAction,
+      int? maxLines,
+      int? maxLength,
+      bool enabled = true,
+      Function(String)? onChanged,
+      Widget? suffixIcon,
+      TextCapitalization textCapitalization = TextCapitalization.none}) {
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(
+        label,
+        style: CommonUtils.commonTextLabelsStyle(),
       ),
-      style: TextStyle(
-        color: enabled ? Colors.black : Colors.grey[600],
+      SizedBox(height: 8),
+      Container(
+        child: TextFormField(
+          controller: controller,
+          validator: validator,
+          keyboardType: keyboardType,
+          maxLines: maxLines ?? 1,
+          maxLength: maxLength,
+          enabled: enabled,
+          textInputAction: textInputAction ?? TextInputAction.done,
+          onChanged: onChanged,
+          textCapitalization: textCapitalization,
+          decoration: _dropdownDecoration("").copyWith(
+            hintText: placeholder ?? '',
+            hintStyle: CommonUtils.commonHintTextStyle(),
+            suffixIcon: suffixIcon,
+          ),
+          buildCounter: (
+            context, {
+            required int currentLength,
+            required bool isFocused,
+            required int? maxLength,
+          }) {
+            return null; // 👈 hides the counter
+          },
+          style: CommonUtils.commonInputTextStyle(),
+        ),
       ),
-    );
+    ]);
   }
 
   void backButtonAction() {
@@ -2271,13 +2714,12 @@ class _TransporterRegistrationFlowState
     _addressLineController.text = _transporterModel.address.addressLine ?? "";
     _cityController.text = _transporterModel.address.city ?? "";
     _stateController.text = _transporterModel.address.state ?? "";
-    _pincodeController.text =
-    _transporterModel.address.pincode! > 0 ? _transporterModel.address.pincode
-        .toString() : "";
+    _pincodeController.text = _transporterModel.address.pincode! > 0
+        ? _transporterModel.address.pincode.toString()
+        : "";
     _contactPersonNameController.text =
         _transporterModel.contactPersonName ?? "";
-    _phoneNumberController.text =
-        _transporterModel.phoneNumber ?? "";
+    _phoneNumberController.text = _transporterModel.phoneNumber ?? "";
     _contactPersonNameController.text =
         _transporterModel.contactPersonName ?? "";
     _gstinController.text = _transporterModel.gstin ?? "";
@@ -2288,6 +2730,10 @@ class _TransporterRegistrationFlowState
     _selectedCity = _cityController.text.toString() ?? "";
     _selectedState = _stateController.text.toString();
     setState(() {});
+  }
+
+  void updateState() {
+    if (mounted) setState(() {});
   }
 }
 

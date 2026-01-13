@@ -10,9 +10,12 @@ class PlanEntity {
   final double finalPrice;
   final int maxVehicles;
   final String planType;
+  final String taxRate;
+  final double perVehiclePrice;
   final List<String> features;
 
   const PlanEntity({
+    required this.taxRate,
     required this.id,
     required this.name,
     required this.planFor,
@@ -22,6 +25,7 @@ class PlanEntity {
     required this.earlyBirdDiscountPercentage,
     required this.earlyBirdDiscountPrice,
     required this.finalPrice,
+    required this.perVehiclePrice,
     required this.maxVehicles,
     required this.planType,
     required this.features,

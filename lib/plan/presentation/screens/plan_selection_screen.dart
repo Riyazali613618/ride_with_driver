@@ -2,8 +2,13 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/constants/token_manager.dart';
+import 'package:r_w_r/utils/common_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/api_service/countryStateProviderService.dart';
 import '../../../api/api_service/payment_service/payment_service.dart';
@@ -25,7 +30,7 @@ class PlanSelectionScreen extends StatefulWidget {
 
   const PlanSelectionScreen(
       {super.key,
-      this.isAdOns=false,
+      this.isAdOns = false,
       required this.title,
       required this.count,
       required this.currentCategory,
@@ -38,6 +43,7 @@ class PlanSelectionScreen extends StatefulWidget {
 class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
   final pageController = PageController(viewportFraction: 0.80, initialPage: 1);
   int currentIndex = 0;
+  MyProfileData? myProfileData;
 
   @override
   void initState() {
@@ -141,7 +147,8 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       itemBuilder: (context, index, realIdx) {
                         final plan = state.plans![index];
                         return _planCard(
-                          widget.isAdOns,
+                            myProfileData?.activeSubscriptions ?? [],
+                            widget.isAdOns,
                             widget.count,
                             plan,
                             index == currentIndex,
@@ -193,7 +200,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
       if (selectedState.isEmpty) {
         await langProvider.fetchStates(currentCountry);
       }
-
+      myProfileData = await UserProfileService().getUserProfile();
       context.read<PlanBloc>().add(FetchPlansEvent(
             widget.category,
             currentCountry,
@@ -201,108 +208,135 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
           ));
     }); // context.read<PlanBloc>().add(FetchPlansEvent(widget.category));
   }
-}
 
-Widget _planCard(bool isAdOns,int count, PlanModel data, bool isActive, BuildContext context,
-    String category, String currentCategory) {
-  final features = data.features;
-  final discount = data.earlyBirdDiscountPercentage;
-  final price = data.finalPrice;
-  final price2 = data.grossPrice;
-  final duration = data.durationInMonths;
-  return AnimatedContainer(
-    duration: const Duration(milliseconds: 300),
-    margin: const EdgeInsets.all(6),
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(18),
-      border: Border.all(
-        color: isActive ? Colors.purple : Colors.grey.shade300,
-      ),
-      boxShadow: isActive
-          ? [
-              BoxShadow(
-                  color: Colors.purple.withOpacity(0.15),
-                  blurRadius: 15,
-                  spreadRadius: 3)
-            ]
-          : [],
-      gradient: isActive
-          ? LinearGradient(
-              colors: [Colors.purple.shade50, Colors.white],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            )
-          : null,
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(data.name,
-            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 4),
-        Text("Validity $duration Month",
-            style: const TextStyle(fontSize: 11, color: Colors.black87)),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Text("₹ ${price.toStringAsFixed(0)}",
-                style:
-                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            const SizedBox(width: 8),
-            Text("₹ ${price2.toStringAsFixed(0)}",
-                style:
-                    const TextStyle(decoration: TextDecoration.lineThrough,fontSize: 11, fontWeight: FontWeight.bold)),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.purple.shade50,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.purple),
-              ),
-              child: Text(
-                "${discount.toStringAsFixed(0)} % Off",
-                style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.purple,
-                    fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
+  Widget _planCard(
+      List<Subscription> activeSubscriptions,
+      bool isAdOns,
+      int count,
+      PlanModel data,
+      bool isActive,
+      BuildContext context,
+      String category,
+      String currentCategory) {
+    final features = data.features;
+    final discount = data.earlyBirdDiscountPercentage;
+    final price = data.finalPrice;
+    final price2 = data.grossPrice;
+    final duration = data.durationInMonths;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.all(6),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isActive ? Colors.purple : Colors.grey.shade300,
         ),
-        const SizedBox(height: 10),
-        const Text("Benefits:",
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        ...List.generate(
-          features.length > 5 ? 5 : features.length,
-          (i) => Padding(
-            padding: const EdgeInsets.only(bottom: 6),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle, color: Colors.green, size: 18),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    features[i],
-                    maxLines: 2,
-                    style: const TextStyle(fontSize: 11),
-                  ),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                    color: Colors.purple.withOpacity(0.15),
+                    blurRadius: 15,
+                    spreadRadius: 3)
+              ]
+            : [],
+        gradient: isActive
+            ? LinearGradient(
+                colors: [Colors.purple.shade50, Colors.white],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              )
+            : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(data.name,
+              style:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text("Validity $duration Month",
+              style: const TextStyle(fontSize: 11, color: Colors.black87)),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text("₹ ${price.toStringAsFixed(0)}",
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              Text("₹ ${price2.toStringAsFixed(0)}",
+                  style: const TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
+              const SizedBox(width: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.purple.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.purple),
                 ),
-              ],
+                child: Text(
+                  "${discount.toStringAsFixed(0)} % Off",
+                  style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.purple,
+                      fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Text("Benefits:",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          ...List.generate(
+            features.length > 5 ? 5 : features.length,
+            (i) => Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Row(
+                children: [
+                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      features[i],
+                      maxLines: 2,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        const Spacer(),
-        Center(
-          child: GestureDetector(
-            onTap: () {
-              if (category == UserType.TRANSPORTER.name && isAdOns) {
-                showAddVehicleQtyPopup(context, data, category, currentCategory,
-                    PaymentType.registrationWithSubscription, 2,isAdOns);
-              } else {
-                showModalBottomSheet(
+          const Spacer(),
+          Center(
+            child: GestureDetector(
+              onTap: () {
+                if (category == UserType.TRANSPORTER.name &&
+                    currentCategory.isNotEmpty) {
+                  showAddVehicleQtyPopup(
+                      myProfileData,
+                      context,
+                      data,
+                      category,
+                      currentCategory,
+                      PaymentType.registrationWithSubscription,
+                      2,
+                      isAdOns);
+                } else {
+                  showShortTermPlanBottomSheet(
+                      myProfileData,
+                      false,
+                      context,
+                      data,
+                      category,
+                      currentCategory,
+                      PaymentType.registrationWithSubscription,
+                      data.maxVehicles);
+                  /* showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
@@ -317,7 +351,7 @@ Widget _planCard(bool isAdOns,int count, PlanModel data, bool isActive, BuildCon
                       category: category,
                     ),
 
-/*
+*/ /*
                     child: PaymentBottomSheetBlocView(
                       plan: data,
                       planType: category,
@@ -326,52 +360,68 @@ Widget _planCard(bool isAdOns,int count, PlanModel data, bool isActive, BuildCon
                       paymentType: PaymentType.registrationWithSubscription,
                       category: category,
                     ),
-*/
+*/ /*
                   ),
-                );
-              }
-            },
-            child: Container(
-              width: 160,
-              height: 38,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                gradient: const LinearGradient(
-                  colors: [Colors.purple, Colors.orange],
+                );*/
+                }
+              },
+              child: Container(
+                width: 160,
+                height: 38,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  gradient: const LinearGradient(
+                    colors: [Colors.purple, Colors.orange],
+                  ),
                 ),
-              ),
-              alignment: Alignment.center,
-              child: const Text(
-                "Continue",
-                style: TextStyle(color: Colors.white, fontSize: 14),
+                alignment: Alignment.center,
+                child: const Text(
+                  "Continue",
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(height: 8),
-      ],
-    ),
-  );
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
 }
 
-void showAddVehicleQtyPopup(BuildContext context, PlanModel plan,
-    String category, String currentCategory, PaymentType planType, int count,bool isAdOns) {
+void showAddVehicleQtyPopup(
+    MyProfileData? myProfileData,
+    BuildContext context,
+    PlanModel plan,
+    String category,
+    String currentCategory,
+    PaymentType planType,
+    int count,
+    bool isAdOns) {
   showDialog(
     context: context,
     builder: (_) => NumberOfVehiclesPopup(
+      myProfileData: myProfileData,
       initialValue: count,
       plan: plan,
       isAdOns: isAdOns,
       onConfirm: (count) {
-        showShortTermPlanBottomSheet(isAdOns,
-            context, plan, category, currentCategory, planType, count);
+        showShortTermPlanBottomSheet(myProfileData, isAdOns, context, plan,
+            category, currentCategory, planType, count);
       },
     ),
   );
 }
 
-void showShortTermPlanBottomSheet(bool isAdOns,BuildContext context, PlanModel plan,
-    String category, String currentCategory, PaymentType planType, int count) {
+void showShortTermPlanBottomSheet(
+    MyProfileData? myProfileData,
+    bool isAdOns,
+    BuildContext context,
+    PlanModel plan,
+    String category,
+    String currentCategory,
+    PaymentType planType,
+    int count) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -379,6 +429,7 @@ void showShortTermPlanBottomSheet(bool isAdOns,BuildContext context, PlanModel p
     builder: (context) => BlocProvider.value(
       value: context.read<PaymentBloc>(),
       child: ShortTermPlanBottomSheet(
+          myProfileData: myProfileData,
           context: context,
           isAdOns: isAdOns,
           plan: plan,
@@ -395,12 +446,14 @@ class NumberOfVehiclesPopup extends StatefulWidget {
   final int initialValue;
   final PlanModel plan;
   final Function(int) onConfirm;
+  final MyProfileData? myProfileData;
 
   const NumberOfVehiclesPopup({
     super.key,
     this.isAdOns = false,
     this.initialValue = 1,
     required this.plan,
+    required this.myProfileData,
     required this.onConfirm,
   });
 
@@ -410,11 +463,16 @@ class NumberOfVehiclesPopup extends StatefulWidget {
 
 class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
   late int count;
+  double refundableAmount = 0;
+  double settleAmount = 0;
 
   @override
   void initState() {
     super.initState();
     count = widget.initialValue;
+    if (!widget.isAdOns) {
+      refundableAmount = getRefundableAmount();
+    }
   }
 
   @override
@@ -453,7 +511,7 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
                 _circleButton(
                   icon: Icons.remove,
                   onTap: () {
-                    if (count > 1) {
+                    if (count > 2) {
                       setState(() => count--);
                     }
                   },
@@ -574,6 +632,41 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
       ),
     );
   }
+
+  double getRefundableAmount() {
+    try {
+      final List<Subscription> currentPlanList =
+          widget.myProfileData?.activeSubscriptions ?? [];
+      if (currentPlanList.isEmpty) {
+        return 0;
+      }
+      Subscription currentPlan = currentPlanList[0];
+      DateTime? startDate = currentPlan.startDate;
+      DateTime? endDate = currentPlan.endDate;
+      DateTime nowUtc = DateTime.now().toUtc();
+      int currentPlanDuration = 0;
+      int planConsumeForDays = 0;
+      if (startDate != null && endDate != null) {
+        currentPlanDuration = endDate.difference(startDate).inDays;
+        return 0;
+      }
+      if (startDate != null) {
+        planConsumeForDays = nowUtc.difference(startDate).inDays;
+      }
+      double perDayConsumption =
+          (currentPlan.totalAmount ?? 0) / currentPlanDuration;
+      final consumedPlanPrice = planConsumeForDays * perDayConsumption;
+      final refundableAmount =
+          (currentPlan.totalAmount ?? 0) - consumedPlanPrice;
+      return refundableAmount;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  double getSettleAmount() {
+    return 0;
+  }
 }
 
 class ShortTermPlanBottomSheet extends StatefulWidget {
@@ -584,15 +677,17 @@ class ShortTermPlanBottomSheet extends StatefulWidget {
   final int count;
   final bool isAdOns;
   final BuildContext context;
+  final MyProfileData? myProfileData;
 
   const ShortTermPlanBottomSheet(
       {required this.plan,
-      this.isAdOns=false,
+      this.isAdOns = false,
       required this.context,
       required this.currentCategory,
       required this.category,
       required this.planType,
       required this.count,
+      required this.myProfileData,
       super.key});
 
   @override
@@ -603,6 +698,131 @@ class ShortTermPlanBottomSheet extends StatefulWidget {
 class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
   bool showBenefits = false;
   bool showContact = false;
+  String phoneNumber = "";
+  String email = "";
+  double refundableAmount = 0;
+  double amountToPay = 0;
+  double totalTax = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        MyProfileData? map = await TokenManager.getProfile();
+        phoneNumber = map?.mobileNumber ?? "";
+        email = map?.email ?? "";
+        refundableAmount = getRefundableAmount();
+        if (!widget.isAdOns && widget.currentCategory.isEmpty) {
+          amountToPay = getAmountToPayWithDefaultVehicleCount();
+        } else if (!widget.isAdOns && widget.category != "TRANSPORTER") {
+          amountToPay = getAmountToPayWithDefaultVehicleCount();
+        } else if (!widget.isAdOns && widget.currentCategory.isNotEmpty) {
+          amountToPay = getAmountToPayForUpgradeToTransporter();
+        } else if (widget.isAdOns) {
+          amountToPay = getPayableAmountInCaseOfAddOns();
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  double getRefundableAmount() {
+    try {
+      final List<Subscription> currentPlanList =
+          widget.myProfileData?.activeSubscriptions ?? [];
+      if (currentPlanList.isEmpty) {
+        return 0;
+      }
+      Subscription currentPlan = currentPlanList[0];
+      DateTime? startDate = currentPlan.startDate;
+      DateTime? endDate = currentPlan.endDate;
+      DateTime nowUtc = DateTime.now().toUtc();
+      int currentPlanDuration = 0;
+      int planConsumeForDays = 0;
+      if (startDate != null && endDate != null) {
+        currentPlanDuration = endDate.difference(startDate).inDays;
+      } else {
+        return 0;
+      }
+      planConsumeForDays = nowUtc.difference(startDate).inDays;
+      double perDayConsumption =
+          (currentPlan.totalAmount ?? 0) / currentPlanDuration;
+      final consumedPlanPrice = planConsumeForDays * perDayConsumption;
+      final refundableAmount =
+          (currentPlan.totalAmount ?? 0) - consumedPlanPrice;
+      return refundableAmount;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  double getAmountToPayForUpgradeToTransporter() {
+    try {
+      final perVehiclePrice = widget.plan.finalPrice;
+      final amount = (perVehiclePrice * (widget.count));
+      final discount = (widget.plan.earlyBirdDiscountPercentage * amount) / 100;
+      final subscriptionAmount = amount - discount;
+      final taxRate =
+          double.parse(widget.plan.taxRate.isEmpty ? "0" : widget.plan.taxRate);
+      double totalWithTax = subscriptionAmount;
+      double rwdBalance = refundableAmount;
+      double payableAmount = 0;
+      if (taxRate > 0) {
+        totalTax = ((taxRate * subscriptionAmount) / 100);
+        totalWithTax = totalTax + subscriptionAmount;
+      }
+      payableAmount = totalWithTax - rwdBalance;
+      return payableAmount;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  double getPayableAmountInCaseOfAddOns() {
+    try {
+      final perVehiclePrice = widget.plan.perVehiclePrice;
+      final amount = (perVehiclePrice * (widget.count));
+      final discount = (widget.plan.earlyBirdDiscountPercentage * amount) / 100;
+      final subscriptionAmount = amount - discount;
+      final taxRate =
+          double.parse(widget.plan.taxRate.isEmpty ? "0" : widget.plan.taxRate);
+      double totalWithTax = subscriptionAmount;
+      double rwdBalance = refundableAmount;
+      double payableAmount = 0;
+      if (taxRate > 0) {
+        totalTax = ((taxRate * subscriptionAmount) / 100);
+        totalWithTax = totalTax + subscriptionAmount;
+      }
+      payableAmount = totalWithTax - rwdBalance;
+      return payableAmount;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  double getAmountToPayWithDefaultVehicleCount() {
+    try {
+      final newPlanAmount = widget.plan.grossPrice;
+      final newPlanDiscount = widget.plan.earlyBirdDiscountPrice;
+      final subscriptionAmount = widget.plan.finalPrice;
+      final taxRate =
+          double.parse(widget.plan.taxRate.isEmpty ? "0" : widget.plan.taxRate);
+      double totalWithTax = subscriptionAmount;
+      double rwdBalance = refundableAmount;
+      double payableAmount = 0;
+      if (taxRate > 0) {
+        totalTax = ((taxRate * subscriptionAmount) / 100);
+        totalWithTax = totalTax + subscriptionAmount;
+      }
+      payableAmount = totalWithTax - rwdBalance;
+      return subscriptionAmount;
+    } catch (e) {
+      return 0;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -633,13 +853,13 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                 ),
               ),
 
-              const Text(
-                "Short Term Plan",
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
+              Text(
+                widget.plan.name,
+                style: CommonUtils.commonTitleStyle(),
               ),
               const SizedBox(height: 20),
 
-              _infoRow("Validity", "3 Months"),
+              _infoRow("Validity", "${widget.plan.durationInMonths} Months"),
               const SizedBox(height: 12),
 
               // Number of Vehicles
@@ -648,16 +868,14 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                 children: [
                   Text(
                     "Number of Vehicles",
-                    style: TextStyle(fontSize: 16, color: AppColors.appBlack),
+                    style: CommonUtils.commonTitleStyle(fontSize: 14),
                   ),
                   Row(
                     children: [
                       Text(
                         widget.count.toString().padLeft(2, '0'),
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: CommonUtils.commonTitleStyle(
+                            fontSize: 14, weight: FontWeight.w400),
                       ),
                       const SizedBox(width: 6),
                     ],
@@ -674,11 +892,16 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                 onTap: () => setState(() => showBenefits = !showBenefits),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: widget.plan.features
+                      .map(
+                        (e) => Text("• $e"),
+                      )
+                      .toList() /*const [
                     Text("• Unlimited calls"),
                     Text("• Listing support"),
                     Text("• Instant booking service"),
-                  ],
+                  ]*/
+                  ,
                 ),
               ),
 
@@ -691,9 +914,9 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                 onTap: () => setState(() => showContact = !showContact),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text("Support Email: support@rwd.com"),
-                    Text("Phone: +91 9876543210"),
+                  children: [
+                    if (email.isNotEmpty) Text("Support Email: $email"),
+                    if (email.isNotEmpty) Text("Phone: $phoneNumber"),
                   ],
                 ),
               ),
@@ -701,25 +924,34 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
               const SizedBox(height: 30),
 
               // Pricing Summary
-              _priceRow("Total Subscription Amount-",
-                  "₹ ${widget.count * widget.plan.grossPrice}"),
               _priceRow(
-                  "Discount (${widget.plan.earlyBirdDiscountPercentage}%)-",
-                  "₹ ${widget.count * widget.plan.earlyBirdDiscountPrice}"),
+                  "Total Subscription Amount-",
+                  widget.category == "TRANSPORTER"
+                      ? getSubscriptionAmount(widget.plan)
+                      : "₹ ${widget.plan.grossPrice}"),
+              _priceRow(
+                  "Discount (${widget.plan.earlyBirdDiscountPercentage}%) -",
+                  widget.category == "TRANSPORTER"
+                      ? getSubscriptionDiscount(widget.plan)
+                      : "₹ ${widget.plan.earlyBirdDiscountPrice}"),
+              if (refundableAmount > 0)
+                _priceRow(
+                    "Refund From Previous Plan -", "- ₹ ${refundableAmount}"),
               const Divider(),
-              _priceRow("Payable Amount-",
-                  "₹ ${widget.count * widget.plan.finalPrice}"),
-              _priceRow("Tax (18%)", "₹ 0"),
+              _priceRow(
+                  "Payable Amount: ", "+₹ ${(amountToPay).toStringAsFixed(2)}",
+                  weight: FontWeight.w700),
+              _priceRow("Tax (${widget.plan.taxRate}%)",
+                  "₹ ${totalTax.toStringAsFixed(2)}"),
+
               const SizedBox(height: 25),
 
               // Green Banner
               Center(
                 child: Text(
                   "You have got ${widget.plan.earlyBirdDiscountPercentage}% discount",
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: CommonUtils.commonTitleStyle(
+                      weight: FontWeight.w400, fontSize: 12),
                 ),
               ),
 
@@ -740,9 +972,10 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                         child: PaymentBottomSheetBlocView(
                           isAdOns: widget.isAdOns,
                           plan: widget.plan,
-                          finalPrice: widget.count * widget.plan.finalPrice,
+                          finalPrice: amountToPay,
                           planType: widget.category,
-                          vehicleCount: (2+(widget.count ?? 0)).toString(),
+                          vehicleCount:
+                              ((widget.plan.maxVehicles ?? 0)).toString(),
                           currentCategory: widget.currentCategory,
                           paymentType: PaymentType.registrationWithSubscription,
                           category: widget.category,
@@ -757,9 +990,12 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     "Make Payment",
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    style: CommonUtils.commonTitleStyle(
+                        fontSize: 14,
+                        weight: FontWeight.w400,
+                        color: Colors.white),
                   ),
                 ),
               ),
@@ -776,9 +1012,16 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(title, style: const TextStyle(fontSize: 16)),
-        Text(value,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        Text(
+          title,
+          style: CommonUtils.commonTitleStyle(
+              weight: FontWeight.w700, fontSize: 14),
+        ),
+        Text(
+          value,
+          style: CommonUtils.commonTitleStyle(
+              weight: FontWeight.w400, fontSize: 14),
+        ),
       ],
     );
   }
@@ -796,11 +1039,10 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title,
-                  style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.appBlack)),
+              Text(
+                title,
+                style: CommonUtils.commonTitleStyle(fontSize: 14),
+              ),
               Icon(
                 expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
                 size: 24,
@@ -817,16 +1059,40 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
     );
   }
 
-  Widget _priceRow(String title, String value) {
+  Widget _priceRow(String title, String value, {FontWeight? weight}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            title,
+            style: CommonUtils.commonTitleStyle(
+                fontSize: 12, weight: weight ?? FontWeight.w400),
+          ),
+          Text(value,
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 12, weight: weight ?? FontWeight.w400)),
         ],
       ),
     );
+  }
+
+  String getSubscriptionAmount(PlanModel plan) {
+    return "+ ₹ ${plan.grossPrice.toStringAsFixed(2)}";
+  }
+
+  String getSubscriptionDiscount(PlanModel plan) {
+    return "- ₹ ${plan.earlyBirdDiscountPrice.toStringAsFixed(2)}";
+  }
+
+  String getSubscriptionFinalAmount(PlanModel plan) {
+    return "";
+  }
+
+  double getTaxValue(String taxRate, double finalPrice) {
+    double tax = double.parse(taxRate.isNotEmpty ? taxRate : "18");
+    final finalTaxValue = ((tax * finalPrice) / 100);
+    return finalTaxValue;
   }
 }

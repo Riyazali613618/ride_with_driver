@@ -151,6 +151,15 @@ class CommonUtils {
       ],
     );
   }
+
+  static commonTitleStyle({double? fontSize,FontWeight? weight,Color? color}) {
+    return TextStyle(
+      fontFamily: AppConstants.ptSansFont,
+      fontSize: fontSize??18,
+      fontWeight:weight?? FontWeight.w700,
+      color: color??ColorConstants.black2,
+    );
+  }
 }
 
 class showAadhaarCardImages extends StatefulWidget {

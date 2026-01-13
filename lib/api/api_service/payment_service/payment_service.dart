@@ -11,6 +11,7 @@ enum PaymentType {
   subscriptionRenewal,
   registrationOnly,
   registrationWithSubscription,
+  addOns,
 }
 
 class PaymentService {

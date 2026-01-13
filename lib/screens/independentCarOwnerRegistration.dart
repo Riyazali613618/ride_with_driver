@@ -2170,12 +2170,22 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   }
 
   Widget _buildPreviewStep() {
-    String? cityName = _cityList.firstWhere(
-      (c) => c.sId == _selectedCity,
-    ).name;
-    String? stateName = _stateList.firstWhere(
-      (element) => element.sId == _selectedState,
-    ).name;
+    String? cityName;
+    String? stateName;
+
+    if (_selectedCity != null && _cityList.isNotEmpty) {
+      final city = _cityList.firstWhere(
+            (c) => c.sId == _selectedCity,
+      );
+      cityName = city.name;
+    }
+    if (_selectedState != null && _stateList.isNotEmpty) {
+      final state = _stateList.firstWhere(
+            (c) => c.sId == _selectedState,
+      );
+      stateName = state.name;
+    }
+
 
     return Padding(
       padding: EdgeInsets.all(24),

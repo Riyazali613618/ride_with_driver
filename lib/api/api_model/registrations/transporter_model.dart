@@ -269,7 +269,7 @@ class TransporterModel {
       address: json['address'] != null
           ? Address.fromJson(json['address'])
           : Address.empty(),
-      photo: json['photo'],
+      photo: json['coverImage'],
       profilePhoto: json['profilePhoto'],
       bio: json['bio'],
       gstin: json['gstin'],

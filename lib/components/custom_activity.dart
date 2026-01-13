@@ -342,6 +342,7 @@ enum ActivityType {
 }
 
 enum UserType {
+  USER,
   DRIVER,
   TRANSPORTER,
   E_RICKSHAW,

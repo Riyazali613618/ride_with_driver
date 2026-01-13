@@ -13,6 +13,8 @@ class PlanModel extends PlanEntity {
     required super.finalPrice,
     required super.maxVehicles,
     required super.planType,
+    required super.taxRate,
+    required super.perVehiclePrice,
     required super.features,
   });
 
@@ -31,6 +33,8 @@ class PlanModel extends PlanEntity {
       finalPrice: (json['finalPrice'] ?? 0).toDouble(),
       maxVehicles: json['maxVehicles'] ?? 0,
       planType: json['planType'] ?? '',
+      taxRate: (json['tax_rate']!=null ? json['tax_rate'].toString():"18"),
+      perVehiclePrice: double.parse(json['per_vehicle_price'].toString()) ?? 0,
       features:
       List<String>.from(json['features']?.map((f) => f.toString()) ?? []),
     );
@@ -49,7 +53,9 @@ class PlanModel extends PlanEntity {
       'finalPrice': finalPrice,
       'maxVehicles': maxVehicles,
       'planType': planType,
+      'taxRate': taxRate,
       'features': features,
     };
   }
+
 }
