@@ -40,6 +40,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
   SharedPreferences? pref;
   UserEligibilityModel? eligibilityModel;
   bool isCheckingLimit = false;
+  int limit = 0;
 
   @override
   void initState() {
@@ -49,6 +50,11 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) async {
         eligibilityModel = await getEligibilityData();
+        final profile = await getProfileData();
+        limit = profile.vehicleLimit ?? 0;
+        if (mounted) {
+          setState(() {});
+        }
       },
     );
   }
@@ -108,7 +114,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    'Total Vehicles (${state.vehicles.length})',
+                                    'Total Vehicles (${state.vehicles.length}/$limit)',
                                     style: TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -141,7 +147,9 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                       if ((profile.addonVehicles ?? [])
                                           .isNotEmpty) {
                                         limit = limit +
-                                            (profile.addonVehicles?[0].addOnVehicles??0);
+                                            (profile.addonVehicles?[0]
+                                                    .addOnVehicles ??
+                                                0);
                                       }
                                       if (totalVehicleAdded >= limit) {
                                         showUpgradeDialog(
@@ -174,7 +182,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                               if (isCheckingLimit) return;
                                               isCheckingLimit = true;
                                               setState(() {});
-                                               if (eligibilityModel != null &&
+                                              if (eligibilityModel != null &&
                                                   eligibilityModel?.data !=
                                                       null &&
                                                   eligibilityModel
@@ -278,11 +286,13 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title:  Text(userType=="DRIVER"?"Upgrade User":"Limit Exceeded"),
+        title: Text(userType == "DRIVER" ? "Upgrade User" : "Limit Exceeded"),
         content: Text(
           userType == "TRANSPORTER"
               ? "You have exceed your vehicle adding limit, please upgrade your transporter plan to add more vehicle."
-              : userType=="DRIVER"?"Please upgrade to transporter or taxi owner to add vehicles.":"You have exceed your vehicle adding limit, please upgrade to transporter to add more vehicle.",
+              : userType == "DRIVER"
+                  ? "Please upgrade to transporter or taxi owner to add vehicles."
+                  : "You have exceed your vehicle adding limit, please upgrade to transporter to add more vehicle.",
         ),
         actions: [
           TextButton(

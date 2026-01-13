@@ -1,15 +1,12 @@
 // vehicle_registration_provider.dart
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:google_places_flutter/google_places_flutter.dart';
-import 'package:google_places_flutter/model/place_type.dart';
-import 'package:google_places_flutter/model/prediction.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -25,14 +22,9 @@ import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_added_success
 import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_type_model.dart';
 import 'package:r_w_r/utils/common_utils.dart';
 
-import '../../../../api/api_model/location_model/location_model.dart';
-import '../../../../api/api_service/location_service/location_service.dart';
 import '../../../../constants/GoogleLocationSearchService.dart';
 import '../../../../constants/token_manager.dart';
-import '../../../../screens/Eligibility/bloc/eligibility_bloc.dart';
-import '../../../../screens/Eligibility/bloc/eligibility_event.dart';
 import '../../../../screens/layout.dart';
-import '../../../../screens/user_screens/more/filterScreen.dart';
 import '../../../../screens/widgets/common_submit_button.dart';
 import '../../../../utils/color.dart';
 import '../bloc/profile_bloc.dart';
