@@ -198,15 +198,6 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
   final Map<String, double> _currentLocation = {'lat': 28.6139, 'lng': 77.209};
 
-  final List<String> _serviceLocations = [
-    'New Delhi',
-    'Faridabad',
-    'Noida',
-    'Gurgaon',
-    'Mumbai',
-    'Bangalore'
-  ];
-
   final List<String> _specifications = [
     'Navigation System',
     'Airbags',
@@ -223,20 +214,17 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   ];
 
   // Check if field should be shown based on user type
-  bool get _shouldShowVehicleType => true
-      /*  widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver'*/
-      ;
+  bool get _shouldShowVehicleType =>
+      widget.userType != 'RICKSHAW' &&
+      widget.userType != 'E_RICKSHAW';
 
-  bool get _shouldShowVehicleName => true
-      /*widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver'*/
-      ;
+  bool get _shouldShowVehicleName =>
+      widget.userType != 'RICKSHAW' &&
+          widget.userType != 'E_RICKSHAW';
 
-  bool get _shouldShowRCPhotos => true
-      /*widget.userType != 'Auto-Rickshaw' &&
-      widget.userType != 'E-Rickshaw Driver'*/
-      ;
+  bool get _shouldShowRCPhotos =>true;
+   /*   widget.userType != 'RICKSHAW' &&
+          widget.userType != 'E_RICKSHAW';*/
 
   @override
   void initState() {
@@ -405,13 +393,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
       bool success = await provider.submitVehicleRegistration(
         userType: widget.userType,
-        vehicleType: _shouldShowVehicleType
-            ? _selectedVehicleType != null
-                ? _selectedVehicleType!.code!
-                : ""
-            : null,
+        vehicleType: _selectedVehicleType?.code??"",
         vehicleName:
-            _shouldShowVehicleName ? _vehicleNameController.text.trim() : null,
+            _shouldShowVehicleName ? _vehicleNameController.text.trim() : widget.userType,
         vehicleNumber: _vehicleNumberController.text.trim().toUpperCase(),
         seatingCapacity: int.parse(_selectedSeatingCapacity!),
         airConditioning: _selectedAirConditioning,
@@ -1658,7 +1642,21 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         final data = await UserProfileService().getVehicleTypeList();
         if (data.data != null) {
           _vehicleTypes = data.data?.categories ?? [];
-
+          if (widget.userType != 'RICKSHAW' ||
+              widget.userType != 'E_RICKSHAW') {
+            _selectedVehicleType = _vehicleTypes.firstWhere(
+              (element) =>
+                  element.code == "RICKSHAW" || element.code == "E_RICKSHAW",
+            );
+            final min = _selectedVehicleType
+                ?.seatingLimits?.min ??
+                1;
+            final max = _selectedVehicleType
+                ?.seatingLimits?.max ??
+                2;
+            _seatingCapacities = List.generate(
+                max - min + 1,
+                    (index) => (min + index).toString());          }
           setState(() {});
         }
       },

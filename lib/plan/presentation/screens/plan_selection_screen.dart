@@ -716,7 +716,7 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
         if (!widget.isAdOns && widget.currentCategory.isEmpty) {
           amountToPay = getAmountToPayWithDefaultVehicleCount();
         } else if (!widget.isAdOns && widget.category != "TRANSPORTER") {
-          amountToPay = getAmountToPayWithDefaultVehicleCount();
+          amountToPay = getAmountToPayUpgradeWithDefaultVehicleCount();
         } else if (!widget.isAdOns && widget.currentCategory.isNotEmpty) {
           amountToPay = getAmountToPayForUpgradeToTransporter();
         } else if (widget.isAdOns) {
@@ -819,6 +819,27 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
       }
       payableAmount = totalWithTax - rwdBalance;
       return subscriptionAmount;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  double getAmountToPayUpgradeWithDefaultVehicleCount() {
+    try {
+      final newPlanAmount = widget.plan.grossPrice;
+      final newPlanDiscount = widget.plan.earlyBirdDiscountPrice;
+      final subscriptionAmount = widget.plan.finalPrice;
+      final taxRate =
+          double.parse(widget.plan.taxRate.isEmpty ? "0" : widget.plan.taxRate);
+      double totalWithTax = subscriptionAmount;
+      double rwdBalance = refundableAmount;
+      double payableAmount = 0;
+      if (taxRate > 0) {
+        totalTax = ((taxRate * subscriptionAmount) / 100);
+        totalWithTax = totalTax + subscriptionAmount;
+      }
+      payableAmount = totalWithTax - rwdBalance;
+      return payableAmount;
     } catch (e) {
       return 0;
     }

@@ -137,8 +137,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (_) => AddNewVehicleScreen(
-                                            userType:
-                                                "${pref?.getString('userType')}",
+                                            userType:profile?.usertype??"",
                                           ),
                                         ),
                                       );
