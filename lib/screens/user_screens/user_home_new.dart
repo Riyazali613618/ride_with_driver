@@ -1171,11 +1171,15 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                       Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: GestureDetector(
-                            onTap: () {
+                            onTap: () async {
+                              final profile=await TokenManager.getProfile();
+                             final showPlan = profile?.subscriptions != null && profile!.subscriptions.isNotEmpty;
+
                               Navigator.push(
                                 context,
                                 CupertinoPageRoute(
                                   builder: (context) => MoreScreen(
+                                    showPlan:showPlan,
                                     showDriverSubscription:
                                         widget.showDriverSubscription ?? false,
                                   ),

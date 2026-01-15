@@ -1846,7 +1846,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                             ),
                             SizedBox(height: 20),
                             Expanded(
-                              child: SingleChildScrollView(
+                              child: Scrollbar(                                thumbVisibility: true,
+                                  child:SingleChildScrollView(
                                 controller: _scrollController,
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
@@ -1860,7 +1861,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                                     height: 1.5,
                                   ),
                                 ),
-                              ),
+                              ) ),
                             ),
                             SizedBox(height: 20),
                             Row(

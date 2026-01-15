@@ -347,6 +347,7 @@ class MediaService {
     required String kind,
     required String type,
     bool useCamera = false,
+    bool isCoverImage = false,
     bool enablePhotoEditing = false,
     bool isProfilePhoto = false,
   }) async {
@@ -363,6 +364,7 @@ class MediaService {
         if (isProfilePhoto) {
           imageFile = await PhotoEditingUtils.pickAndCropProfileImage(
             context: context,
+            isCoverImage: isCoverImage,
             source: useCamera ? ImageSource.camera : ImageSource.gallery,
           );
         } else {

@@ -16,7 +16,7 @@ class CommonUtils {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => className));
   }
 
-  static commonTextLabelsStyle({double fontSize=14}) {
+  static commonTextLabelsStyle({double fontSize = 14}) {
     return TextStyle(
       fontFamily: AppConstants.ptSansFont,
       fontSize: fontSize,
@@ -25,12 +25,12 @@ class CommonUtils {
     );
   }
 
-  static commonInputTextStyle() {
+  static commonInputTextStyle({Color color=Colors.black,double size=14,FontWeight fWeight=FontWeight.w500}) {
     return TextStyle(
       fontFamily: AppConstants.ptSansFont,
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      color: Colors.black,
+      fontSize: size,
+      fontWeight: fWeight,
+      color:color,
     );
   }
 
@@ -43,8 +43,9 @@ class CommonUtils {
     );
   }
 
-  static commonInputBoxDecoration() {
+  static commonInputBoxDecoration({Color color=Colors.transparent}) {
     return BoxDecoration(
+      color: color,
       border: Border.all(color: ColorConstants.inputFieldBorderColor),
       borderRadius: BorderRadius.circular(6),
     );
@@ -152,12 +153,22 @@ class CommonUtils {
     );
   }
 
-  static commonTitleStyle({double? fontSize,FontWeight? weight,Color? color}) {
+  static commonTitleStyle(
+      {double? fontSize, FontWeight? weight, Color? color}) {
     return TextStyle(
       fontFamily: AppConstants.ptSansFont,
-      fontSize: fontSize??18,
-      fontWeight:weight?? FontWeight.w700,
-      color: color??ColorConstants.black2,
+      fontSize: fontSize ?? 18,
+      fontWeight: weight ?? FontWeight.w700,
+      color: color ?? ColorConstants.black2,
+    );
+  }
+
+  static loadNextButton({bool isBlack = true}) {
+    return SvgPicture.asset(
+      "assets/svg/next_fill.svg",
+      width: 24,
+      height: 24,
+      color: isBlack?Colors.black:Colors.white,
     );
   }
 }

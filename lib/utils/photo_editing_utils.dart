@@ -148,13 +148,14 @@ class PhotoEditingUtils {
   static Future<File?> pickAndCropProfileImage({
     required BuildContext context,
     ImageSource source = ImageSource.gallery,
+    bool isCoverImage = false,
   }) async {
     return pickAndCropImage(
       context: context,
       source: source,
       cropAfterPick: true,
       cropStyle: CropStyle.circle,
-      aspectRatioPresets: [CropAspectRatioPreset.square],
+      aspectRatioPresets: [isCoverImage?CropAspectRatioPreset.ratio16x9:CropAspectRatioPreset.square],
     );
   }
 

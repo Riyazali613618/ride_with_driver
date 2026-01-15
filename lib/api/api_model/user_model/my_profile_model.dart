@@ -865,16 +865,22 @@ class IndependentCarOwnerFleetSize {
   IndependentCarOwnerFleetSize({
     required this.cars,
     required this.minivans,
+    required this.suv,
+    required this.bus,
   });
 
   final int? cars;
   final int? minivans;
+  final int? suv;
+  final int? bus;
 
   IndependentCarOwnerFleetSize copyWith({
     int? cars,
     int? minivans,
   }) {
     return IndependentCarOwnerFleetSize(
+      suv: suv ?? this.suv,
+      bus: bus ?? this.bus,
       cars: cars ?? this.cars,
       minivans: minivans ?? this.minivans,
     );
@@ -884,12 +890,16 @@ class IndependentCarOwnerFleetSize {
     return IndependentCarOwnerFleetSize(
       cars: json["cars"],
       minivans: json["minivans"],
+      suv: json["suv"],
+      bus: json["bus"],
     );
   }
 
   Map<String, dynamic> toJson() => {
         "cars": cars,
         "minivans": minivans,
+        "suv": suv,
+        "bus": bus,
       };
 
   @override

@@ -91,17 +91,21 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           maxVehicles = 1;
           orderResponse =
               await PaymentService.createOrderForSubscriptionRenewal(
-            planId: event.plan.id,
-          );
+                  planId: event.plan.id,
+                  rwd_balance: (event.finalPrice ?? 0) < 0
+                      ? event.finalPrice?.abs() ?? 0
+                      : 0);
           break;
         case PaymentType.registrationOnly:
           isAddOns = false;
           maxVehicles = 1;
           orderResponse = await PaymentService.createOrderForRegistrationOnly(
-            category: event.category ?? event.planType,
-            currentCategory: event.currentCategory ?? "",
-            planId: event.plan.id,
-          );
+              category: event.category ?? event.planType,
+              currentCategory: event.currentCategory ?? "",
+              planId: event.plan.id,
+              rwd_balance: (event.finalPrice ?? 0) < 0
+                  ? event.finalPrice?.abs() ?? 0
+                  : 0);
           break;
         case PaymentType.registrationWithSubscription:
           maxVehicles = event.maxvehicles ?? 1;
@@ -114,7 +118,11 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   maxvehicles: event.maxvehicles ?? 1,
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
-                  pay_amount: double.parse((event.finalPrice?.toInt()).toString()) ?? 0);
+                  pay_amount:
+                      double.parse((event.finalPrice?.toInt()).toString()) ?? 0,
+                  rwd_balance: (event.finalPrice ?? 0) < 0
+                      ? event.finalPrice?.abs() ?? 0
+                      : 0);
         case PaymentType.addOns:
           maxVehicles = event.maxvehicles ?? 1;
           orderResponse =
@@ -126,7 +134,10 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   maxvehicles: event.maxvehicles ?? 1,
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
-                  pay_amount: event.finalPrice ?? 0);
+                  pay_amount: event.finalPrice ?? 0,
+                  rwd_balance: (event.finalPrice ?? 0) < 0
+                      ? event.finalPrice?.abs() ?? 0
+                      : 0);
           break;
       }
       isAddOns = event.isAdOns;
@@ -148,6 +159,19 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
 
         if (orderData.razorpayKey.isEmpty) {
           emit(PaymentError("Invalid merchant key received"));
+          return;
+        }
+        if ((orderData.orderMetadata?.totalAmount ?? 2) <= 1) {
+          add(PaymentSuccess(
+            response:
+                PaymentSuccessResponse("hbdshfbhdb", orderData.orderId, "", {}),
+            currentCategory: event.currentCategory,
+            plan: event.plan,
+            planType: event.planType,
+            paymentType: event.paymentType,
+            category: event.category,
+            registrationFeeId: _currentRegistrationFeeId,
+          ));
           return;
         }
 
@@ -186,8 +210,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
             "Failed to create order: ${createOrderResponse.message}"));
       }
     } catch (e) {
-      emit(PaymentError(
-          e.toString()));
+      emit(PaymentError(e.toString()));
     }
   }
 

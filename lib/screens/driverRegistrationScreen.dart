@@ -1303,9 +1303,77 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
           ),
 
         const SizedBox(height: 12),
+        Wrap(
+          spacing: 4,
+          runSpacing: 0,
+          alignment: WrapAlignment.start,
+          children: _selectedLangs.map((item) {
+            return Stack(
+              children: [
+                Container(
+                  margin:
+                  const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1F641BB4).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFF641BB4).withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item,
+                        style: const TextStyle(
+                          color: Color(0xFF9C27B0),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: GestureDetector(
+                    onTap: () {
+                      final newList =
+                      List<String>.from(_selectedLangs)
+                        ..remove(item);
+                      setState(() {
+                        _selectedLangs = newList;
+                      });
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.only(left: 10, right: 0, bottom: 5),
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(30)),
+                            border:
+                            Border.all(color: Colors.black, width: 1)),
+                        child: const Icon(
+                          Icons.close,
+                          size: 10,
+                          color: Color(0xFF9C27B0),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
+        ),
 
         /// Selected Chips
-        Wrap(
+        /*Wrap(
           spacing: 8,
           runSpacing: 8,
           children: _selectedLangs.map((language) {
@@ -1319,7 +1387,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
               },
             );
           }).toList(),
-        ),
+        ),*/
       ],
     );
   }
@@ -1604,7 +1672,9 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                             ),
                             SizedBox(height: 20),
                             Expanded(
-                              child: SingleChildScrollView(
+                              child: Scrollbar(
+                                  thumbVisibility: true,
+                                  child:SingleChildScrollView(
                                 controller: _scrollController,
                                 child: Text(
                                   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
@@ -1618,7 +1688,7 @@ class _DriverRegistrationFlowState extends State<DriverRegistrationFlow> {
                                     height: 1.5,
                                   ),
                                 ),
-                              ),
+                              )),
                             ),
                             SizedBox(height: 20),
                             if (showScrollText)

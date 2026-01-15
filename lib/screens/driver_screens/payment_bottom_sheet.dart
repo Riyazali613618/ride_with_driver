@@ -185,15 +185,38 @@ class _PaymentBottomSheetBlocViewState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                localizations.total,
+              if(widget.finalPrice<=0)
+                Text(
+                localizations.total+" Pay",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
-                'Rs ${widget.finalPrice.toStringAsFixed(2)}',
+                'Rs ${widget.finalPrice<=0?0:widget.finalPrice.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if(widget.finalPrice<=0)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              if(widget.finalPrice<0)
+                Text(
+                "Return in RWD wallet",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                'Rs ${(widget.finalPrice.abs()).toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,

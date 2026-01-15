@@ -156,6 +156,7 @@ class ProfileProvider with ChangeNotifier {
 
     try {
       final token = await TokenManager.getToken();
+      final tokenRef = await TokenManager.getRefreshToken();
       if (token == null) throw Exception('Authentication token not found');
 
       // Handle both UserProfileData objects and Map<String, dynamic>
@@ -164,6 +165,8 @@ class ProfileProvider with ChangeNotifier {
         jsonData = updatedData.toJson();
       } else if (updatedData is Map<String, dynamic>) {
         jsonData = updatedData;
+      } else if (updatedData is Map) {
+        jsonData = Map<String, dynamic>.from(updatedData);
       } else {
         throw Exception('Invalid data type for profile update');
       }

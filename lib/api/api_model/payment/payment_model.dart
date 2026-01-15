@@ -28,10 +28,12 @@ class OrderData {
   final String orderId;
   final int amount;
   final String currency;
+  final String rwd_balance;
   final OrderMetadata? orderMetadata;
   final Breakdown? breakdown;
 
   OrderData({
+    required this.rwd_balance,
     required this.razorpayKey,
     required this.orderId,
     required this.amount,
@@ -41,7 +43,14 @@ class OrderData {
   });
 
   factory OrderData.fromJson(Map<String, dynamic> json) {
+    String  rwd_balance="0.0";
+    try {
+       rwd_balance=(json['rwd_balance'] ?? '').toString().isNotEmpty?json['rwd_balance'].toString():"0";
+    } catch (e, s) {
+      print(s);
+    }
     return OrderData(
+      rwd_balance: rwd_balance,
       razorpayKey: json['razorpayKey'] ?? '',
       orderId: json['orderId'] ?? '',
       amount: json['amount'] ?? 0,

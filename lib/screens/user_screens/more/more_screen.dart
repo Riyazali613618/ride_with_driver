@@ -1,9 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/color_constants.dart';
+import 'package:r_w_r/screens/profileScreens/carOwnerProfile/views/edit_car_owner_profile.dart';
+import 'package:r_w_r/screens/profileScreens/eRickshawProfile/e_rickshaw_owner_profile.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../api/api_service/user_service/user_profile_service.dart';
 import '../../../components/app_appbar.dart';
@@ -24,9 +28,10 @@ import 'edit_account_screen.dart';
 
 class MoreScreen extends StatefulWidget {
   final bool showDriverSubscription;
+  final bool showPlan;
 
-  const MoreScreen({Key? key, required this.showDriverSubscription})
-      : super(key: key);
+  const MoreScreen(
+      {super.key, this.showPlan = false, required this.showDriverSubscription});
 
   @override
   State<MoreScreen> createState() => _MoreScreenState();
@@ -37,6 +42,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    _visiblePlan = widget.showPlan;
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,8 +67,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      setState(() {
-      });
+      setState(() {});
       _loadProfileData();
     }
   }
@@ -85,50 +90,50 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
     final localizations = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: CommonParentContainer(
-        showLargeGradient: false,
-        child: Column(
-          children: [
-            const SizedBox(
-              height: 40,
-            ),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
+      body: SafeArea(
+        top: false,
+        child: CommonParentContainer(
+          showLargeGradient: false,
+          child: Column(
+            children: [
+              const SizedBox(
+                height: 40,
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
                   ),
-                  onPressed: () {
-                    Navigator.pop(context);
+                  Expanded(
+                    child: Consumer<ProfileProvider>(
+                      builder: (context, profileProvider, child) {
+                        return _buildProfileSection(profileProvider);
+                      },
+                    ),
+                  )
+                ],
+              ),
+              Expanded(
+                child: Consumer<ProfileProvider>(
+                  builder: (context, profileProvider, child) {
+                    return ListView(
+                      padding: EdgeInsets.zero,
+                      children: [
+                        SizedBox(height: 20),
+                        _buildMenuItems(context),
+                      ],
+                    );
                   },
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  "Profile",
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white),
-                )
-              ],
-            ),
-            Expanded(
-              child: Consumer<ProfileProvider>(
-                builder: (context, profileProvider, child) {
-                  return ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      SizedBox(height: 10),
-                      _buildProfileSection(profileProvider),
-                      SizedBox(height: 20),
-                      _buildMenuItems(context),
-                    ],
-                  );
-                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -156,14 +161,23 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
                 builder: (context) => ProfileUpdateScreen(),
               ),
             );
-          } else if (['E_RICKSHAW', 'RICKSHAW'].contains(userType)) {
+          }
+         else if (userType == 'INDEPENDENT_CAR_OWNER') {
+            await Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => EditCarOwnerProfile(),
+              ),
+            );
+          }
+          else if (['E_RICKSHAW', 'RICKSHAW'].contains(userType)) {
             print(
                 'User type is $userType, navigating to TransporterDriverProfileScreen');
             await Navigator.push(
               context,
               CupertinoPageRoute(
                 builder: (context) =>
-                    RickshawProfileScreen(userType: userType!),
+                    ERickshawOwnerProfile(userType: userType!),
               ),
             );
           } else if (['DRIVER', 'TRANSPORTER'].contains(userType)) {
@@ -197,20 +211,30 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
         }
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Colors.grey[300],
-              backgroundImage:
-                  profileProvider.profileData?.profilePhoto != null &&
-                          profileProvider.profileData!.profilePhoto
-                              .toString()
-                              .isNotEmpty
-                      ? NetworkImage(
-                          profileProvider.profileData!.profilePhoto ?? '')
-                      : null,
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white,
+                  width: 1,
+                ),
+                image: profileProvider.profileData?.profilePhoto != null &&
+                        profileProvider.profileData!.profilePhoto
+                            .toString()
+                            .isNotEmpty
+                    ? DecorationImage(
+                        image: NetworkImage(
+                          profileProvider.profileData!.profilePhoto ?? '',
+                        ),
+                        fit: BoxFit.cover,
+                      )
+                    : null,
+              ),
               child: profileProvider.profileData?.profilePhoto == null ||
                       profileProvider.profileData!.profilePhoto
                           .toString()
@@ -239,10 +263,20 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: Colors.white,
-              size: 18,
+            GestureDetector(
+              onTap: () {},
+              child: SvgPicture.asset(
+                "assets/svg/share-profile.svg",
+                width: 20,
+                height: 20,
+              ),
+            ),
+            SizedBox(
+              width: 20,
+            ),
+            CommonUtils.loadNextButton(isBlack: false),
+            SizedBox(
+              width: 10,
             ),
           ],
         ),
@@ -268,7 +302,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
             Visibility(
               visible: _visiblePlan,
               child: _buildMenuItem(
-                icon: Icons.map_outlined,
+                icon: "assets/svg/plans.svg",
                 title: localizations.plans,
                 onTap: () {
                   Navigator.push(
@@ -285,8 +319,8 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
             Visibility(
               visible: _visiblePlan,
               child: _buildMenuItem(
-                icon: Icons.star_border,
-                title: localizations.my_ratings,
+                icon: "assets/svg/ratings_review.svg",
+                title: "Rating and Reviews",
                 onTap: () {
                   Navigator.push(
                     context,
@@ -296,7 +330,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               ),
             ),
             _buildMenuItem(
-              icon: Icons.help_outline,
+              icon: "assets/svg/faqs.svg",
               title: localizations.faq,
               onTap: () {
                 Navigator.push(
@@ -306,7 +340,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               },
             ),
             _buildMenuItem(
-              icon: Icons.build_outlined,
+              icon: "assets/svg/supports.svg",
               title: localizations.support,
               onTap: () {
                 Navigator.push(
@@ -319,7 +353,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               },
             ),
             _buildMenuItem(
-              icon: Icons.star_outline,
+              icon: "assets/svg/rate_app.svg",
               title: localizations.rate_our_app,
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -328,22 +362,22 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               },
             ),
             _buildMenuItem(
-              icon: Icons.shield_outlined,
+              icon: "assets/svg/privacy_policy.svg",
               title: localizations.privacy_policy,
               onTap: () => showUserTerms("PRIVACY_POLICY"),
             ),
             _buildMenuItem(
-              icon: Icons.description_outlined,
+              icon: "assets/svg/t_n_c.svg",
               title: localizations.terms_conditions,
               onTap: () => showUserTerms("TERMS_AND_CONDITIONS"),
             ),
             _buildMenuItem(
-              icon: Icons.info_outline,
+              icon: "assets/svg/about.svg",
               title: localizations.about_us,
               onTap: () => showUserTerms("ABOUT_US"),
             ),
             _buildMenuItem(
-              icon: Icons.settings_outlined,
+              icon: "assets/svg/settings.svg",
               title: localizations.settings,
               onTap: () {
                 Navigator.push(
@@ -372,7 +406,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
   }
 
   Widget _buildMenuItem({
-    required IconData icon,
+    required String icon,
     required String title,
     required VoidCallback onTap,
   }) {
@@ -384,27 +418,20 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               children: [
-                Icon(
-                  icon,
-                  color: Colors.black87,
-                  size: 24,
-                ),
+                SvgPicture.asset(icon,width: 24,height: 24,),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 18,
+                    style:  TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 16,
                       fontWeight: FontWeight.w400,
-                      color: Colors.black87,
+                      color: Colors.black,
                     ),
                   ),
                 ),
-                Icon(
-                  Icons.arrow_forward_ios,
-                  color: Colors.black54,
-                  size: 18,
-                ),
+                CommonUtils.loadNextButton(),
               ],
             ),
           ),
@@ -414,7 +441,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
           child: Divider(
             height: 1,
             thickness: 0.8,
-            color: Colors.black,
+            color: Color(0xFF9E9E9E),
           ),
         ),
       ],

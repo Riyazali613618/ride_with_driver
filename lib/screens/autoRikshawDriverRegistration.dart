@@ -12,6 +12,8 @@ import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:r_w_r/screens/widgets/common_submit_button.dart';
+import 'package:r_w_r/screens/widgets/profile_image_capture.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_model/registrations/auto_rikshaw_registration_model.dart';
@@ -21,6 +23,7 @@ import '../api/api_service/media_service.dart';
 import '../api/api_service/registration_services/e_rekshaw_registration_service.dart';
 import '../constants/api_constants.dart';
 import '../utils/color.dart';
+import '../utils/common_utils.dart';
 import 'block/language/language_provider.dart';
 import 'multi_step_progress_bar.dart';
 
@@ -716,7 +719,6 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
     );
   }
 
-
   Widget _buildSelfDetailStep() {
     return Padding(
       padding: EdgeInsets.all(24),
@@ -728,33 +730,33 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
               Text(
                 'Self Detail',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w400,
                   color: Colors.black,
                 ),
               ),
               SizedBox(height: 40),
-/*
-              MediaUploader(
-                label: 'Profile Image/Logo',
+              ProfileImageCapture(
+                label: 'Profile Image',
                 useGallery: false,
                 showPreview: true,
-                showDirectImage: true,
+                showDirectImage: false,
                 icon: Icons.camera_alt,
                 kind: "profileImage",
                 useEyeBlinkDetection: true,
-                initialUrl: _erickshawModel.profilePhoto,
                 required: true,
                 onMediaUploaded: (url) {
                   setState(() {
+                    _selectedImage = File(url);
                     _erickshawModel =
                         _erickshawModel.copyWith(profilePhoto: url);
                   });
                 },
                 allowedExtensions: ['jpg', 'jpeg', 'png'],
               ),
-*/
 
+/*
               Center(
                 child: Column(
                   children: [
@@ -807,15 +809,16 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                   ],
                 ),
               ),
+*/
               SizedBox(height: 40),
               _buildTextField('Self Name *', _selfNameController,
-                  textLength: 50),
+                  maxLength: 50),
               SizedBox(height: 20),
               _buildTextField(
                 'Phone Number*',
                 _phoneNumberController,
                 keyboardType: TextInputType.phone,
-                textLength: 10,
+                maxLength: 10,
                 inputFormatter: [
                   FilteringTextInputFormatter.digitsOnly,
                 ],
@@ -857,7 +860,7 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                   inputFormatter: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
-                  textLength: 6),
+                  maxLength: 6),
               SizedBox(height: 20),
               _buildDropdown(
                 'State',
@@ -1002,8 +1005,9 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
             Text(
               'Document',
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 20,
+                fontWeight: FontWeight.w400,
                 color: Colors.black,
               ),
             ),
@@ -1018,11 +1022,7 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                     padding: const EdgeInsets.only(left: 5.0),
                     child: Text(
                       'Aadhar Card No.*',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
+                      style: CommonUtils.commonTextLabelsStyle(),
                     ),
                   ),
                   SizedBox(
@@ -1042,6 +1042,8 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                           child: TextField(
                             textAlign: TextAlign.start,
                             maxLength: 12,
+                            style:
+                                CommonUtils.commonTextLabelsStyle(fontSize: 14),
                             buildCounter: (
                               context, {
                               required int currentLength,
@@ -1057,10 +1059,8 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                             keyboardType: TextInputType.phone,
                             decoration: InputDecoration.collapsed(
                               hintText: 'Enter Aadhar Card Number',
-                              hintStyle: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 14,
-                              ),
+                              hintStyle: CommonUtils.commonTextLabelsStyle(
+                                  fontSize: 14),
                             ),
                             onChanged: (value) {
                               if (value.length == 12) {
@@ -1088,10 +1088,7 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                                 )
                               : Text(
                                   _isAadhaarVerified ? 'Verified' : 'Verify',
-                                  style: TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                  style: CommonUtils.commonTextLabelsStyle(),
                                 ),
                         ),
                       ),
@@ -1133,7 +1130,9 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
       ]),
     );
   }
-List<String> langIds=[];
+
+  List<String> langIds = [];
+
   Widget _buildAboutStep() {
     return Padding(
       padding: EdgeInsets.all(24),
@@ -1143,31 +1142,19 @@ List<String> langIds=[];
             children: [
               Text(
                 'About',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(fontSize: 20),
               ),
               SizedBox(height: 40),
               Text(
                 'Select Languages',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 8),
               _languageMultiSelectDropdown(),
               SizedBox(height: 24),
               Text(
                 'About',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 8),
               Container(
@@ -1181,7 +1168,8 @@ List<String> langIds=[];
                   controller: _aboutController,
                   maxLines: null,
                   decoration: InputDecoration.collapsed(
-                    hintText: 'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
+                    hintText:
+                        'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                   ),
                 ),
               ),
@@ -1258,6 +1246,8 @@ List<String> langIds=[];
                         ? 'Select languages'
                         : '${_selectedLanguages.length} selected',
                     style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 14,
                       color: _selectedLanguages.isEmpty
                           ? Colors.grey
                           : Colors.black,
@@ -1285,6 +1275,7 @@ List<String> langIds=[];
               color: Colors.white,
             ),
             child: ListView(
+              padding: EdgeInsets.zero,
               shrinkWrap: true,
               children: langData.map((language) {
                 final isSelected = _selectedLanguages.contains(language.name);
@@ -1292,7 +1283,8 @@ List<String> langIds=[];
                   contentPadding:
                       EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   value: isSelected,
-                  title: Text(language.name!),
+                  title: Text(language.name!,
+                      style: CommonUtils.commonTextLabelsStyle()),
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (checked) {
                     setState(() {
@@ -1315,11 +1307,21 @@ List<String> langIds=[];
         /// Selected Chips
         Wrap(
           spacing: 8,
-          runSpacing: 8,
+          runSpacing: -4,
           children: _selectedLanguages.map((language) {
             return Chip(
-              label: Text(language),
-              deleteIcon: const Icon(Icons.close, size: 18),
+              backgroundColor: Color(0x1F641BB4),
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+              side: BorderSide(color: AppColors.blue),
+              labelPadding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                  side: BorderSide(color: AppColors.blue),
+                  borderRadius: BorderRadiusGeometry.circular(30)),
+              label: Text(language,
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 12)),
+              deleteIcon: const Icon(Icons.close, size: 15),
+              deleteIconBoxConstraints:
+                  BoxConstraints(maxHeight: 15, maxWidth: 15),
               onDeleted: () {
                 setState(() {
                   _selectedLanguages.remove(language);
@@ -1333,6 +1335,21 @@ List<String> langIds=[];
   }
 
   Widget _buildPreviewStep() {
+    String? cityName;
+    String? stateName;
+
+    if (_selectedCity != null && _cityList.isNotEmpty) {
+      final city = _cityList.firstWhere(
+        (c) => c.sId == _selectedCity,
+      );
+      cityName = city.name;
+    }
+    if (_selectedState != null && _stateList.isNotEmpty) {
+      final state = _stateList.firstWhere(
+        (c) => c.sId == _selectedState,
+      );
+      stateName = state.name;
+    }
     return Padding(
       padding: EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1342,8 +1359,9 @@ List<String> langIds=[];
             Text(
               'Preview',
               style: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
                 fontSize: 24,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w400,
                 color: Colors.black,
               ),
             ),
@@ -1377,13 +1395,8 @@ List<String> langIds=[];
                           ),
                   ),
                   SizedBox(height: 8),
-                  Text(
-                    'Profile Image / Logo',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
-                  ),
+                  Text('Profile Image*',
+                      style: CommonUtils.commonTextLabelsStyle()),
                 ],
               ),
             ),
@@ -1408,16 +1421,8 @@ List<String> langIds=[];
                 _pinCodeController.text.isEmpty
                     ? 'Lorem Ipsum'
                     : _pinCodeController.text),
-            _buildPreviewItem(
-                'City',
-                _cityController.text.isEmpty
-                    ? 'Lorem Ipsum'
-                    : _cityController.text),
-            _buildPreviewItem(
-                'State',
-                _stateController.text.isEmpty
-                    ? 'Lorem Ipsum'
-                    : _stateController.text),
+            _buildPreviewItem('City', cityName ?? ""),
+            _buildPreviewItem('State', stateName ?? ""),
             _buildPreviewItem(
                 'Aadhar Card No.',
                 _aadharCardController.text.isEmpty
@@ -1433,29 +1438,23 @@ List<String> langIds=[];
                 _vehicleNumberController.text.isEmpty
                     ? 'Lorem Ipsum'
                     : _vehicleNumberController.text),
-            _buildLanguagePreviewItem('Spoken Languages', _selectedLanguages ?? []),
+            _buildLanguagePreviewItem(
+                'Spoken Languages', _selectedLanguages ?? []),
             SizedBox(height: 16),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'About',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                  ),
+                  style: CommonUtils.commonTitleStyle(fontSize: 14),
                 ),
                 SizedBox(height: 8),
                 Text(
                   _aboutController.text.isEmpty
                       ? 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nDonec ut ipsum vulputate, amet massa. Vestibulum a nibh in'
                       : _aboutController.text,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                    height: 1.4,
-                  ),
+                  style: CommonUtils.commonTitleStyle(
+                      fontSize: 13, weight: FontWeight.w400),
                 ),
               ],
             ),
@@ -1468,37 +1467,14 @@ List<String> langIds=[];
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          if (!isSubmitting) _submitForm();
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF8B5CF6),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          elevation: 0,
-        ),
-        child: isSubmitting
-            ? SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 1,
-                ),
-              )
-            : Text(
-                'Submit',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: CommonSubmitButton(
+        gradientColors: [gradientFirst, gradientSecond],
+        onPressed: isSubmitting ? null : _submitForm,
+        text: "Submit",
+        borderRadius: 12,
+        isLoading: isSubmitting,
       ),
     );
   }
@@ -1563,18 +1539,24 @@ List<String> langIds=[];
                             ),
                             SizedBox(height: 20),
                             Expanded(
-                              child: SingleChildScrollView(
-                                controller: _scrollController,
-                                child: Text(
-                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                    height: 1.5,
+                              child: Scrollbar(
+                                thumbVisibility: true,
+                                child: Scrollbar(
+                                  thumbVisibility: true,
+                                  child: SingleChildScrollView(
+                                    controller: _scrollController,
+                                    child: Text(
+                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                        height: 1.5,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1584,10 +1566,10 @@ List<String> langIds=[];
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    if(isScrolledToBottom)
-                                    setState(() {
-                                      isAgreed = !isAgreed;
-                                    });
+                                    if (isScrolledToBottom)
+                                      setState(() {
+                                        isAgreed = !isAgreed;
+                                      });
                                   },
                                   child: Container(
                                     width: 24,
@@ -1760,7 +1742,8 @@ List<String> langIds=[];
       );
 
       final response = await BecomeErickshawService()
-          .submitErickshawApplication(_erickshawModel,isUpgrade?"become-upgradable":"become-rickshaw");
+          .submitErickshawApplication(_erickshawModel,
+              isUpgrade ? "become-upgradable" : "become-rickshaw");
       if (response['success'] == true) {
         if (!mounted) return;
         BecomeErickshawService.showSuccessSnackBar(
@@ -1784,7 +1767,6 @@ List<String> langIds=[];
           response['message'] ?? 'Submission failed',
         );
       }
-
     } catch (e) {
       isSubmitting = false;
       updateState();
@@ -1801,23 +1783,19 @@ List<String> langIds=[];
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
+            flex: 5,
+            child:
+                Text(label, style: CommonUtils.commonTitleStyle(fontSize: 14)),
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             ),
           ),
@@ -1826,36 +1804,37 @@ List<String> langIds=[];
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      {String? placeholder,
-      TextInputType keyboardType = TextInputType.text,
-      int textLength = 50,
-      TextCapitalization textCapitalization = TextCapitalization.sentences,
-      List<TextInputFormatter>? inputFormatter}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? placeholder,
+    String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatter,
+    TextCapitalization? textCapitalization,
+    TextInputType? keyboardType,
+    int? maxLength,
+    Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: CommonUtils.commonInputBoxDecoration(),
+          child: TextFormField(
             controller: controller,
+            validator: validator,
             keyboardType: keyboardType,
-            maxLength: textLength,
+            maxLength: maxLength,
+            textCapitalization: textCapitalization ?? TextCapitalization.none,
+            onChanged: onChanged,
             inputFormatters: inputFormatter,
-            textCapitalization: textCapitalization,
+            style: CommonUtils.commonInputTextStyle(),
             buildCounter: (
               context, {
               required int currentLength,
@@ -1866,10 +1845,7 @@ List<String> langIds=[];
             },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
-              hintStyle: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 14,
-              ),
+              hintStyle: CommonUtils.commonHintTextStyle(),
             ),
           ),
         ),
@@ -1879,14 +1855,12 @@ List<String> langIds=[];
 
   Widget _buildAadhaarFileUploadSection(String title, String from) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
@@ -1896,7 +1870,7 @@ List<String> langIds=[];
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Icon(
                 Icons.cloud_upload_outlined,
@@ -1906,49 +1880,22 @@ List<String> langIds=[];
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 4),
-              Text(
-                'png, pdf, jpg, docx accepted',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
+              Text('png, pdf, jpg, docx accepted',
+                  style: CommonUtils.commonTextLabelsStyle()),
               SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet("AADHAAR"),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet("AADHAAR");
+                },
               ),
-              if (adhaar.isNotEmpty) _showAadharCardImages()
+              if (adhaar.isNotEmpty)
+                _showAadharCardImages()
               else
                 SizedBox(height: 12),
-
             ],
           ),
         ),
@@ -1958,15 +1905,9 @@ List<String> langIds=[];
 
   Widget _buildFileUploadSection(String title, String from) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
-        ),
+        Text(title, style: CommonUtils.commonTextLabelsStyle()),
         SizedBox(height: 8),
         Container(
           height: 240,
@@ -1986,44 +1927,17 @@ List<String> langIds=[];
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(fontSize: 14),
               ),
               SizedBox(height: 4),
-              Text(
-                'png, pdf, jpg, docx accepted',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
+              Text('png, pdf, jpg, docx accepted',
+                  style: CommonUtils.commonTextLabelsStyle()),
               SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet(from),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet(from);
+                },
               ),
               if (drivingLicense.isNotEmpty) _showDLImages(),
             ],
@@ -2034,26 +1948,14 @@ List<String> langIds=[];
   }
 
   Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: CommonSubmitButton(
+        gradientColors: [gradientFirst, gradientSecond],
         onPressed: nextStep,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF8B5CF6),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          'Continue',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        text: "Continue",
+        borderRadius: 12,
+        isLoading: isSubmitting,
       ),
     );
   }
@@ -2132,12 +2034,14 @@ List<String> langIds=[];
   }
 
   void _submitAboutDetailsModel() {
-    List<String> ids=[];
-   langData.forEach((element) {
-      if(_selectedLanguages.contains(element.name)){
-        ids.add(element.id??"");
-      }
-    },);
+    List<String> ids = [];
+    langData.forEach(
+      (element) {
+        if (_selectedLanguages.contains(element.name)) {
+          ids.add(element.id ?? "");
+        }
+      },
+    );
     _erickshawModel = _erickshawModel.copyWith(
         languageSpoken: ids, bio: _aboutController.text.toString());
     if (currentStep < 4) {
@@ -2241,24 +2145,18 @@ List<String> langIds=[];
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
+            flex: 5,
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
+              style: CommonUtils.commonTitleStyle(fontSize: 14),
             ),
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               langs.join(","),
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-              ),
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 13, weight: FontWeight.w400),
             ),
           ),
         ],
@@ -2271,7 +2169,8 @@ List<String> langIds=[];
     final prefs = await SharedPreferences.getInstance();
     if (data!.subscriptions!.isNotEmpty) {
       for (var sub in data!.subscriptions!) {
-        if ((sub.status ?? "").toLowerCase() == "active" && (sub.isUpgrade??false)) {
+        if ((sub.status ?? "").toLowerCase() == "active" &&
+            (sub.isUpgrade ?? false)) {
           return true;
         }
       }
@@ -2280,11 +2179,11 @@ List<String> langIds=[];
       return false;
     }
   }
+
   Future<UserEligibilityModel> getEligibilityData() async {
     final data = await UserProfileService().getEligibility();
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(AppConstants.planEligibilityKey, jsonEncode(data.data));
     return data;
   }
-
 }

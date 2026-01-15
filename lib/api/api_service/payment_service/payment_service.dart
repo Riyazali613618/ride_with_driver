@@ -18,10 +18,12 @@ class PaymentService {
   // Create order for subscription renewal
   static Future<Map<String, dynamic>> createOrderForSubscriptionRenewal({
     required String planId,
+    double rwd_balance=0,
   }) async {
     return _createOrder({
       'paymentType': 'SUBSCRIPTION',
       'subscriptionPlanId': planId,
+      'rwd_balance': rwd_balance,
     });
   }
 
@@ -32,6 +34,7 @@ class PaymentService {
     required String currentCategory,
     int durationInMonths = 1,
     double pay_amount = 1,
+    double rwd_balance = 0,
     double earlyBirdDiscountPrice = 1,
   }) async {
     if (currentCategory.isNotEmpty) {
@@ -39,13 +42,16 @@ class PaymentService {
         'chosen_category': category,
         'subscriptionPlanId': planId,
         'durationInMonths': durationInMonths,
-        'pay_amount': pay_amount,
+        'pay_amount':pay_amount<=0?1: pay_amount,
+        'rwd_balance': rwd_balance,
         'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
       });
     } else {
       return _createOrder({
         'paymentType': 'SUBSCRIPTION',
         'category': category,
+        'rwd_balance': rwd_balance,
+        'pay_amount':pay_amount<=0?1: pay_amount,
         'subscriptionPlanId': planId,
         'paymentGatewayType': 'razorpay',
       });
@@ -60,6 +66,7 @@ class PaymentService {
     required String planId,
     bool isAdOns = false,
     int durationInMonths = 1,
+    double rwd_balance = 0,
     int maxvehicles = 1,
     double pay_amount = 1,
     double earlyBirdDiscountPrice = 1,
@@ -68,7 +75,8 @@ class PaymentService {
       return _createAddOnsVehicles({
         'add_on_vehicles': maxvehicles,
         'subscriptionPlanId': planId,
-        'amount': pay_amount,
+        'amount': pay_amount<=0?1:pay_amount,
+        'rwd_balance': rwd_balance,
         'paymentGatewayType': "razorpay",
       });
     }else
@@ -77,14 +85,17 @@ class PaymentService {
         'chosen_category': category,
         'subscriptionPlanId': planId,
         'max_vehicles': maxvehicles,
+        'rwd_balance': rwd_balance.toInt(),
         'durationInMonths': durationInMonths,
-        'pay_amount': pay_amount,
+        'pay_amount': pay_amount<=0?1:pay_amount,
         'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
       });
     } else {
       return _createOrder({
         'paymentType': 'SUBSCRIPTION',
         'category': category,
+        'pay_amount': pay_amount<=0?1:pay_amount,
+        'rwd_balance': rwd_balance,
         'subscriptionPlanId': planId,
         'paymentGatewayType': 'razorpay',
       });
