@@ -704,14 +704,24 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
   double amountToPay = 0;
   double totalTax = 0;
 
+  //TODO Wallet Amount and rwdBalance both are same, we are just using walletAmount
+  //TODO for calculation so that we can send how much amount used from wallet and
+  //TODO rwdAmount is using to show how much are are there in wallet
+  double rwdBalance = 0;
+  double walletAmount = 0;
+  MyProfileData? myProfileData;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) async {
-        MyProfileData? map = await TokenManager.getProfile();
-        phoneNumber = map?.mobileNumber ?? "";
-        email = map?.email ?? "";
+        myProfileData = await TokenManager.getProfile();
+        phoneNumber = myProfileData?.mobileNumber ?? "";
+        email = myProfileData?.email ?? "";
+        rwdBalance = myProfileData?.rwdBalance ?? 0;
+        walletAmount = myProfileData?.rwdBalance ?? 0;
+
         refundableAmount = getRefundableAmount();
         if (!widget.isAdOns && widget.currentCategory.isEmpty) {
           amountToPay = getAmountToPayWithDefaultVehicleCount();
@@ -721,6 +731,13 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
           amountToPay = getAmountToPayForUpgradeToTransporter();
         } else if (widget.isAdOns) {
           amountToPay = getPayableAmountInCaseOfAddOns();
+        }
+        if (amountToPay > rwdBalance) {
+          amountToPay = amountToPay - walletAmount;
+          walletAmount = 0;
+        } else {
+          walletAmount = walletAmount - amountToPay;
+          amountToPay = 0;
         }
         if (mounted) {
           setState(() {});
@@ -733,8 +750,20 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
     try {
       final List<Subscription> currentPlanList =
           widget.myProfileData?.activeSubscriptions ?? [];
-      if (currentPlanList.isEmpty) {
+      if (currentPlanList.isEmpty &&
+          (myProfileData?.usertype ?? "").toLowerCase() == "user") {
         return 0;
+      } else if (currentPlanList.isEmpty) {
+        final list = myProfileData?.subscriptions ?? [];
+        if (list.isEmpty) {
+          return 0;
+        }
+        final plan = list.firstWhere(
+          (element) =>
+              element.category!.toLowerCase() ==
+              (myProfileData?.usertype ?? "").toLowerCase(),
+        );
+        currentPlanList.add(plan);
       }
       Subscription currentPlan = currentPlanList[0];
       DateTime? startDate = currentPlan.startDate;
@@ -949,21 +978,27 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                   "Total Subscription Amount-",
                   widget.category == "TRANSPORTER"
                       ? getSubscriptionAmount(widget.plan)
-                      : "₹ ${widget.plan.grossPrice}"),
+                      : "₹ ${widget.plan.grossPrice.toStringAsFixed(2)}"),
               _priceRow(
                   "Discount (${widget.plan.earlyBirdDiscountPercentage}%) -",
                   widget.category == "TRANSPORTER"
                       ? getSubscriptionDiscount(widget.plan)
-                      : "₹ ${widget.plan.earlyBirdDiscountPrice}"),
+                      : "- ₹ ${widget.plan.earlyBirdDiscountPrice}"),
               if (refundableAmount > 0)
-                _priceRow(
-                    "Refund From Previous Plan -", "- ₹ ${refundableAmount}"),
+                _priceRow("Refund From Previous Plan -",
+                    "- ₹ ${refundableAmount.toStringAsFixed(2)}"),
+              if (rwdBalance > 0)
+                _priceRow("Current RWD Wallet Balance -",
+                    "₹ ${rwdBalance.toStringAsFixed(2)}"),
+              if (walletAmount > 0)
+                _priceRow("Remaining Wallet Balance after payment-",
+                    "₹ ${((walletAmount-rwdBalance).abs()).toStringAsFixed(2)}"),
               const Divider(),
               _priceRow(
-                  "Payable Amount: ", "+₹ ${(amountToPay).toStringAsFixed(2)}",
+                  "Payable Amount: ", "₹ ${(amountToPay).toStringAsFixed(2)}",
                   weight: FontWeight.w700),
               _priceRow("Tax (${widget.plan.taxRate}%)",
-                  "₹ ${totalTax.toStringAsFixed(2)}"),
+                  "+ ₹ ${totalTax.toStringAsFixed(2)}"),
 
               const SizedBox(height: 25),
 
@@ -994,6 +1029,7 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                           isAdOns: widget.isAdOns,
                           plan: widget.plan,
                           finalPrice: amountToPay,
+                          rwdBalance: walletAmount,
                           planType: widget.category,
                           vehicleCount:
                               ((widget.plan.maxVehicles ?? 0)).toString(),

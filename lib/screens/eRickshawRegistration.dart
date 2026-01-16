@@ -6,6 +6,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
+import 'package:r_w_r/screens/widgets/common_submit_button.dart';
+import 'package:r_w_r/screens/widgets/profile_image_capture.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
@@ -18,6 +20,7 @@ import '../api/api_service/user_service/user_profile_service.dart';
 import '../components/app_loader.dart';
 import '../constants/api_constants.dart';
 import '../utils/color.dart';
+import '../utils/common_utils.dart';
 import 'block/language/language_provider.dart';
 import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
 import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
@@ -104,7 +107,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
 
     final profile = await UserProfileService().getUserProfile();
     _selfNameController.text =
-    "${profile.firstName ?? ""} ${profile.lastName ?? ""}";
+        "${profile.firstName ?? ""} ${profile.lastName ?? ""}";
     _phoneNumberController.text = profile.mobileNumber ?? "";
   }
 
@@ -119,7 +122,6 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       setState(() {});
     }
   }
-
 
   // Document selection methods
   void _showDocumentPickerBottomSheet(String from) {
@@ -605,7 +607,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(canPop: false, // Prevents default pop behavior
+    return PopScope(
+      canPop: false, // Prevents default pop behavior
       onPopInvoked: (didPop) {
         if (didPop) {
           return;
@@ -632,7 +635,6 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                 Colors.white,
                 Colors.white,
               ],
-
             ),
           ),
           child: SafeArea(
@@ -675,6 +677,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       ),
     );
   }
+
   Widget _buildHeader() {
     return Padding(
       padding: EdgeInsets.all(16),
@@ -703,7 +706,6 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       ),
     );
   }
-
 
   Widget _buildProgressBar() {
     return Container(
@@ -842,88 +844,53 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   Widget _buildSelfDetailStep() {
     return Padding(
       padding: EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children:[
-          Expanded(child: ListView(
-            children:  [
-              Text(
-                'Self Detail',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+            child: ListView(
+          children: [
+            Text(
+              'Self Detail',
+              style: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 20,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
-              SizedBox(height: 40),
-              Center(
-                child: Column(
-                  children: [
-                    GestureDetector(
-                      onTap: _showImagePickerBottomSheet,
-                      child: Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.grey[300],
-                          border: _selectedImage != null
-                              ? Border.all(color: Color(0xFF8B5CF6), width: 3)
-                              : null,
-                        ),
-                        child: _selectedImage != null
-                            ? ClipOval(
-                          child: Image.file(
-                            _selectedImage!,
-                            width: 80,
-                            height: 80,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                            : Icon(
-                          Icons.camera_alt,
-                          size: 32,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                    GestureDetector(
-                      onTap: _showImagePickerBottomSheet,
-                      child: Text(
-                        _selectedImage != null
-                            ? 'Tap to change image'
-                            : 'Profile Image / Logo',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: _selectedImage != null
-                              ? Color(0xFF8B5CF6)
-                              : Colors.black87,
-                          decoration: _selectedImage != null
-                              ? TextDecoration.underline
-                              : null,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: 40),
-              _buildTextField('Self Name *', _selfNameController,textLength: 50),
-              SizedBox(height: 20),
-              _buildTextField(
-                'Phone Number*',
-                _phoneNumberController,
-                keyboardType: TextInputType.phone,
-                textLength: 10,
-                inputFormatter: [
-                  FilteringTextInputFormatter.digitsOnly,
-                ],
-              ),            ],
-          )),
-          _buildContinueButton(),
-        ]
-      ),
+            ),
+            SizedBox(height: 40),
+            ProfileImageCapture(
+              label: 'Profile Image',
+              useGallery: false,
+              showPreview: true,
+              showDirectImage: false,
+              icon: Icons.camera_alt,
+              kind: "profileImage",
+              useEyeBlinkDetection: true,
+              required: true,
+              onMediaUploaded: (url) {
+                setState(() {
+                  _selectedImage = File(url);
+                  _erickshawModel = _erickshawModel.copyWith(profilePhoto: url);
+                });
+              },
+              allowedExtensions: ['jpg', 'jpeg', 'png'],
+            ),
+            SizedBox(height: 40),
+            _buildTextField('Self Name *', _selfNameController, maxLength: 50),
+            SizedBox(height: 20),
+            _buildTextField(
+              'Phone Number*',
+              _phoneNumberController,
+              keyboardType: TextInputType.phone,
+              maxLength: 10,
+              inputFormatter: [
+                FilteringTextInputFormatter.digitsOnly,
+              ],
+            ),
+          ],
+        )),
+        _buildContinueButton(),
+      ]),
     );
   }
 
@@ -933,8 +900,9 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: ListView(
-            children:[
+          Expanded(
+              child: ListView(
+            children: [
               Text(
                 'Address',
                 style: TextStyle(
@@ -945,7 +913,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
               ),
               SizedBox(height: 40),
               _buildTextField('Address*', _addressController,
-                  placeholder: '12 house no., XYZ STREET, Opp ABC Mall', keyboardType: TextInputType.text),
+                  placeholder: '12 house no., XYZ STREET, Opp ABC Mall',
+                  keyboardType: TextInputType.text),
               SizedBox(height: 20),
               _buildTextField('Pin Code*', _pinCodeController,
                   placeholder: '788799',
@@ -953,24 +922,24 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                   inputFormatter: [
                     FilteringTextInputFormatter.digitsOnly,
                   ],
-                  textLength: 6),
+                  maxLength: 6),
               SizedBox(height: 20),
               _buildDropdown(
                 'State',
                 _selectedState,
                 _stateList
                     .map((state) => DropdownMenuItem(
-                  value: state.sId,
-                  child: Text(state.name.toString()),
-                ))
+                          value: state.sId,
+                          child: Text(state.name.toString()),
+                        ))
                     .toList(),
-                    (newValue) {
+                (newValue) {
                   setState(() {
                     _selectedState = newValue;
                     _stateController.text = newValue ?? '';
                     if (newValue != null) {
                       final locProvider =
-                      Provider.of<LocationProvider>(context, listen: false);
+                          Provider.of<LocationProvider>(context, listen: false);
                       locProvider.fetchCity(newValue).then((_) {
                         setState(() {
                           _cityList = locProvider.cities;
@@ -981,31 +950,31 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                   });
                 },
                 validator: (value) =>
-                value == null ? 'Please select a state' : null,
+                    value == null ? 'Please select a state' : null,
               ),
+              SizedBox(height: 20),
               _buildDropdown(
                 'City',
                 _selectedCity,
                 _cityList
                     .map((city) => DropdownMenuItem(
-                  value: city.sId,
-                  child: Text(city.name.toString()),
-                ))
+                          value: city.sId,
+                          child: Text(city.name.toString()),
+                        ))
                     .toList(),
-                    (newValue) {
+                (newValue) {
                   setState(() {
                     _selectedCity = newValue;
                     _cityController.text = newValue ?? '';
                   });
                 },
-                validator: (value) => value == null ? 'Please select a city' : null,
+                validator: (value) =>
+                    value == null ? 'Please select a city' : null,
               ),
-              SizedBox(height: 20),
             ],
-          ),
-          ),
+          )),
           _buildContinueButton(),
-        ]
+        ],
       ),
     );
   }
@@ -1050,158 +1019,150 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
-
   Widget _buildDocumentStep() {
     return Padding(
       padding: EdgeInsets.all(24),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
             child: ListView(
-              children: [
-                Text(
-                  'Document',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black,
+          children: [
+            Text(
+              'Document',
+              style: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 20,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 40),
+            // Aadhar Card Container with both field and verify button
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 5.0),
+                    child: Text(
+                      'Aadhar Card No.*',
+                      style: CommonUtils.commonTextLabelsStyle(),
+                    ),
                   ),
-                ),
-                SizedBox(height: 40),
-                // Aadhar Card Container with both field and verify button
-                SizedBox(
-                  width: double.infinity,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  SizedBox(
+                    height: 10,
+                  ),
+                  Row(
                     children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 5.0),
-                        child: Text(
-                          'Aadhar Card No.*',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
+                      Expanded(
+                        child: Container(
+                          height: 35,
+                          alignment: Alignment.center,
+                          padding: EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[400]!),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: TextField(
+                            textAlign: TextAlign.start,
+                            maxLength: 12,
+                            style:
+                                CommonUtils.commonTextLabelsStyle(fontSize: 14),
+                            buildCounter: (
+                              context, {
+                              required int currentLength,
+                              required bool isFocused,
+                              required int? maxLength,
+                            }) {
+                              return null; // 👈 hides the counter
+                            },
+                            controller: _aadharCardController,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration.collapsed(
+                              hintText: 'Enter Aadhar Card Number',
+                              hintStyle: CommonUtils.commonTextLabelsStyle(
+                                  fontSize: 14),
+                            ),
+                            onChanged: (value) {
+                              if (value.length == 12) {
+                                _verifyAadhaar(value);
+                              }
+                            },
                           ),
                         ),
                       ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Container(
-                              height: 35,
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.symmetric(horizontal: 5),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey[400]!),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: TextField(
-                                textAlign: TextAlign.start,
-                                maxLength: 12,
-                                buildCounter: (
-                                    context, {
-                                      required int currentLength,
-                                      required bool isFocused,
-                                      required int? maxLength,
-                                    }) {
-                                  return null; // 👈 hides the counter
-                                },
-                                controller: _aadharCardController,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                ],
-                                keyboardType: TextInputType.phone,
-                                decoration: InputDecoration.collapsed(
-                                  hintText: 'Enter Aadhar Card Number',
-                                  hintStyle: TextStyle(
-                                    color: Colors.grey[400],
-                                    fontSize: 14,
-                                  ),
+                      SizedBox(width: 12),
+                      Container(
+                        height: 30,
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.green),
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        child: Center(
+                          child: _isAadhaarVerifying
+                              ? SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text(
+                                  _isAadhaarVerified ? 'Verified' : 'Verify',
+                                  style: CommonUtils.commonTextLabelsStyle(),
                                 ),
-                                onChanged: (value) {
-                                  if (value.length == 12) {
-                                    _verifyAadhaar(value);
-                                  }
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 12),
-                          Container(
-                            height: 30,
-                            padding: EdgeInsets.symmetric(horizontal: 16),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Colors.green),
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Center(
-                              child: _isAadhaarVerifying
-                                  ? SizedBox(
-                                width: 16,
-                                height: 16,
-                                child:
-                                CircularProgressIndicator(strokeWidth: 2),
-                              )
-                                  : Text(
-                                _isAadhaarVerified ? 'Verified' : 'Verify',
-                                style: TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-                SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: _buildAadhaarFileUploadSection(
-                      'Upload Aadhar Card (Front & Back)', "AADHAAR"),
-                ),
-                SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: _buildTextField(
-                      'Driving License Number', _drivingLicenseController,
-                      textCapitalization: TextCapitalization.characters),
-                ),
-                SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: _buildFileUploadSection(
-                      'Upload Driving License', 'DRIVING LICENSE'),
-                ),
-                SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: _buildTextField('Vehicle Number', _vehicleNumberController,
-                      placeholder: "Enter vehicle number",
-                      textCapitalization: TextCapitalization.characters),
-                ),
-                SizedBox(height: 40),
-              ],
-            )),
+                ],
+              ),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: _buildAadhaarFileUploadSection(
+                  'Upload Aadhar Card (Front & Back)', "AADHAAR"),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: _buildTextField(
+                  'Driving License Number', _drivingLicenseController,
+                  textCapitalization: TextCapitalization.characters),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: _buildFileUploadSection(
+                  'Upload Driving License', 'DRIVING LICENSE'),
+            ),
+            SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: _buildTextField('Vehicle Number', _vehicleNumberController,
+                  placeholder: "Enter vehicle number",
+                  textCapitalization: TextCapitalization.characters),
+            ),
+            SizedBox(height: 40),
+          ],
+        )),
         _buildContinueButton(),
       ]),
     );
   }
+
   Widget _buildAadhaarFileUploadSection(String title, String from) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
@@ -1211,7 +1172,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Icon(
                 Icons.cloud_upload_outlined,
@@ -1221,49 +1182,22 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 4),
-              Text(
-                'png, pdf, jpg, docx accepted',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
+              Text('png, pdf, jpg, docx accepted',
+                  style: CommonUtils.commonTextLabelsStyle()),
               SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet("AADHAAR"),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet("AADHAAR");
+                },
               ),
-              if (adhaar.isNotEmpty) _showAadharCardImages()
+              if (adhaar.isNotEmpty)
+                _showAadharCardImages()
               else
                 SizedBox(height: 12),
-
             ],
           ),
         ),
@@ -1273,15 +1207,9 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
 
   Widget _buildFileUploadSection(String title, String from) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
-        ),
+        Text(title, style: CommonUtils.commonTextLabelsStyle()),
         SizedBox(height: 8),
         Container(
           height: 240,
@@ -1301,44 +1229,17 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
               SizedBox(height: 8),
               Text(
                 'select your file or drag and drop',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(fontSize: 14),
               ),
               SizedBox(height: 4),
-              Text(
-                'png, pdf, jpg, docx accepted',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
-                ),
-              ),
+              Text('png, pdf, jpg, docx accepted',
+                  style: CommonUtils.commonTextLabelsStyle()),
               SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _showDocumentPickerBottomSheet(from),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    'browse',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              CommonUtils.commonGradientBorderButton(
+                text: "browse",
+                onTap: () {
+                  _showDocumentPickerBottomSheet(from);
+                },
               ),
               if (drivingLicense.isNotEmpty) _showDLImages(),
             ],
@@ -1347,6 +1248,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
       ],
     );
   }
+
   Widget _showDLImages() {
     return Stack(
       children: [
@@ -1429,8 +1331,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
+  List<String> langIds = [];
 
-  List<String> langIds=[];
   Widget _buildAboutStep() {
     return Padding(
       padding: EdgeInsets.all(24),
@@ -1440,31 +1342,19 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
             children: [
               Text(
                 'About',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(fontSize: 20),
               ),
               SizedBox(height: 40),
               Text(
                 'Select Languages',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 8),
               _languageMultiSelectDropdown(),
               SizedBox(height: 24),
               Text(
                 'About',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black,
-                ),
+                style: CommonUtils.commonTextLabelsStyle(),
               ),
               SizedBox(height: 8),
               Container(
@@ -1478,7 +1368,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                   controller: _aboutController,
                   maxLines: null,
                   decoration: InputDecoration.collapsed(
-                    hintText: 'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
+                    hintText:
+                    'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                   ),
                 ),
               ),
@@ -1519,6 +1410,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                         ? 'Select languages'
                         : '${_selectedLanguages.length} selected',
                     style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 14,
                       color: _selectedLanguages.isEmpty
                           ? Colors.grey
                           : Colors.black,
@@ -1546,6 +1439,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
               color: Colors.white,
             ),
             child: ListView(
+              padding: EdgeInsets.zero,
               shrinkWrap: true,
               children: langData.map((language) {
                 final isSelected = _selectedLanguages.contains(language.name);
@@ -1553,7 +1447,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                   contentPadding:
                   EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   value: isSelected,
-                  title: Text(language.name!),
+                  title: Text(language.name!,
+                      style: CommonUtils.commonTextLabelsStyle()),
                   controlAffinity: ListTileControlAffinity.leading,
                   onChanged: (checked) {
                     setState(() {
@@ -1576,11 +1471,21 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
         /// Selected Chips
         Wrap(
           spacing: 8,
-          runSpacing: 8,
+          runSpacing: -4,
           children: _selectedLanguages.map((language) {
             return Chip(
-              label: Text(language),
-              deleteIcon: const Icon(Icons.close, size: 18),
+              backgroundColor: Color(0x1F641BB4),
+              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+              side: BorderSide(color: AppColors.blue),
+              labelPadding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                  side: BorderSide(color: AppColors.blue),
+                  borderRadius: BorderRadiusGeometry.circular(30)),
+              label: Text(language,
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 12)),
+              deleteIcon: const Icon(Icons.close, size: 15),
+              deleteIconBoxConstraints:
+              BoxConstraints(maxHeight: 15, maxWidth: 15),
               onDeleted: () {
                 setState(() {
                   _selectedLanguages.remove(language);
@@ -1593,72 +1498,53 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
-  Widget _buildDropdownFieldForLanguage(String label, String? value,
-      List<lm.Data> items, ValueChanged<String?> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              hint: Text(
-                'Select ${label.toLowerCase()}',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 16,
-                ),
-              ),
-              items: items.map((lm.Data item) {
-                return DropdownMenuItem<String>(
-                  value: item.name,
-                  child: Text(item!.name ?? ''),
-                );
-              }).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildPreviewStep() {
+    String? cityName;
+    String? stateName;
+
+    if (_selectedCity != null && _cityList.isNotEmpty) {
+      final city = _cityList.firstWhere(
+            (c) => c.sId == _selectedCity,
+      );
+      cityName = city.name;
+    }
+    if (_selectedState != null && _stateList.isNotEmpty) {
+      final state = _stateList.firstWhere(
+            (c) => c.sId == _selectedState,
+      );
+      stateName = state.name;
+    }
     return Padding(
       padding: EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Preview',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
-            ),
-          ),
-          SizedBox(height: 20),
-          Center(
-            child: Column(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Expanded(
+            child: ListView(
               children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.grey[300],
-                    border: _selectedImage != null
-                        ? Border.all(color: Color(0xFF8B5CF6), width: 2)
-                        : null,
+                Text(
+                  'Preview',
+                  style: TextStyle(
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.black,
                   ),
-                  child: _selectedImage != null
-                      ? ClipOval(
+                ),
+                SizedBox(height: 20),
+                Center(
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.grey[300],
+                          border: _selectedImage != null
+                              ? Border.all(color: Color(0xFF8B5CF6), width: 2)
+                              : null,
+                        ),
+                        child: _selectedImage != null
+                            ? ClipOval(
                           child: Image.file(
                             _selectedImage!,
                             width: 60,
@@ -1666,27 +1552,19 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                             fit: BoxFit.cover,
                           ),
                         )
-                      : Icon(
+                            : Icon(
                           Icons.person,
                           size: 30,
                           color: Colors.grey[600],
                         ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Profile Image / Logo',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black87,
+                      ),
+                      SizedBox(height: 8),
+                      Text('Profile Image*',
+                          style: CommonUtils.commonTextLabelsStyle()),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-          Expanded(
-            child: ListView(
-              children: [
+                SizedBox(height: 24),
                 _buildPreviewItem(
                     'Self Name',
                     _selfNameController.text.isEmpty
@@ -1707,51 +1585,70 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                     _pinCodeController.text.isEmpty
                         ? 'Lorem Ipsum'
                         : _pinCodeController.text),
-                _buildPreviewItem(
-                    'City',
-                    _cityController.text.isEmpty
-                        ? 'Lorem Ipsum'
-                        : _cityController.text),
-                _buildPreviewItem(
-                    'State',
-                    _stateController.text.isEmpty
-                        ? 'Lorem Ipsum'
-                        : _stateController.text),
+                _buildPreviewItem('City', cityName ?? ""),
+                _buildPreviewItem('State', stateName ?? ""),
                 _buildPreviewItem(
                     'Aadhar Card No.',
                     _aadharCardController.text.isEmpty
                         ? 'Lorem Ipsum'
                         : _aadharCardController.text),
                 _buildPreviewItem(
-                    'Spoken Languages', _selectedLanguage ?? 'Lorem Ipsum'),
+                    'Driving License Number',
+                    _drivingLicenseController.text.isEmpty
+                        ? 'Lorem Ipsum'
+                        : _drivingLicenseController.text),
+                _buildPreviewItem(
+                    'Vehicle Number',
+                    _vehicleNumberController.text.isEmpty
+                        ? 'Lorem Ipsum'
+                        : _vehicleNumberController.text),
+                _buildLanguagePreviewItem(
+                    'Spoken Languages', _selectedLanguages ?? []),
                 SizedBox(height: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'About',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.black,
-                      ),
+                      style: CommonUtils.commonTitleStyle(fontSize: 14),
                     ),
                     SizedBox(height: 8),
                     Text(
                       _aboutController.text.isEmpty
                           ? 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nDonec ut ipsum vulputate, amet massa. Vestibulum a nibh in'
                           : _aboutController.text,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                        height: 1.4,
-                      ),
+                      style: CommonUtils.commonTitleStyle(
+                          fontSize: 13, weight: FontWeight.w400),
                     ),
                   ],
                 ),
                 SizedBox(height: 24),
-                _buildSubmitButton(),
               ],
+            )),
+        _buildSubmitButton(),
+      ]),
+    );
+  }
+
+  _buildLanguagePreviewItem(String label, List<String> langs) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 5,
+            child: Text(
+              label,
+              style: CommonUtils.commonTitleStyle(fontSize: 14),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              langs.join(","),
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 13, weight: FontWeight.w400),
             ),
           ),
         ],
@@ -1759,12 +1656,13 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
+
   Widget _buildSubmitButton() {
     return Container(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          if(!isSubmitting) _submitForm();
+          if (!isSubmitting) _submitForm();
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: Color(0xFF8B5CF6),
@@ -1774,14 +1672,22 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
           ),
           elevation: 0,
         ),
-        child:isSubmitting?SizedBox(width: 20,height: 20,child: CircularProgressIndicator(color: Colors.white,strokeWidth: 2,)): Text(
-          'Submit',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        child: isSubmitting
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ))
+            : Text(
+                'Submit',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
       ),
     );
   }
@@ -1846,32 +1752,33 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                             ),
                             SizedBox(height: 20),
                             Expanded(
-                              child: Scrollbar(                                thumbVisibility: true,
-                                  child:SingleChildScrollView(
-                                controller: _scrollController,
-                                child: Text(
-                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                  'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
-                                  'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
-                                  'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
-                                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.black87,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ) ),
+                              child: Scrollbar(
+                                  thumbVisibility: true,
+                                  child: SingleChildScrollView(
+                                    controller: _scrollController,
+                                    child: Text(
+                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                      'Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet maaliquet quis nec nibh.\n\n'
+                                      'Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Duis in ex augue. Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\n'
+                                      'Vestibulum a nibh in neque aliquet aliquet quis nec nibh. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.\n\n'
+                                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ut ipsum vulputate, amet massa. Vestibulum a nibh in neque aliquet aliquet quis nec nibh.',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.black87,
+                                        height: 1.5,
+                                      ),
+                                    ),
+                                  )),
                             ),
                             SizedBox(height: 20),
                             Row(
                               children: [
                                 GestureDetector(
                                   onTap: () {
-                                    if(isScrolledToBottom) {
+                                    if (isScrolledToBottom) {
                                       setState(() {
-                                      isAgreed = !isAgreed;
-                                    });
+                                        isAgreed = !isAgreed;
+                                      });
                                     }
                                   },
                                   child: Opacity(
@@ -1959,7 +1866,8 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     address: Address(),
   );
 
-  bool isSubmitting=false;
+  bool isSubmitting = false;
+
   Future<void> _proceedToFinalStep() async {
     Navigator.of(context).pop();
     isSubmitting = true;
@@ -2030,9 +1938,10 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
         businessMobileNumber: _phoneNumberController.text,
       );
 
-      final response = await BecomeErickshawService().submitErickshawApplication(
-          _erickshawModel, isUpgrade ? "become-upgradable" : "become-e-rickshaw");
-      isSubmitting=false;
+      final response = await BecomeErickshawService()
+          .submitErickshawApplication(_erickshawModel,
+              isUpgrade ? "become-upgradable" : "become-e-rickshaw");
+      isSubmitting = false;
       updateState();
       if (response['success'] == true) {
         if (!mounted) return;
@@ -2062,13 +1971,12 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
           context,
           MaterialPageRoute(
               builder: (context) => RegistrationSuccessfulScreen(
-                userType: 'E-Rickshaw',
-              )));
-    }catch(e){
-      isSubmitting=false;
+                    userType: 'E-Rickshaw',
+                  )));
+    } catch (e) {
+      isSubmitting = false;
       updateState();
     }
-
   }
 
   Widget _buildPreviewItem(String label, String value) {
@@ -2078,23 +1986,19 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 2,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.black,
-              ),
-            ),
+            flex: 5,
+            child:
+            Text(label, style: CommonUtils.commonTitleStyle(fontSize: 14)),
           ),
           Expanded(
-            flex: 3,
+            flex: 4,
             child: Text(
               value,
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: Colors.black,
               ),
             ),
           ),
@@ -2117,50 +2021,48 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     super.dispose();
   }
 
-  Widget _buildTextField(String label, TextEditingController controller,
-      {String? placeholder,
-        TextInputType keyboardType = TextInputType.text,
-        int textLength = 50,
-        TextCapitalization textCapitalization = TextCapitalization.sentences,
-        List<TextInputFormatter>? inputFormatter}) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    String? placeholder,
+    String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatter,
+    TextCapitalization? textCapitalization,
+    TextInputType? keyboardType,
+    int? maxLength,
+    Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black,
-          ),
+          style: CommonUtils.commonTextLabelsStyle(),
         ),
         SizedBox(height: 8),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: TextField(
-            textCapitalization: textCapitalization,
-            maxLength: textLength,
-            keyboardType: keyboardType,
-            inputFormatters: inputFormatter,
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: CommonUtils.commonInputBoxDecoration(),
+          child: TextFormField(
             controller: controller,
+            validator: validator,
+            keyboardType: keyboardType,
+            maxLength: maxLength,
+            textCapitalization: textCapitalization ?? TextCapitalization.none,
+            onChanged: onChanged,
+            inputFormatters: inputFormatter,
+            style: CommonUtils.commonInputTextStyle(),
             buildCounter: (
               context, {
-                required int currentLength,
-                required bool isFocused,
-                required int? maxLength,
-              }) {
-            return null; // 👈 hides the counter
-          },
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) {
+              return null; // 👈 hides the counter
+            },
             decoration: InputDecoration.collapsed(
               hintText: placeholder ?? '',
-              hintStyle: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 19,
-              ),
+              hintStyle: CommonUtils.commonHintTextStyle(),
             ),
           ),
         ),
@@ -2168,28 +2070,15 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
     );
   }
 
-
   Widget _buildContinueButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
+    return Container(
+      alignment: Alignment.bottomRight,
+      child: CommonSubmitButton(
+        gradientColors: [gradientFirst, gradientSecond],
         onPressed: nextStep,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Color(0xFF8B5CF6),
-          padding: EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
-          ),
-          elevation: 0,
-        ),
-        child: Text(
-          'Continue',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        text: "Continue",
+        borderRadius: 12,
+        isLoading: isSubmitting,
       ),
     );
   }
@@ -2268,12 +2157,14 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   }
 
   void _submitAboutDetailsModel() {
-    List<String> ids=[];
-    langData.forEach((element) {
-      if(_selectedLanguages.contains(element.name)){
-        ids.add(element.id??"");
-      }
-    },);
+    List<String> ids = [];
+    langData.forEach(
+      (element) {
+        if (_selectedLanguages.contains(element.name)) {
+          ids.add(element.id ?? "");
+        }
+      },
+    );
     _erickshawModel = _erickshawModel.copyWith(
         languageSpoken: ids, bio: _aboutController.text.toString());
     if (currentStep < 4) {
@@ -2315,6 +2206,7 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
   }
 
   void _submitApplication() {}
+
   Future<UserEligibilityModel> getEligibilityData() async {
     final data = await UserProfileService().getEligibility();
     final prefs = await SharedPreferences.getInstance();

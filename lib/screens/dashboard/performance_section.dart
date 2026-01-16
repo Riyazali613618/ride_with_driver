@@ -6,7 +6,8 @@ import 'package:speedometer_chart/speedometer_chart.dart';
 
 class PerformanceSection extends StatelessWidget {
   final DashboardMetrics data;
-  const PerformanceSection( {required this.data,super.key});
+
+  const PerformanceSection({required this.data, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,24 +24,25 @@ class PerformanceSection extends StatelessWidget {
             ...["1 Day", "1 Week", "1 Month", "1 Year", "Custom"]
                 .map(
                   (e) => Padding(
-                padding: EdgeInsets.only(right: 8),
-                child: Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: BoxBorder.all(color: Colors.black,width: 0.5),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Text(
-                      e,
-                      style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w400,
-                          color: Colors.black),
-                    )),
-              ),
-            )
+                    padding: EdgeInsets.only(right: 8),
+                    child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border:
+                              BoxBorder.all(color: Colors.black, width: 0.5),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Text(
+                          e,
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w400,
+                              color: Colors.black),
+                        )),
+                  ),
+                )
                 .toList(),
           ],
         ),
@@ -50,7 +52,7 @@ class PerformanceSection extends StatelessWidget {
             Container(
               margin: EdgeInsets.symmetric(horizontal: 10),
               height: 150,
-              width: (MediaQuery.of(context).size.width*0.4)-10,
+              width: (MediaQuery.of(context).size.width * 0.4) - 10,
               child: PieChart(
                 PieChartData(
                   sectionsSpace: 0,
@@ -58,20 +60,36 @@ class PerformanceSection extends StatelessWidget {
                   sections: [
                     PieChartSectionData(
                         radius: 70,
-                        titleStyle: TextStyle(fontSize: 11,fontWeight: FontWeight.bold,color: Colors.white),
-                        value: 32, color: Colors.indigo),
+                        titleStyle: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                        value: 20,
+                        color: Colors.indigo),
                     PieChartSectionData(
                         radius: 70,
-                        titleStyle: TextStyle(fontSize: 11,fontWeight: FontWeight.bold,color: Colors.white),
-                        value: 12, color: Colors.blue),
+                        titleStyle: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                        value: 12,
+                        color: Colors.blue),
                     PieChartSectionData(
                         radius: 70,
-                        titleStyle: TextStyle(fontSize: 11,fontWeight: FontWeight.bold,color: Colors.white),
-                        value: 10, color: Colors.lightBlueAccent),
+                        titleStyle: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
+                        value: 12,
+                        color: Colors.lightBlueAccent),
                     PieChartSectionData(
-                        titleStyle: TextStyle(fontSize: 11,fontWeight: FontWeight.bold,color: Colors.white),
+                        titleStyle: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white),
                         radius: 70,
-                        value: 10, color: Colors.grey.shade300),
+                        value: 10,
+                        color: Colors.grey.shade300),
                   ],
                 ),
               ),
@@ -82,19 +100,19 @@ class PerformanceSection extends StatelessWidget {
                 color: Colors.white,
                 shadowColor: Colors.grey,
                 child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 15),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 15),
                   child: Column(
                     children: [
                       Row(
                         children: [
-                          Expanded(child: _legend("Views", 32)),
-                          Expanded(child: _legend("Call", 12)),
+                          Expanded(child: _legend("Views", 0)),
+                          Expanded(child: _legend("Call", 0)),
                         ],
                       ),
                       Row(
                         children: [
-                          Expanded(child: _legend("WhatsApp", 10)),
-                          Expanded(child: _legend("Chat", 10)),
+                          Expanded(child: _legend("WhatsApp", 0)),
+                          Expanded(child: _legend("Chat", 0)),
                         ],
                       )
                     ],
@@ -114,8 +132,18 @@ class PerformanceSection extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          Text("• $label",style: TextStyle(color: AppColors.blue,fontSize: 12,fontWeight: FontWeight.w600),),
-          Text("$value",style: TextStyle(color: Colors.black,fontSize: 12,fontWeight: FontWeight.bold),),
+          Text(
+            "• $label",
+            style: TextStyle(
+                color: AppColors.blue,
+                fontSize: 12,
+                fontWeight: FontWeight.w600),
+          ),
+          Text(
+            "$value",
+            style: TextStyle(
+                color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

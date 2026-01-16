@@ -8,6 +8,7 @@ import 'package:r_w_r/screens/auth_screens/login_screen.dart';
 import 'package:r_w_r/screens/layout.dart';
 import 'package:r_w_r/l10n/app_localizations.dart';
 import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
+import 'package:r_w_r/utils/common_utils.dart';
 import '../../utils/color.dart';
 import '../block/language/language_provider.dart';
 
@@ -96,11 +97,12 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      localizations?.language ?? 'Language',
-                      style: const TextStyle(
+                      'Language',
+                      style:  TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
                         color: Colors.white,
                         fontSize: 24,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
@@ -219,16 +221,13 @@ class _LanguageSelectionScreenState extends State<LanguageSelectionScreen> {
                               ),
                               title: Text(
                                 language.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
+                                style:CommonUtils.commonTitleStyle(fontSize: 16)
                               ),
                               subtitle: Text(
                                 language.nativeName,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
+                                  fontFamily: AppConstants.ptSansFont,
                                   color: Colors.grey.shade600,
                                   fontWeight: FontWeight.w400,
                                 ),

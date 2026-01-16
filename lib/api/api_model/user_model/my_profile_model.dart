@@ -106,6 +106,7 @@ class MyProfileData {
     required this.renewalSubscriptions,
     required this.addonVehicles,
     required this.vehicleLimit,
+    required this.rwdBalance,
   });
 
   final String? id;
@@ -171,6 +172,7 @@ class MyProfileData {
   final List<dynamic> renewalSubscriptions;
   final List<AddOnVehicles>? addonVehicles;
   final int? vehicleLimit;
+  final double? rwdBalance;
 
   MyProfileData copyWith({
     String? id,
@@ -236,6 +238,7 @@ class MyProfileData {
     List<dynamic>? renewalSubscriptions,
     List<AddOnVehicles>? addonVehicles,
     int? vehicleLimit,
+    double? rwdBalance,
   }) {
     return MyProfileData(
       id: id ?? this.id,
@@ -303,6 +306,7 @@ class MyProfileData {
       renewalSubscriptions: renewalSubscriptions ?? this.renewalSubscriptions,
       addonVehicles: addonVehicles ?? this.addonVehicles,
       vehicleLimit: vehicleLimit ?? this.vehicleLimit,
+      rwdBalance: rwdBalance ?? this.rwdBalance,
     );
   }
 
@@ -399,6 +403,7 @@ class MyProfileData {
           ? []
           : List<AddOnVehicles>.from(json["addonVehicles"]!.map((x) => AddOnVehicles.fromJson(x))),
       vehicleLimit: json["vehicleLimit"],
+      rwdBalance: double.parse(json["rwd_balance"].toString())??0,
     );
   }
 
@@ -468,6 +473,7 @@ class MyProfileData {
         "renewal_subscriptions": renewalSubscriptions.map((x) => x).toList(),
         "addonVehicles": addonVehicles?.map((x) => x).toList()??[],
         "vehicleLimit": vehicleLimit,
+        "rwd_balance": rwdBalance,
       };
 
   @override

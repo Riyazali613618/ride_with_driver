@@ -215,16 +215,14 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
   // Check if field should be shown based on user type
   bool get _shouldShowVehicleType =>
-      widget.userType != 'RICKSHAW' &&
-      widget.userType != 'E_RICKSHAW';
+      !widget.userType.toLowerCase().contains("rickshaw");
 
   bool get _shouldShowVehicleName =>
-      widget.userType != 'RICKSHAW' &&
-          widget.userType != 'E_RICKSHAW';
+      !widget.userType.toLowerCase().contains("rickshaw");
 
-  bool get _shouldShowRCPhotos =>true;
-   /*   widget.userType != 'RICKSHAW' &&
-          widget.userType != 'E_RICKSHAW';*/
+  bool get _shouldShowRCPhotos => true;
+
+  /*    !widget.userType.toLowerCase().contains("rickshaw");*/
 
   @override
   void initState() {
@@ -393,9 +391,10 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
       bool success = await provider.submitVehicleRegistration(
         userType: widget.userType,
-        vehicleType: _selectedVehicleType?.code??"",
-        vehicleName:
-            _shouldShowVehicleName ? _vehicleNameController.text.trim() : widget.userType,
+        vehicleType: _selectedVehicleType?.code ?? "",
+        vehicleName: _shouldShowVehicleName
+            ? _vehicleNameController.text.trim()
+            : widget.userType,
         vehicleNumber: _vehicleNumberController.text.trim().toUpperCase(),
         seatingCapacity: int.parse(_selectedSeatingCapacity!),
         airConditioning: _selectedAirConditioning,
@@ -450,6 +449,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //getVehicleTypeList();
     return WillPopScope(
       onWillPop: _handleBackPress,
       child: Scaffold(
@@ -1642,21 +1642,28 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         final data = await UserProfileService().getVehicleTypeList();
         if (data.data != null) {
           _vehicleTypes = data.data?.categories ?? [];
-          if (widget.userType != 'RICKSHAW' ||
-              widget.userType != 'E_RICKSHAW') {
+          /*if (!widget.userType.toLowerCase().contains("rickshaw")) {
             _selectedVehicleType = _vehicleTypes.firstWhere(
               (element) =>
                   element.code == "RICKSHAW" || element.code == "E_RICKSHAW",
             );
-            final min = _selectedVehicleType
-                ?.seatingLimits?.min ??
-                1;
-            final max = _selectedVehicleType
-                ?.seatingLimits?.max ??
-                2;
-            _seatingCapacities = List.generate(
-                max - min + 1,
-                    (index) => (min + index).toString());          }
+
+          }*/
+          if(widget.userType=="Auto-Rickshaw"){
+            _selectedVehicleType=_vehicleTypes.firstWhere(
+                  (element) =>
+              element.code == "RICKSHAW",
+            );
+          }else if(widget.userType=="E-Rickshaw"){
+            _selectedVehicleType=_vehicleTypes.firstWhere(
+                  (element) =>
+              element.code == "E_RICKSHAW",
+            );
+          }
+          final min = _selectedVehicleType?.seatingLimits?.min ?? 1;
+          final max = _selectedVehicleType?.seatingLimits?.max ?? 2;
+          _seatingCapacities = List.generate(
+              max - min + 1, (index) => (min + index).toString());
           setState(() {});
         }
       },

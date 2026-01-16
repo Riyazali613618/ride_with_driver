@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_service/user_service/user_profile_service.dart';
@@ -23,19 +24,16 @@ class RegistrationSuccessfulScreen extends StatefulWidget {
 
 class _RegistrationSuccessfulScreenState
     extends State<RegistrationSuccessfulScreen> {
+  MyProfileData? profileData;
   @override
   void initState() {
     super.initState();
-    updateProfile();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) {
-        context.read<EligibilityBloc>().add(RefreshEligibilityEvent());
-      },
-    );
+    getProfileData();
   }
 
   @override
   Widget build(BuildContext context) {
+    getProfileData();
     return PopScope(
       canPop: false,
       child: Scaffold(
@@ -160,8 +158,9 @@ class _RegistrationSuccessfulScreenState
       margin: EdgeInsets.symmetric(horizontal: 20),
       child: ElevatedButton(
         onPressed: () {
-          if (widget.userType != 'DRIVER') {
-            _navigateToVehicleListingScreen(context);
+          final userType=profileData?.usertype??widget.userType;
+          if (userType != 'DRIVER') {
+            _navigateToVehicleListingScreen(context,userType);
           } else {
             Navigator.pushAndRemoveUntil(
               context,
@@ -191,13 +190,13 @@ class _RegistrationSuccessfulScreenState
     );
   }
 
-  void _navigateToVehicleListingScreen(BuildContext context) {
+  void _navigateToVehicleListingScreen(BuildContext context,String userType) {
     // Navigate to vehicle listing screen
     Navigator.pushReplacement(
         context,
         MaterialPageRoute(
             builder: (context) =>
-                AddNewVehicleScreen(isFromRegistration:true,userType: widget.userType)));
+                AddNewVehicleScreen(isFromRegistration:true,userType: userType)));
 
     // For now, just pop back to previous screens
     // Navigator.popUntil(context, (route) => route.isFirst);
@@ -207,6 +206,16 @@ class _RegistrationSuccessfulScreenState
     final data = await UserProfileService().getUserProfile();
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('who_reg', data.usertype ?? "");
+    profileData=data;
+  }
+
+  void getProfileData() {
+    WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) async {
+        await updateProfile();
+        context.read<EligibilityBloc>().add(RefreshEligibilityEvent());
+      },
+    );
   }
 }
 

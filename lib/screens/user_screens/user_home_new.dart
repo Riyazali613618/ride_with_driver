@@ -375,7 +375,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   @override
   void initState() {
     super.initState();
-    addVehicles();
     getVehicleTypeList();
     startAutoScroll();
     _containerSearchController.addListener(() {
@@ -954,18 +953,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     );
   }
 
-  final List<Map<String, String>> options = [
-    {'titleKey': ' As Transporter', 'icon': '🚛', 'key': "TRANSPORTER"},
-    {
-      'titleKey': ' As Independent Car Owner ',
-      'icon': '🚗',
-      'key': "INDIPENDENTCAROWNER"
-    },
-    {'titleKey': 'As AutoRickshaw Owner', 'icon': '🛺', 'key': "RICKSHAW"},
-    {'titleKey': 'As eRickshaw Owner', 'icon': '🔋', 'key': "E_RICKSHAW"},
-    {'titleKey': 'As StandAloneDriver', 'icon': '👨‍✈️', 'key': "DRIVER"},
-  ];
-
   Widget _buildImageSlider() {
     if (isLoadingBanners) {
       return Container(
@@ -1132,7 +1119,10 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   }
 
   @override
+
   Widget build(BuildContext context) {
+    addVehicles();
+
     _currentSubscriptionVisibility = widget.showDriverSubscription ?? false;
     final localizations = AppLocalizations.of(context)!;
     double height = MediaQuery.of(context).size.height;
@@ -1172,14 +1162,15 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                           padding: const EdgeInsets.all(16.0),
                           child: GestureDetector(
                             onTap: () async {
-                              final profile=await TokenManager.getProfile();
-                             final showPlan = profile?.subscriptions != null && profile!.subscriptions.isNotEmpty;
+                              final profile = await TokenManager.getProfile();
+                              final showPlan = profile?.subscriptions != null &&
+                                  profile!.subscriptions.isNotEmpty;
 
                               Navigator.push(
                                 context,
                                 CupertinoPageRoute(
                                   builder: (context) => MoreScreen(
-                                    showPlan:showPlan,
+                                    showPlan: showPlan,
                                     showDriverSubscription:
                                         widget.showDriverSubscription ?? false,
                                   ),
@@ -1992,11 +1983,12 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       });
     }
   }
+
   List<Categories> _vehicleTypes = [];
 
   Future<void> getVehicleTypeList() async {
     WidgetsBinding.instance.addPostFrameCallback(
-          (timeStamp) async {
+      (timeStamp) async {
         final data = await UserProfileService().getVehicleTypeList();
         if (data.data != null) {
           _vehicleTypes = data.data?.categories ?? [];
@@ -2056,16 +2048,17 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
           ),
           VehicleType(
             name: "Luxury",
-            assetImagePath: AssetsConstant.driverBus,
+            assetImagePath: AssetsConstant.suv,
             color: const Color(0xFFFFAB91),
             color1: const Color(0xFFE1F5FE),
           ),
         ];
+        if (mounted) {
+          setState(() {});
+        }
       },
     );
   }
-
-
 }
 
 List<Map<String, dynamic>> getLocalizedSuggestions(BuildContext context) {

@@ -21,6 +21,62 @@ class SummaryCards extends StatelessWidget {
         Row(
           children: [
             Expanded(
+              child: _ActionCard(
+                callBack: () {
+                  Navigator.push(context, MaterialPageRoute(
+                    builder: (context) => BlocProvider(
+                      create: (_) => ProfileBloc(ProfileRepository()),
+                      child: VehiclesListingPage(),
+                    ),));
+                },
+                title: "Manage Vehicles",
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF6A11CB), Color(0xFFFF758C)],
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: _ActionCard(
+                callBack: () {},
+                title: "Upcoming booking",
+                background: const Color(0xFF2D3436),
+                icon: Icons.visibility,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
+              child: _SmallCard(
+                title: "Completed Trips",
+                value: "${data.bookingCompletedCount}",
+                subtitle: "",
+                color: Color(0xFF27AE60),
+                icon: SvgPicture.asset("assets/img/done.svg",
+                    width: 18, height: 18),
+              ),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: SpeedometerChart(
+                dimension: 150,
+                minValue: 0,
+                maxValue: 100,
+                value: 75,
+                titleMargin: 0,
+                graphColor: [Colors.red, Colors.yellow, Colors.green],
+                pointerColor: Colors.black,
+              ),
+            )
+          ],
+        ),
+        SizedBox(height: 14),
+        Row(
+          children: [
+            Expanded(
               child: _InfoCard(
                 title: "Total Revenue",
                 amount: "₹ ${data.totalRevenue}",
@@ -83,62 +139,7 @@ class SummaryCards extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        SizedBox(width: 4),
-        Row(
-          children: [
-            Expanded(
-              child: _SmallCard(
-                title: "Completed Trips",
-                value: "${data.bookingCompletedCount}",
-                subtitle: "",
-                color: Color(0xFF27AE60),
-                icon: SvgPicture.asset("assets/img/done.svg",
-                    width: 18, height: 18),
-              ),
-            ),
-            SizedBox(width: 10),
-            Expanded(
-              child: SpeedometerChart(
-                dimension: 150,
-                minValue: 0,
-                maxValue: 100,
-                value: 75,
-                titleMargin: 0,
-                graphColor: [Colors.red, Colors.yellow, Colors.green],
-                pointerColor: Colors.black,
-              ),
-            )
-          ],
-        ),
-        SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: _ActionCard(
-                callBack: () {
-                  Navigator.push(context, MaterialPageRoute(
-                    builder: (context) => BlocProvider(
-                      create: (_) => ProfileBloc(ProfileRepository()),
-                      child: VehiclesListingPage(),
-                    ),));
-                },
-                title: "Manage Vehicles",
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6A11CB), Color(0xFFFF758C)],
-                ),
-              ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: _ActionCard(
-                callBack: () {},
-                title: "Upcoming booking",
-                background: const Color(0xFF2D3436),
-                icon: Icons.visibility,
-              ),
-            ),
-          ],
-        )
+
       ],
     );
   }

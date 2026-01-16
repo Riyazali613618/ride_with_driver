@@ -84,7 +84,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     try {
       // Create order for Razorpay payment
       late Map<String, dynamic> orderResponse;
-
+final rwdBalance=event.rwdBalance??0;
       switch (event.paymentType) {
         case PaymentType.subscriptionRenewal:
           isAddOns = false;
@@ -92,7 +92,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           orderResponse =
               await PaymentService.createOrderForSubscriptionRenewal(
                   planId: event.plan.id,
-                  rwd_balance: (event.finalPrice ?? 0) < 0
+                  rwd_balance:rwdBalance>0?rwdBalance: (event.finalPrice ?? 0) < 0
                       ? event.finalPrice?.abs() ?? 0
                       : 0);
           break;
@@ -103,7 +103,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
               category: event.category ?? event.planType,
               currentCategory: event.currentCategory ?? "",
               planId: event.plan.id,
-              rwd_balance: (event.finalPrice ?? 0) < 0
+              rwd_balance:rwdBalance>0?rwdBalance:  (event.finalPrice ?? 0) < 0
                   ? event.finalPrice?.abs() ?? 0
                   : 0);
           break;
@@ -120,7 +120,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
                   pay_amount:
                       double.parse((event.finalPrice?.toInt()).toString()) ?? 0,
-                  rwd_balance: (event.finalPrice ?? 0) < 0
+                  rwd_balance:rwdBalance>0?rwdBalance: (event.finalPrice ?? 0) < 0
                       ? event.finalPrice?.abs() ?? 0
                       : 0);
         case PaymentType.addOns:
@@ -135,7 +135,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
                   pay_amount: event.finalPrice ?? 0,
-                  rwd_balance: (event.finalPrice ?? 0) < 0
+                  rwd_balance:rwdBalance>0?rwdBalance: (event.finalPrice ?? 0) < 0
                       ? event.finalPrice?.abs() ?? 0
                       : 0);
           break;

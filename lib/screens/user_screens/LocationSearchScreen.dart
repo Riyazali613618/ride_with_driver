@@ -4,10 +4,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:r_w_r/api/api_model/VehicleType.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/assets_constant.dart';
 import 'package:r_w_r/l10n/app_localizations.dart';
 import 'package:r_w_r/screens/user_screens/owner_details.dart';
 import 'package:r_w_r/utils/color.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_service/location_service/location_service.dart';
 import '../../constants/GoogleLocationSearchService.dart';
@@ -478,7 +480,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     borderRadius: BorderRadius.circular(6),
                     border: Border.all(
                       color: isSelected ? AppColors.blue : Color(0x73FFFFFF),
-                      width: 1.5,
+                      width: 1,
                     ),
                     boxShadow: isSelected
                         ? [
@@ -494,6 +496,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     child: Text(
                       _getCategoryDisplayNameByKey(category),
                       style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
                         color: Colors.black,
                         fontWeight:
                             isSelected ? FontWeight.w600 : FontWeight.w500,
@@ -551,7 +554,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         height: 40,
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(0.1),
@@ -563,10 +566,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         child: TextField(
                           controller: _searchController,
                           focusNode: _searchFocusNode,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.black87,
-                          ),
+                          style:  CommonUtils.commonTextLabelsStyle(),
                           decoration: InputDecoration(
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 0, vertical: 5),
@@ -577,17 +577,15 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.only(right: 6),
                                 child: Icon(
-                                  Icons.cancel_outlined,
+                                  Icons.clear,
                                   color: gradientSecond,
                                   size: 20,
                                 ),
                               ),
                             ),
                             hintText: localizations.searchLocation,
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 12,
-                            ),
+                            hintStyle:  CommonUtils.commonHintTextStyle(),
+
                             prefixIcon: Icon(
                               Icons.search,
                               color: gradientSecond,

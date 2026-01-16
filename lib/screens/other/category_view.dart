@@ -6,10 +6,13 @@ import 'package:http/http.dart' as http;
 import 'package:r_w_r/api/api_model/location_model/location_model.dart';
 import 'package:r_w_r/api/api_service/location_service/location_service.dart';
 import 'package:r_w_r/components/app_appbar.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/assets_constant.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/screens/user_screens/vehicles.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
+import '../../api/api_model/VehicleType.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/color.dart';
 import '../user_screens/LocationSearchScreen.dart';
@@ -25,6 +28,7 @@ class _GridViewExampleState extends State<GridViewExample> {
 
   TextEditingController searchController = TextEditingController();
   FocusNode searchFocusNode = FocusNode();
+  int selectedVehicleIndex = -1;
 
   bool showSearchSuggestions = false;
   String selectedCategory = "All Vehicles";
@@ -276,51 +280,16 @@ class _GridViewExampleState extends State<GridViewExample> {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: ColorConstants.backgroundColor,
-      // appBar: CustomAppBar(
-      //   title: showSearchSuggestions
-      //       ? localizations.search_for_location
-      //       : localizations.category,
-      //   centerTitle: true,
-      //   leading: showSearchSuggestions
-      //       ? IconButton(
-      //           icon: Icon(
-      //             Icons.arrow_back_ios_new,
-      //             color: Colors.white,
-      //           ),
-      //           onPressed: () {
-      //             setState(() {
-      //               showSearchSuggestions = false;
-      //               searchFocusNode.unfocus();
-      //             });
-      //           },
-      //         )
-      //       : SizedBox.shrink(),
-      // ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                gradientFirst,
-                gradientSecond,
-                gradientThird,
-                Colors.white
-              ],
-              // stops: [
-              //   0.0,
-              //   0.20,
-              //   0.80,
-              // ],
-            ),
-          ),
+
+        body: CommonParentContainer(
+          showLargeGradient: false,
           child: SafeArea(
             child: Column(
               children: [
                 // ✅ Header
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: Row(
                     children: [
                       IconButton(
@@ -343,8 +312,7 @@ class _GridViewExampleState extends State<GridViewExample> {
                     ],
                   ),
                 ),
-            
-            
+
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.only(top: 8.0),
@@ -356,8 +324,7 @@ class _GridViewExampleState extends State<GridViewExample> {
               ],
             ),
           ),
-        )
-    );
+        ));
   }
 
   Widget _buildGridView(double screenWidth) {
@@ -380,28 +347,34 @@ class _GridViewExampleState extends State<GridViewExample> {
             itemBuilder: (BuildContext context, int index) {
               final suggestion = suggestions[index];
               return GestureDetector(
-                // onTap: () {
-                //   setState(() {
-                //     selectedCategory = suggestion['label']!;
-                //     showSearchSuggestions = true;
-                //     WidgetsBinding.instance.addPostFrameCallback((_) {
-                //       searchFocusNode.requestFocus();
-                //     });
-                //   });
-                // },
-                onTap: ()async{
+                onTap: () async {
+                  setState(() {
+                    selectedVehicleIndex = index;
+                  });
+
                   await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => LocationSearchScreen(
-                        selectedCategory: suggestion['key']!,
+                        selectedCategory: suggestion.name,
                         isRentVehicle: false,
                       ),
                     ),
                   );
+                  setState(() {
+                    selectedVehicleIndex = -1;
+                  });
+                  /* await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LocationSearchScreen(
+                        selectedCategory: suggestion.name,
+                        isRentVehicle: false,
+                      ),
+                    ),
+                  );*/
                 },
-                child:
-                    _suggestionItem(suggestion['label']!, suggestion['asset']!),
+                child: _suggestionItem(suggestion),
               );
             },
           );
@@ -644,38 +617,47 @@ class _GridViewExampleState extends State<GridViewExample> {
     );
   }
 
-  Widget _suggestionItem(String label, String asset) {
+  Widget _suggestionItem(VehicleType vehicle) {
     return Container(
+      padding: EdgeInsets.only(top: 28, bottom: 22, left: 4, right: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: Colors.transparent,
-          width: 2,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            vehicle.color1,
+            vehicle.color,
+          ],
+          stops: const [0.0, 0.7],
         ),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset(
-            asset,
-            height: 50,
-            width: 50,
-            fit: BoxFit.contain,
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 0),
+                child: Image.asset(
+                  vehicle.assetImagePath ?? "",
+                  width: 80,
+                  height: 50,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(fontSize: 12),
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.only(left: 0),
+            child: Text(
+              vehicle.name,
+              overflow: TextOverflow.ellipsis,
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 14, weight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -696,9 +678,60 @@ class _GridViewExampleState extends State<GridViewExample> {
 //   ];
 // }
 
-List<Map<String, String>> getLocalizedSuggestions(BuildContext context) {
+List<VehicleType> getLocalizedSuggestions(BuildContext context) {
   final localizations = AppLocalizations.of(context)!;
   return [
+    VehicleType(
+      name: localizations.car,
+      assetImagePath: AssetsConstant.car,
+      color: const Color(0xFFEF9A9A),
+      color1: const Color(0xFFFFEBEE),
+    ),
+    VehicleType(
+      name: localizations.auto,
+      assetImagePath: AssetsConstant.tukTuk,
+      color: const Color(0xFFFFE082),
+      color1: const Color(0xFFFFF8E1),
+    ),
+    VehicleType(
+      name: localizations.eRickshaw,
+      assetImagePath: AssetsConstant.auto,
+      color: const Color(0xFF9575CD),
+      color1: const Color(0xFFEDE7F6),
+    ),
+    VehicleType(
+      name: localizations.suv,
+      assetImagePath: AssetsConstant.suv,
+      color: const Color(0xFFFFAB91),
+      color1: const Color(0xFFFFEBE9),
+    ),
+    VehicleType(
+      name: localizations.minivan,
+      assetImagePath: AssetsConstant.minivan,
+      color: const Color(0xFFF48FB1),
+      color1: const Color(0xFFFCE4EC),
+    ),
+    VehicleType(
+      name: localizations.bus,
+      assetImagePath: AssetsConstant.bus,
+      color: const Color(0xFFA5D6A7),
+      color1: const Color(0xFFE8F5E9),
+    ),
+    VehicleType(
+      name: localizations.driver,
+      assetImagePath: AssetsConstant.driverBus,
+      color: const Color(0xFF81D4FA),
+      color1: const Color(0xFFE1F5FE),
+    ),
+    VehicleType(
+      name: "Luxury",
+      assetImagePath: AssetsConstant.suv,
+      color: const Color(0xFFFFAB91),
+      color1: const Color(0xFFE1F5FE),
+    ),
+  ];
+
+  /*return [
     {"key": "car", "label": localizations.car, "asset": AssetsConstant.car},
     {"key": "auto", "label": localizations.auto, "asset": AssetsConstant.tukTuk},
     {"key": "eRickshaw", "label": localizations.eRickshaw, "asset": AssetsConstant.auto},
@@ -706,6 +739,5 @@ List<Map<String, String>> getLocalizedSuggestions(BuildContext context) {
     {"key": "miniVan", "label": localizations.minivan, "asset": AssetsConstant.minivan},
     {"key": "bus", "label": localizations.bus, "asset": AssetsConstant.bus},
     {"key": "driver", "label": localizations.driver, "asset": AssetsConstant.driverBus},
-  ];
+  ];*/
 }
-

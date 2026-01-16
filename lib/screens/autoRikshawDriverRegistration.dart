@@ -1182,41 +1182,6 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
     );
   }
 
-  Widget _buildDropdownFieldForLanguage(String label, String? value,
-      List<lm.Data> items, ValueChanged<String?> onChanged) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: value,
-              isExpanded: true,
-              hint: Text(
-                'Select ${label.toLowerCase()}',
-                style: TextStyle(
-                  color: Colors.grey[400],
-                  fontSize: 16,
-                ),
-              ),
-              items: items.map((lm.Data item) {
-                return DropdownMenuItem<String>(
-                  value: item.name,
-                  child: Text(item!.name ?? ''),
-                );
-              }).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 
   bool _isDropdownOpen = false;
 

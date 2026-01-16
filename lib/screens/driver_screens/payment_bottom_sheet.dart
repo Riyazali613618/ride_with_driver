@@ -1,8 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+import 'package:r_w_r/constants/api_constants.dart';
+import 'package:r_w_r/constants/token_manager.dart';
 import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import 'package:r_w_r/screens/transporterRegistration.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/api_service/payment_service/payment_service.dart';
@@ -22,6 +26,7 @@ import '../independentCarOwnerRegistration.dart';
 class PaymentBottomSheetBlocView extends StatefulWidget {
   final PlanModel plan;
   final String planType;
+  final double rwdBalance;
   final double finalPrice;
   final PaymentType paymentType;
   final String? category;
@@ -31,6 +36,7 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
 
   const PaymentBottomSheetBlocView({
     super.key,
+    required this.rwdBalance,
     required this.finalPrice,
     this.isAdOns = false,
     required this.plan,
@@ -80,21 +86,23 @@ class _PaymentBottomSheetBlocViewState
       } else if (state is PaymentCompleted) {
         print(
             '[PaymentBottomSheet] PaymentCompleted detected - navigating and closing');
-        if (context.mounted) Navigator.pop(context);
-        if (context.mounted) Navigator.pop(context);
+        try {
+          if (context.mounted) Navigator.pop(context);
+          if (context.mounted) Navigator.pop(context);
+        } catch (e) {}
         if (widget.isAdOns) {
-          SharedPreferences? pref = await SharedPreferences.getInstance();
-
+          MyProfileData? profile = await TokenManager.getProfile();
           Navigator.of(context).pop();
           Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (context) => AddNewVehicleScreen(
-                  userType: "${pref.getString('userType')}"),
+              builder: (context) =>
+                  AddNewVehicleScreen(userType: profile?.usertype ?? "",isFromRegistration: true,),
             ),
           );
-        } else
+        } else {
           navigateBasedOnPlanType(context, widget.planType);
+        }
       } else if (state is PaymentError) {
         print('[PaymentBottomSheet] PaymentError detected: ${state.message}');
       }
@@ -185,16 +193,16 @@ class _PaymentBottomSheetBlocViewState
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              if(widget.finalPrice<=0)
+              if (widget.finalPrice <= 0)
                 Text(
-                localizations.total+" Pay",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  localizations.total + " Pay",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
               Text(
-                'Rs ${widget.finalPrice<=0?0:widget.finalPrice.toStringAsFixed(2)}',
+                'Rs ${widget.finalPrice <= 0 ? 0 : widget.finalPrice.toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -203,27 +211,48 @@ class _PaymentBottomSheetBlocViewState
             ],
           ),
           const SizedBox(height: 16),
-          if(widget.finalPrice<=0)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if(widget.finalPrice<0)
+          if (widget.finalPrice < 0)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                if (widget.finalPrice < 0)
+                  Text(
+                    "Return in RWD wallet",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 Text(
-                "Return in RWD wallet",
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  'Rs ${(widget.finalPrice.abs()).toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                'Rs ${(widget.finalPrice.abs()).toStringAsFixed(2)}',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
+              ],
+            ),
+          if (widget.rwdBalance > 0)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Remaining Amount in RWD wallet",
+                  style: TextStyle(
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
-              ),
-            ],
-          ),
+                Text(
+                  'Rs ${(widget.rwdBalance.abs()).toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           const SizedBox(height: 16),
           BlocBuilder<PaymentBloc, PaymentState>(
             builder: (context, state) {
@@ -246,6 +275,7 @@ class _PaymentBottomSheetBlocViewState
                                     ? int.parse(widget.vehicleCount)
                                     : widget.plan.maxVehicles,
                                 planType: widget.planType,
+                                rwdBalance: widget.rwdBalance,
                                 paymentType: widget.paymentType,
                                 category: widget.category,
                                 currentCategory: widget.currentCategory,
@@ -292,7 +322,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
   context.read<EligibilityBloc>().add(RefreshEligibilityEvent());
   if (planType == 'DRIVER') {
     Navigator.of(context).pop();
-   // Navigator.of(context).pop();
+    // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -301,7 +331,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'RICKSHAW') {
     Navigator.of(context).pop();
-   // Navigator.of(context).pop();
+    // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -310,7 +340,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'E_RICKSHAW') {
     Navigator.of(context).pop();
-   // Navigator.of(context).pop();
+    // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -319,7 +349,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'TRANSPORTER') {
     Navigator.of(context).pop();
-   // Navigator.of(context).pop();
+    // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -328,7 +358,7 @@ void navigateBasedOnPlanType(BuildContext context, String planType) {
     );
   } else if (planType == 'INDEPENDENT_CAR_OWNER') {
     Navigator.of(context).pop();
-   // Navigator.of(context).pop();
+    // Navigator.of(context).pop();
     Navigator.push(
       context,
       CupertinoPageRoute(

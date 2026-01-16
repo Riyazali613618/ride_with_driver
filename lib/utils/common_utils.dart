@@ -12,6 +12,7 @@ import '../constants/api_constants.dart';
 import 'color.dart';
 
 class CommonUtils {
+ static bool isProd= bool.fromEnvironment('dart.vm.product');
   static void goToScreen(BuildContext context, Widget className) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => className));
   }
