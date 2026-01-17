@@ -417,6 +417,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
               builder: (context) => BlocProvider(
                     create: (_) => ProfileBloc(ProfileRepository()),
                     child: VehicleAddedSuccessfullyScreen(
+                      isFromRegistration: widget.isFromRegistration,
                         userType: widget.userType),
                   )),
         );

@@ -304,7 +304,7 @@ class PaymentService {
 
           // Call regStatusUpdate with the subscriptionId (make it non-blocking)
           try {
-            await regStatusUpdate(subscriptionId);
+           // await regStatusUpdate(subscriptionId);
             print('[PaymentService] regStatusUpdate completed successfully');
           } catch (e) {
             // Log the error but don't fail the entire payment process
@@ -357,7 +357,7 @@ class PaymentService {
 
           // Call regStatusUpdate with the subscriptionId (make it non-blocking)
           try {
-            await regStatusUpdate(subscriptionId);
+           // await regStatusUpdate(subscriptionId);
             print('[PaymentService] regStatusUpdate completed successfully');
           } catch (e) {
             // Log the error but don't fail the entire payment process

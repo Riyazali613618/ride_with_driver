@@ -75,9 +75,13 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
 
   Future<void> _loadProfileData() async {
     await context.read<ProfileProvider>().loadProfile(context);
-    final data = await UserProfileService().getUserProfile();
-    _visiblePlan = data.subscriptions != null && data.subscriptions.isNotEmpty;
-    if (mounted) setState(() {});
+    try{
+      final data = await UserProfileService().getUserProfile();
+      _visiblePlan = data.subscriptions != null && data.subscriptions.isNotEmpty;
+      if (mounted) setState(() {});
+    }catch(e){
+
+    }
   }
 
   @override
@@ -188,7 +192,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
               context,
               CupertinoPageRoute(
                 builder: (context) =>
-                    TransporterDriverProfileScreen(userType: userType!),
+                    DriverProfileUpdateScreen(userType: userType!),
               ),
             );
           } else {

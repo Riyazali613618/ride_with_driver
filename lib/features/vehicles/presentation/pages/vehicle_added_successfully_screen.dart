@@ -43,8 +43,9 @@ import '../bloc/profile_event.dart';
 
 class VehicleAddedSuccessfullyScreen extends StatefulWidget {
   final String userType;
+  final bool isFromRegistration;
 
-  const VehicleAddedSuccessfullyScreen({required this.userType, super.key});
+  const VehicleAddedSuccessfullyScreen({required this.isFromRegistration,required this.userType, super.key});
 
   @override
   State<VehicleAddedSuccessfullyScreen> createState() =>
@@ -68,165 +69,168 @@ class _VehicleAddedSuccessfullyScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: CommonParentContainer(
-        showLargeGradient: true,
-        child: SafeArea(
-          top: false,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    "assets/svg/successfull.svg",
-                    width: 40,
-                    height: 40,
-                  ),
-                  Text(
-                    "Vehicle Added Successfully",
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                ],
-              )),
-              Flexible(
-                  flex: 1,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const SizedBox(
-                        width: 20,
-                      ),
-                      BlocConsumer<ProfileBloc, ProfileState>(
-                        listener: (context, state) async {
-                          if (state is VehicleAllowedState) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AddNewVehicleScreen(
-                                  userType: widget.userType,
-                                  isFromRegistration: true,
-                                ),
-                              ),
-                            );
-                          }
-
-                          if (state is VehicleLimitExceededState) {
-                            /* final userType = await getProfileData();
-                            showUpgradeDialog(context, userType);*/
-                            final profile = await getProfileData();
-                            isCheckingLimit = false;
-                            if (mounted) {
-                              setState(() {});
-                            }
-                            int limit = profile.vehicleLimit ?? 0;
-                            int totalVehicleAdded = profile.vehicles.length;
-                            if ((profile.addonVehicles ?? []).isNotEmpty) {
-                              limit = limit +
-                                  (profile.addonVehicles?[0].addOnVehicles ??
-                                      0);
-                            }
-                            if (totalVehicleAdded >= limit) {
-                              showUpgradeDialog(
-                                  context, profile.usertype ?? "", profile);
-                            } else {
+    return PopScope(
+      canPop: widget.isFromRegistration,
+      child: Scaffold(
+        body: CommonParentContainer(
+          showLargeGradient: true,
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Expanded(
+                    child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SvgPicture.asset(
+                      "assets/svg/successfull.svg",
+                      width: 40,
+                      height: 40,
+                    ),
+                    Text(
+                      "Vehicle Added Successfully",
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ),
+                  ],
+                )),
+                Flexible(
+                    flex: 1,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const SizedBox(
+                          width: 20,
+                        ),
+                        BlocConsumer<ProfileBloc, ProfileState>(
+                          listener: (context, state) async {
+                            if (state is VehicleAllowedState) {
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => AddNewVehicleScreen(
-                                    isFromRegistration: true,
-                                    userType: profile.usertype ?? "",
+                                    userType: widget.userType,
+                                    isFromRegistration: widget.isFromRegistration,
                                   ),
                                 ),
                               );
                             }
-                          }
 
-                          if (state is ProfileErrorState) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(state.message)),
-                            );
-                          }
-                        },
-                        builder: (context, state) {
-                          return isCheckingLimit
-                              ? SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.purple,
-                                    strokeWidth: 1,
-                                  ),
-                                )
-                              : InkWell(
-                                  onTap: state is ProfileLoading
-                                      ? null
-                                      : () {
-                                          if (isCheckingLimit) return;
-                                          isCheckingLimit = true;
-                                          context
-                                              .read<ProfileBloc>()
-                                              .add(CheckVehicleLimitEvent());
-                                        },
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 20, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(20),
-                                      gradient: const LinearGradient(
-                                        colors: [gradientFirst, gradientSecond],
-                                      ),
+                            if (state is VehicleLimitExceededState) {
+                              /* final userType = await getProfileData();
+                              showUpgradeDialog(context, userType);*/
+                              final profile = await getProfileData();
+                              isCheckingLimit = false;
+                              if (mounted) {
+                                setState(() {});
+                              }
+                              int limit = profile.vehicleLimit ?? 0;
+                              int totalVehicleAdded = profile.vehicles.length;
+                              if ((profile.addonVehicles ?? []).isNotEmpty) {
+                                limit = limit +
+                                    (profile.addonVehicles?[0].addOnVehicles ??
+                                        0);
+                              }
+                              if (totalVehicleAdded >= limit) {
+                                showUpgradeDialog(
+                                    context, profile.usertype ?? "", profile);
+                              } else {
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AddNewVehicleScreen(
+                                      isFromRegistration: widget.isFromRegistration,
+                                      userType: profile.usertype ?? "",
                                     ),
-                                    child: state is ProfileLoading
-                                        ? const SizedBox(
-                                            height: 14,
-                                            width: 14,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Colors.white,
-                                            ),
-                                          )
-                                        : const Text(
-                                            "Add more vehicle",
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
                                   ),
                                 );
-                        },
-                      ),
-                      Spacer(),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const Layout()),
-                            (route) => false,
-                          );
-                        },
-                        child: Text(
-                          "Skip",
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black),
+                              }
+                            }
+
+                            if (state is ProfileErrorState) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text(state.message)),
+                              );
+                            }
+                          },
+                          builder: (context, state) {
+                            return isCheckingLimit
+                                ? SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.purple,
+                                      strokeWidth: 1,
+                                    ),
+                                  )
+                                : InkWell(
+                                    onTap: state is ProfileLoading
+                                        ? null
+                                        : () {
+                                            if (isCheckingLimit) return;
+                                            isCheckingLimit = true;
+                                            context
+                                                .read<ProfileBloc>()
+                                                .add(CheckVehicleLimitEvent());
+                                          },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        gradient: const LinearGradient(
+                                          colors: [gradientFirst, gradientSecond],
+                                        ),
+                                      ),
+                                      child: state is ProfileLoading
+                                          ? const SizedBox(
+                                              height: 14,
+                                              width: 14,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Text(
+                                              "Add more vehicle",
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                    ),
+                                  );
+                          },
                         ),
-                      ),
-                      const SizedBox(
-                        width: 20,
-                      ),
-                    ],
-                  ))
-            ],
+                        Spacer(),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const Layout()),
+                              (route) => false,
+                            );
+                          },
+                          child: Text(
+                            "Skip",
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 20,
+                        ),
+                      ],
+                    ))
+              ],
+            ),
           ),
         ),
       ),
