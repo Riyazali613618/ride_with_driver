@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/components/custom_activity.dart';
 import 'package:r_w_r/constants/color_constants.dart';
@@ -335,6 +336,11 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
               .where((option) => allowedCategories.contains(option['key']))
               .toList();
           currentCategory = state.data.data?.currentCategory ?? "";
+        }else if(state is UpgradeablePlansLoading){
+          return Center(
+            child: SizedBox(width: 50,height: 50,
+            child: CircularProgressIndicator(color: AppColors.blue,strokeWidth: 2,),),
+          );
         } else {
           filteredOptions = List<Map<String, dynamic>>.from(options);
         }

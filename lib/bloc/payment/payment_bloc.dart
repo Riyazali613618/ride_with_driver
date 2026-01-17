@@ -84,7 +84,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     try {
       // Create order for Razorpay payment
       late Map<String, dynamic> orderResponse;
-final rwdBalance=event.rwdBalance??0;
+      final rwdBalance = event.rwdBalance ?? 0;
       switch (event.paymentType) {
         case PaymentType.subscriptionRenewal:
           isAddOns = false;
@@ -92,9 +92,11 @@ final rwdBalance=event.rwdBalance??0;
           orderResponse =
               await PaymentService.createOrderForSubscriptionRenewal(
                   planId: event.plan.id,
-                  rwd_balance:rwdBalance>0?rwdBalance: (event.finalPrice ?? 0) < 0
-                      ? event.finalPrice?.abs() ?? 0
-                      : 0);
+                  rwd_balance: rwdBalance > 0
+                      ? rwdBalance
+                      : (event.finalPrice ?? 0) < 0
+                          ? event.finalPrice?.abs() ?? 0
+                          : 0);
           break;
         case PaymentType.registrationOnly:
           isAddOns = false;
@@ -103,9 +105,11 @@ final rwdBalance=event.rwdBalance??0;
               category: event.category ?? event.planType,
               currentCategory: event.currentCategory ?? "",
               planId: event.plan.id,
-              rwd_balance:rwdBalance>0?rwdBalance:  (event.finalPrice ?? 0) < 0
-                  ? event.finalPrice?.abs() ?? 0
-                  : 0);
+              rwd_balance: rwdBalance > 0
+                  ? rwdBalance
+                  : (event.finalPrice ?? 0) < 0
+                      ? event.finalPrice?.abs() ?? 0
+                      : 0);
           break;
         case PaymentType.registrationWithSubscription:
           maxVehicles = event.maxvehicles ?? 1;
@@ -114,15 +118,19 @@ final rwdBalance=event.rwdBalance??0;
                   category: event.category ?? event.planType,
                   currentCategory: event.currentCategory ?? "",
                   planId: event.plan.id,
+                  planName: event.planName??"",
+                  benefits: event.benefits??[],
                   isAdOns: event.isAdOns,
                   maxvehicles: event.maxvehicles ?? 1,
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
                   pay_amount:
                       double.parse((event.finalPrice?.toInt()).toString()) ?? 0,
-                  rwd_balance:rwdBalance>0?rwdBalance: (event.finalPrice ?? 0) < 0
-                      ? event.finalPrice?.abs() ?? 0
-                      : 0);
+                  rwd_balance: rwdBalance > 0
+                      ? rwdBalance
+                      : (event.finalPrice ?? 0) < 0
+                          ? event.finalPrice?.abs() ?? 0
+                          : 0);
         case PaymentType.addOns:
           maxVehicles = event.maxvehicles ?? 1;
           orderResponse =
@@ -135,9 +143,11 @@ final rwdBalance=event.rwdBalance??0;
                   durationInMonths: event.duration ?? 0,
                   earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
                   pay_amount: event.finalPrice ?? 0,
-                  rwd_balance:rwdBalance>0?rwdBalance: (event.finalPrice ?? 0) < 0
-                      ? event.finalPrice?.abs() ?? 0
-                      : 0);
+                  rwd_balance: rwdBalance > 0
+                      ? rwdBalance
+                      : (event.finalPrice ?? 0) < 0
+                          ? event.finalPrice?.abs() ?? 0
+                          : 0);
           break;
       }
       isAddOns = event.isAdOns;

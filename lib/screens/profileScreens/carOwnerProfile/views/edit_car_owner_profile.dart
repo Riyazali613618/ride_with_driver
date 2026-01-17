@@ -84,7 +84,7 @@ class _EditCarOwnerProfileState extends State<EditCarOwnerProfile> {
 
                             }
                           }),
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 10),
                       ProfileForm(
                         profile: state.profile.data,
                         onUpdate: () {

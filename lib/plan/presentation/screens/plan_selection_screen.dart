@@ -557,27 +557,61 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
             Row(
               children: [
                 Text(
-                  "Total: ",
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12),
+                  "Subscription Total: ",
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 12),
                 ),
                 Spacer(),
                 Text(
-                  (count * widget.plan.finalPrice).toStringAsFixed(2),
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 12),
+                  "₹${(widget.plan.grossPrice).toStringAsFixed(2)}",
+                  style: CommonUtils.commonTitleStyle(fontSize: 12),
                 )
               ],
             ),
-            const SizedBox(height: 10),
             Row(
               children: [
                 Text(
-                  "Discount Applied: ",
+                  "Total Discount: ",
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                ),
+                Spacer(),
+                Text(
+                  "-₹${(widget.plan.earlyBirdDiscountPrice).toStringAsFixed(2)}",
+                  style: CommonUtils.commonTitleStyle(fontSize: 12),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  "After Discount Subscription Price: ",
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                ),
+                Spacer(),
+                Text(
+                  "₹${(widget.plan.grossPrice -
+                              widget.plan.earlyBirdDiscountPrice)
+                          .toStringAsFixed(2)}",
+                  style: CommonUtils.commonTitleStyle(fontSize: 12),
+                )
+              ],
+            ),
+            Row(
+              children: [
+                Text(
+                  "Vehicles Price: ",
+                  style: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                ),
+                Spacer(),
+                Text(
+                  "+₹${(count > 2 ? (count - 2) * widget.plan.perVehiclePrice : 0).toStringAsFixed(2)}",
+                  style: CommonUtils.commonTitleStyle(fontSize: 12),
+                )
+              ],
+            ),
+             Row(
+              children: [
+                Text(
+                  "RWD Wallet: ",
                   style: TextStyle(
                       color: Colors.black,
                       fontWeight: FontWeight.w500,
@@ -585,7 +619,7 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
                 ),
                 Spacer(),
                 Text(
-                  (count * widget.plan.earlyBirdDiscountPrice)
+                  ( widget.myProfileData?.rwdBalance??0)
                       .toStringAsFixed(2),
                   style: TextStyle(
                       color: Colors.black,
@@ -790,8 +824,9 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
 
   double getAmountToPayForUpgradeToTransporter() {
     try {
-      final perVehiclePrice = widget.plan.finalPrice;
-      final amount = (perVehiclePrice * (widget.count));
+      final perVehiclePrice = widget.plan.grossPrice;
+      double amount = (perVehiclePrice * (widget.count - 2));
+      amount = amount + perVehiclePrice;
       final discount = (widget.plan.earlyBirdDiscountPercentage * amount) / 100;
       final subscriptionAmount = amount - discount;
       final taxRate =
@@ -992,7 +1027,7 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                     "₹ ${rwdBalance.toStringAsFixed(2)}"),
               if (walletAmount > 0)
                 _priceRow("Remaining Wallet Balance after payment-",
-                    "₹ ${((walletAmount-rwdBalance).abs()).toStringAsFixed(2)}"),
+                    "₹ ${((walletAmount - rwdBalance).abs()).toStringAsFixed(2)}"),
               const Divider(),
               _priceRow(
                   "Payable Amount: ", "₹ ${(amountToPay).toStringAsFixed(2)}",
@@ -1028,11 +1063,13 @@ class _ShortTermPlanBottomSheetState extends State<ShortTermPlanBottomSheet> {
                         child: PaymentBottomSheetBlocView(
                           isAdOns: widget.isAdOns,
                           plan: widget.plan,
+                          benefits: widget.plan.features,
+                          planName: widget.plan.name,
                           finalPrice: amountToPay,
                           rwdBalance: walletAmount,
                           planType: widget.category,
                           vehicleCount:
-                              ((widget.plan.maxVehicles ?? 0)).toString(),
+                              ((widget.plan.maxVehicles ?? 0)+(widget.count-2)).toString(),
                           currentCategory: widget.currentCategory,
                           paymentType: PaymentType.registrationWithSubscription,
                           category: widget.category,

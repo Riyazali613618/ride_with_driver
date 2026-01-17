@@ -76,6 +76,7 @@ class MyProfileData {
     required this.independentCarOwnerFleetSize,
     required this.isUpgradeAccount,
     required this.language,
+    required this.benefits,
     required this.languageSpoken,
     required this.lastName,
     required this.lat,
@@ -143,6 +144,7 @@ class MyProfileData {
   final bool? isUpgradeAccount;
   final Language? language;
   final List<dynamic> languageSpoken;
+  final List<String> benefits;
   final String? lastName;
   final dynamic lat;
   final dynamic lng;
@@ -208,6 +210,7 @@ class MyProfileData {
     IndependentCarOwnerFleetSize? independentCarOwnerFleetSize,
     bool? isUpgradeAccount,
     Language? language,
+    List<String>? benefits,
     List<dynamic>? languageSpoken,
     String? lastName,
     dynamic? lat,
@@ -275,6 +278,7 @@ class MyProfileData {
           independentCarOwnerFleetSize ?? this.independentCarOwnerFleetSize,
       isUpgradeAccount: isUpgradeAccount ?? this.isUpgradeAccount,
       language: language ?? this.language,
+      benefits: benefits ?? this.benefits,
       languageSpoken: languageSpoken ?? this.languageSpoken,
       lastName: lastName ?? this.lastName,
       lat: lat ?? this.lat,
@@ -351,6 +355,9 @@ class MyProfileData {
       isUpgradeAccount: json["isUpgradeAccount"],
       language:
           json["language"] == null ? null : Language.fromJson(json["language"]),
+      benefits: json["benefits"] == null
+          ? []
+          : List<String>.from(json["benefits"]!.map((x) => x)),
       languageSpoken: json["languageSpoken"] == null
           ? []
           : List<dynamic>.from(json["languageSpoken"]!.map((x) => x)),
@@ -401,9 +408,10 @@ class MyProfileData {
           : List<dynamic>.from(json["renewal_subscriptions"]!.map((x) => x)),
       addonVehicles: json["addonVehicles"] == null
           ? []
-          : List<AddOnVehicles>.from(json["addonVehicles"]!.map((x) => AddOnVehicles.fromJson(x))),
+          : List<AddOnVehicles>.from(
+              json["addonVehicles"]!.map((x) => AddOnVehicles.fromJson(x))),
       vehicleLimit: json["vehicleLimit"],
-      rwdBalance: double.parse(json["rwd_balance"].toString())??0,
+      rwdBalance: double.parse(json["rwd_balance"].toString()) ?? 0,
     );
   }
 
@@ -442,6 +450,7 @@ class MyProfileData {
         "isUpgradeAccount": isUpgradeAccount,
         "language": language?.toJson(),
         "languageSpoken": languageSpoken.map((x) => x).toList(),
+        "benefits": benefits.map((x) => x).toList(),
         "lastName": lastName,
         "lat": lat,
         "lng": lng,
@@ -471,7 +480,7 @@ class MyProfileData {
         "expired_subscriptions":
             expiredSubscriptions.map((x) => x?.toJson()).toList(),
         "renewal_subscriptions": renewalSubscriptions.map((x) => x).toList(),
-        "addonVehicles": addonVehicles?.map((x) => x).toList()??[],
+        "addonVehicles": addonVehicles?.map((x) => x).toList() ?? [],
         "vehicleLimit": vehicleLimit,
         "rwd_balance": rwdBalance,
       };
@@ -486,6 +495,7 @@ class Subscription {
   Subscription({
     required this.id,
     required this.plan,
+    required this.planName,
     required this.maxVehicles,
     required this.category,
     required this.status,
@@ -501,9 +511,12 @@ class Subscription {
     required this.upgradeSubscriptionId,
     required this.createdAt,
     required this.updatedAt,
+    required this.benefits,
   });
 
+  final List<String>? benefits;
   final String? id;
+  final String? planName;
   final String? plan;
   final int? maxVehicles;
   final String? category;
@@ -524,6 +537,7 @@ class Subscription {
   Subscription copyWith({
     String? id,
     String? plan,
+    String? planName,
     int? maxVehicles,
     String? category,
     String? status,
@@ -538,16 +552,19 @@ class Subscription {
     String? upgradeId,
     dynamic? upgradeSubscriptionId,
     DateTime? createdAt,
+    List<String>? benefits,
     DateTime? updatedAt,
   }) {
     return Subscription(
       id: id ?? this.id,
+      planName: planName ?? this.planName,
       plan: plan ?? this.plan,
       maxVehicles: maxVehicles ?? this.maxVehicles,
       category: category ?? this.category,
       status: status ?? this.status,
       orderId: orderId ?? this.orderId,
       startDate: startDate ?? this.startDate,
+      benefits: benefits ?? this.benefits,
       endDate: endDate ?? this.endDate,
       subscriptionType: subscriptionType ?? this.subscriptionType,
       subscriptionAmount: subscriptionAmount ?? this.subscriptionAmount,
@@ -565,6 +582,7 @@ class Subscription {
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
       id: json["_id"],
+      planName: json["planName"] ?? "",
       plan: json["plan"],
       maxVehicles: json["max_vehicles"],
       category: json["category"],
@@ -578,6 +596,9 @@ class Subscription {
       isUpgrade: json["isUpgrade"],
       upgradeFromCategory: json["upgradeFromCategory"],
       upgradeId: json["upgradeId"],
+      benefits: json["benefits"] == null
+          ? []
+          : List<String>.from(json["benefits"]!.map((x) => x)),
       upgradeSubscriptionId: json["upgradeSubscriptionId"],
       createdAt: DateTime.tryParse(json["createdAt"] ?? ""),
       updatedAt: DateTime.tryParse(json["updatedAt"] ?? ""),
@@ -586,6 +607,8 @@ class Subscription {
 
   Map<String, dynamic> toJson() => {
         "_id": id,
+        "benefits": benefits,
+        "planName": planName,
         "plan": plan,
         "max_vehicles": maxVehicles,
         "category": category,

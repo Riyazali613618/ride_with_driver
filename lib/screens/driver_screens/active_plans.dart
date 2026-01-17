@@ -1,17 +1,37 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
+import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../api/api_model/subscription/active_plan_model.dart';
+import '../../api/api_service/countryStateProviderService.dart';
+import '../../api/api_service/payment_service/payment_service.dart';
 import '../../api/api_service/subscription/active_plan.dart';
+import '../../bloc/payment/payment_bloc.dart';
 import '../../components/app_invoice_viewer.dart';
 import '../../constants/color_constants.dart';
+import '../../features/vehicles/presentation/addOns/add_on_vehicles_bottom_sheet.dart';
 import '../../l10n/app_localizations.dart';
+import '../../plan/data/models/plan_model.dart';
+import '../../plan/data/repositories/plan_repository.dart';
+import '../../plan/data/services/plan_service.dart' show PlanService;
+import '../../plan/presentation/bloc/plan_bloc.dart';
+import '../autoRikshawDriverRegistration.dart';
+import '../driverRegistrationScreen.dart';
+import '../eRickshawRegistration.dart';
+import '../independentCarOwnerRegistration.dart';
+import '../transporterRegistration.dart';
+import '../user_screens/PartnerRegistrationWidget.dart';
 
 class SubscriptionsScreen extends StatefulWidget {
   final String baseUrl;
@@ -34,6 +54,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) {
+        getPlans();
+      },
+    );
     // Don't call _fetchSubscriptionData here
   }
 
@@ -93,48 +118,17 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      // backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   backgroundColor: ColorConstants.primaryColor,
-      //   elevation: 0,
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-      //     onPressed: () => Navigator.of(context).pop(),
-      //   ),
-      //   title: Column(
-      //     crossAxisAlignment: CrossAxisAlignment.start,
-      //     children: [
-      //       Text(
-      //         localizations.active_subscriptions,
-      //         style: TextStyle(
-      //           color: ColorConstants.white,
-      //           fontSize: 18,
-      //           fontWeight: FontWeight.w600,
-      //         ),
-      //       ),
-      //       Text(
-      //         localizations.manage_subscriptions,
-      //         style: TextStyle(
-      //           color: Colors.grey,
-      //           fontSize: 14,
-      //           fontWeight: FontWeight.normal,
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      //   titleSpacing: 0,
-      // ),
       body: CommonParentContainer(
         showLargeGradient: true,
         child: SingleChildScrollView(
           child: Column(
             children: [
               SizedBox(
-                height: 20,
+                height: 40,
               ),
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 30),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
                 child: Row(
                   children: [
                     IconButton(
@@ -151,28 +145,30 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                           Text(
                             localizations.active_subscriptions,
                             style: TextStyle(
+                              fontFamily: AppConstants.ptSansFont,
                               color: ColorConstants.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                          Text(
+                          /*  Text(
                             localizations.manage_subscriptions,
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 14,
                               fontWeight: FontWeight.normal,
                             ),
-                          ),
+                          ),*/
                         ],
                       ),
                     ),
                   ],
                 ),
               ),
-              SafeArea(
-                child: _buildBody(),
+              SizedBox(
+                height: 20,
               ),
+              _buildBody(),
             ],
           ),
         ),
@@ -278,23 +274,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            localizations.active_plan,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          const SizedBox(height: 16),
           if (activeSubscriptions.isNotEmpty)
             _buildActivePlanCard(
               activeSubscriptions,
             ),
+          const SizedBox(height: 10),
+
+          _buildActionButtons(activeSubscriptions),
+
           if (expiredSubscription.isNotEmpty) ...[
             const SizedBox(height: 24),
             Text(
@@ -306,14 +297,23 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            ...expiredSubscription
+            /*  ...expiredSubscription
                 .map(
                   (transaction) => Padding(
                     padding: const EdgeInsets.only(bottom: 12),
                     child: _buildTransactionItem(transaction),
                   ),
                 )
-                .toList(),
+                .toList(),*/
+            SizedBox(
+                height: 110,
+                child: ListView.builder(
+                  itemCount: expiredSubscription.length,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    return _buildTransactionItem(expiredSubscription[index]);
+                  },
+                ))
           ],
           const SizedBox(height: 24),
           // _buildActionButtons(),
@@ -325,200 +325,146 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   Widget _buildActivePlanCard(List<Subscription> activePlan) {
     final localizations = AppLocalizations.of(context)!;
 
-    final bool isPro = true;
-    final Color cardColor = ColorConstants.primaryColor;
-    final Color textColor = Colors.white;
-    final Color featureIconBorderColor = Colors.white;
-    final Color featureIconBackgroundColor = Colors.transparent;
-
-    final double priceInStandardUnit = (activePlan[0].totalAmount ?? 0) / 1;
-
-    // Safe date handling
-    final expiryDate =
-        DateFormat("dd-MM-yyyy hh:mm a").format(activePlan[0].endDate!);
-    // final purchaseDate = activePlan.validity;
-
-    // String formattedEndDate = expiryDate != null
-    //     ? DateFormat('MMMM d, yyyy').format(expiryDate)
-    //     : 'Invalid date';
-    //
-    // // Calculate days remaining safely
-    // int daysRemaining = 0;
-    // if (expiryDate != null) {
-    //   daysRemaining = expiryDate.difference(DateTime.now()).inDays;
-    //   if (daysRemaining < 0) daysRemaining = 0;
-    // }
+    final data = activePlan[0];
+    if (data == null) {
+      return SizedBox.shrink();
+    }
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
       decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(12),
+        color: const Color(0x291FAF38),
+        borderRadius: BorderRadius.circular(27),
+        border: Border.all(color: Color(0xFF1FAF38)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withAlpha(25),
-            spreadRadius: 0,
-            blurRadius: 10,
+            color: Color(0x1F000000),
+            blurRadius: 30,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            data.planName ?? "",
+            style: CommonUtils.commonTitleStyle(
+                weight: FontWeight.w700, fontSize: 14),
+          ),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(50),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.check_circle,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Active',
+              Flexible(
+                  child: Align(
+                alignment: Alignment.centerLeft,
+                child: IntrinsicWidth(
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 1),
+                    decoration: BoxDecoration(
+                        color: Color(0x1F641BB4),
+                        border: Border.all(color: AppColors.blue, width: 0.5),
+                        borderRadius: BorderRadius.all(Radius.circular(12))),
+                    child: Text(
+                      "Validity: ${getDuration(data)} months | Expires On: ${DateFormat('dd MMM yyyy').format(activePlan[0].endDate!)}",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontFamily: AppConstants.ptSansFont,
+                        fontSize: 10,
+                        color: Colors.black,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              )),
+              const SizedBox(width: 8),
+              const Icon(Icons.info_outline, size: 20),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// PRICE
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: "₹ ${(data.totalAmount ?? 0).toStringAsFixed(0)}",
+                  style: TextStyle(
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.blue,
+                  ),
+                ),
+                TextSpan(
+                  text: " (Vehicle-${data.maxVehicles})",
+                  style: TextStyle(
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 14,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          /// BENEFITS TITLE
+          const Text(
+            "Benefits:",
+            style: TextStyle(
+              fontFamily: AppConstants.ptSansFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+            ),
+          ),
+
+          const SizedBox(height: 5),
+
+          /// BENEFITS GRID
+          if ((data.benefits ?? []).isNotEmpty)
+            GridView.builder(
+              shrinkWrap: true,
+              padding: EdgeInsets.zero,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: (data.benefits ?? []).length > 5
+                  ? 5
+                  : data.benefits?.length ?? 0,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 2,
+                mainAxisSpacing: 5,
+                childAspectRatio: 5,
+              ),
+              itemBuilder: (context, index) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.check_circle,
+                      size: 18,
+                      color: Color(0xFF1FAF38),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        data.benefits![index],
+                        style: const TextStyle(
+                          fontFamily: AppConstants.ptSansFont,
+                          fontSize: 11,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w400,
+                        ),
                       ),
                     ),
                   ],
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(50),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.star,
-                  size: 18,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            activePlan[0].category ?? "",
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: textColor,
+                );
+              },
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '₹$priceInStandardUnit',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                '',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white70,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withAlpha(25),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: textColor.withAlpha(200),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    DateFormat('yyyy-MM-dd hh:mm a')
-                        .format(activePlan[0].endDate!),
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textColor.withAlpha(200),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            activePlan[0].category ?? "",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-          const SizedBox(height: 12),
-          /*...activePlan.features
-              .map((feature) => Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 20,
-                  height: 20,
-                  margin: const EdgeInsets.only(top: 2),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: featureIconBackgroundColor,
-                    border: Border.all(
-                        color: featureIconBorderColor, width: 2),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      CupertinoIcons.checkmark_alt,
-                      size: 12,
-                      color: textColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    feature,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: textColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ))
-              .toList(),*/
         ],
       ),
     );
@@ -538,92 +484,92 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   }
 
   Widget _buildTransactionItem(Subscription transaction) {
-    final localizations = AppLocalizations.of(context)!;
-
-    final double amountInStandardUnit =
-        (transaction.subscriptionAmount ?? 0) / 1;
-
-    final transactionDate = DateTime.now();
-    String formattedDate = transactionDate != null
-        ? DateFormat('MMM d, yyyy').format(transactionDate)
-        : 'Invalid date';
     return GestureDetector(
       onTap: () {
         _showInvoiceBottomSheet(
-            context, transaction.subscriptionAmount.toString());
+          context,
+          transaction.subscriptionAmount.toString(),
+        );
       },
       child: Container(
+        width: MediaQuery.of(context).size.width*0.60, // ✅ FIXED WIDTH (REQUIRED)
+        margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: const Color(0x57D9D9D9),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: const Color(0xFFD9D9D9)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1F000000),
+              blurRadius: 25.04,
+              offset: Offset(0, 3.34),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.file_download_outlined,
-                color: ColorConstants.primaryColor,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    transaction.category ?? "",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Text(
-                    transactionDate != null
-                        ? '${localizations.paymentOn}$formattedDate'
-                        : ' ',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
+            /// TITLE
+            Row(
               children: [
-                Text(
-                  '₹$amountInStandardUnit',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                Expanded(
+                  child: Text(
+                    maxLines: 2,
+                    transaction.planName ?? "",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(4),
+                const Icon(Icons.info_outline, size: 20),
+              ],
+            ),
+
+            const SizedBox(height: 2),
+
+            /// PRICE + VALIDITY
+            Row(
+              children: [
+                Text(
+                  "₹ ${(transaction.totalAmount ?? 0).toStringAsFixed(0)}",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF666666),
                   ),
-                  child: Text(
-                    "EXPIRED",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange.shade700,
-                    ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  "Validity: ${getDuration(transaction)} months",
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Colors.black,
                   ),
                 ),
               ],
+            ),
+
+            const SizedBox(height: 2),
+
+            /// VALIDITY CHIP (WRAP WIDTH)
+            Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF2F2F2),
+                border: Border.all(color: const Color(0xFFD9D9D9)),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                "Validity: ${getDuration(transaction)} months | "
+                    "Expires On: ${DateFormat('dd MMM yyyy').format(transaction.endDate!)}",
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),
@@ -631,46 +577,223 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  Widget _buildActionButtons() {
+  Widget _buildActionButtons(List<Subscription> activeSubscriptions) {
     final localizations = AppLocalizations.of(context)!;
 
-    return Column(
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Container(
-          width: double.infinity,
-          height: 50,
-          margin: const EdgeInsets.only(bottom: 12),
-          child: ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                      builder: (context) => PlanSelectionScreen(
-                            planType: "UPGRADE",
-                            planFor: '',
-                            countryId: '',
-                            stateId: '',
-                          )));
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: ColorConstants.primaryColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              elevation: 0,
+        Expanded(
+            child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            SvgPicture.asset(
+              "assets/svg/download.svg",
+              width: 20,
+              height: 20,
             ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(
+              "Invoice",
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 12, color: AppColors.blue),
+            )
+          ],
+        )),
+        Expanded(
+            child: Container(
+          width: double.infinity,
+          height: 35,
+          alignment: Alignment.center,
+          margin: const EdgeInsets.only(bottom: 0),
+          decoration: BoxDecoration(
+              color: Color(0xFF0064E0),
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: GestureDetector(
+            onTap: () async {
+              final eligibleData = await UserProfileService().getEligibility();
+              if(eligibleData.data?.paymentPhase=="PRE_REGISTRATION"){
+                _navigateToApplication(eligibleData.data?.category??"");
+              }else
+              if (activeSubscriptions[0].category == "TRANSPORTER") {
+                getPlanData(activeSubscriptions[0].category);
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider(
+                      create: (context) => PlanBloc(
+                        RepositoryProvider.of<PlanRepository>(context),
+                      ),
+                      child: PartnerRegistrationWidget(),
+                    ),
+                  ),
+                );
+              }
+            },
             child: Text(
-              localizations.upgrade_plan,
+              "Renew Plan/Upgrade",
               style: TextStyle(
-                fontSize: 16,
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 12,
                 color: ColorConstants.white,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
-        ),
+        ))
       ],
     );
+  }
+  Future<void> _navigateToApplication(String type) async {
+    Widget? destination;
+
+    String userType = type;
+    if (userType == "RICKSHAW") {
+      destination = AutoRickshawDriverFlow();
+    } else if (userType == "DRIVER") {
+      destination = DriverRegistrationFlow();
+    } else if (userType == "E_RICKSHAW") {
+      destination = ERickshawDriverFlow();
+    } else if (userType == "TRANSPORTER") {
+      destination = TransporterRegistrationFlow();
+    } else if (userType == "INDEPENDENT_CAR_OWNER") {
+      destination = IndependentTaxiOwnerFlow();
+    }
+
+    if (destination != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => destination!),
+      ).then((_) {
+      });
+    }
+  }
+
+  List<PlanModel> subscriptionPlanList = [];
+  MyProfileData? profileData;
+
+  Future<void> getPlans() async {
+    final langProvider = Provider.of<LocationProvider>(context, listen: false);
+
+    final currentCountry =
+        langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
+    final selectedState =
+        langProvider.selectedState ?? ApiConstants.defaultStateCodeDel;
+    if (selectedState.isEmpty) {
+      await langProvider.fetchStates(currentCountry);
+    }
+    profileData = await UserProfileService().getUserProfile();
+    final response = await PlanService.getPlans(
+        countryId: currentCountry,
+        planFor: profileData?.usertype ?? "",
+        stateId: selectedState);
+    if (response != null && response['success'] == true) {
+      final List<dynamic> planList = response['data']['plans'];
+      final list = planList.map((e) => PlanModel.fromJson(e)).toList();
+      if (list.isNotEmpty) {
+        subscriptionPlanList = list;
+        setState(() {});
+      }
+    }
+  }
+
+  PlanModel? getActivePlanData(String planId) {
+    if (subscriptionPlanList.isEmpty) {
+      return null;
+    }
+    for (var data in subscriptionPlanList) {
+      if (data.id == planId) {
+        return data;
+      }
+    }
+    return null;
+  }
+
+  Future<void> getPlanData(String? category) async {
+    final langProvider = Provider.of<LocationProvider>(context, listen: false);
+
+    final currentCountry =
+        langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
+    final selectedState =
+        langProvider.selectedState ?? ApiConstants.defaultStateCodeDel;
+    if (selectedState.isEmpty) {
+      await langProvider.fetchStates(currentCountry);
+    }
+    final response = await PlanService.getPlans(
+        countryId: currentCountry,
+        planFor: "TRANSPORTER",
+        stateId: selectedState);
+    if (response != null && response['success'] == true) {
+      final List<dynamic> planList = response['data']['plans'];
+      final list = planList.map((e) => PlanModel.fromJson(e)).toList();
+      if (list.isNotEmpty) {
+        final data = list[0];
+        final features = data.features;
+        final discount = data.earlyBirdDiscountPercentage;
+        final price = data.finalPrice;
+        final price2 = data.grossPrice;
+        final duration = data.durationInMonths;
+        final rwdBalance = profileData?.rwdBalance ?? 0;
+        showAddVehicleQtyPopup(rwdBalance, context, data, "TRANSPORTER",
+            "TRANSPORTER", PaymentType.addOns, 1, true);
+      }
+    }
+  }
+
+  void showAddVehicleQtyPopup(
+      double rwdBalance,
+      BuildContext context,
+      PlanModel plan,
+      String category,
+      String currentCategory,
+      PaymentType planType,
+      int count,
+      bool isAdOns) {
+    showDialog(
+      context: context,
+      builder: (_) => NumberOfVehiclesPopup(
+        initialValue: count,
+        plan: plan,
+        isAdOns: isAdOns,
+        onConfirm: (count) {
+          showAddOnPlanBottomSheet(rwdBalance, isAdOns, context, plan, category,
+              currentCategory, planType, count);
+        },
+      ),
+    );
+  }
+
+  getDuration(Subscription data) {
+    DateTime? startDate = data.startDate;
+    DateTime? endDate = data.endDate;
+    if (endDate == null || startDate == null) {
+      return 1;
+    }
+    if (startDate.isAfter(endDate)) {
+      final temp = startDate;
+      startDate = endDate;
+      endDate = temp;
+    }
+
+    int yearDiff = endDate.year - startDate.year;
+    int monthDiff = endDate.month - startDate.month;
+    if (yearDiff == 0) {
+      return monthDiff;
+    }
+
+    int totalMonths = yearDiff * 12 + monthDiff;
+
+    // Adjust if end day is before start day
+    if (endDate.day < startDate.day) {
+      totalMonths--;
+    }
+
+    return totalMonths;
   }
 }
 
@@ -680,4 +803,32 @@ extension StringExtension on String {
     if (isEmpty) return this;
     return "${this[0].toUpperCase()}${substring(1).toLowerCase()}";
   }
+}
+
+void showAddOnPlanBottomSheet(
+    double rwdBalance,
+    bool isAdOns,
+    BuildContext context,
+    PlanModel plan,
+    String category,
+    String currentCategory,
+    PaymentType planType,
+    int count) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => BlocProvider.value(
+      value: context.read<PaymentBloc>(),
+      child: AddOnPlanBottomSheet(
+          context: context,
+          isAdOns: isAdOns,
+          plan: plan,
+          rwdBalance: rwdBalance,
+          category: category,
+          currentCategory: currentCategory,
+          planType: planType,
+          count: count),
+    ),
+  );
 }

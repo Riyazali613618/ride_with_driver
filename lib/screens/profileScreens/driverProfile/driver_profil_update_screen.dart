@@ -5,23 +5,23 @@ import 'package:r_w_r/screens/profileScreens/carOwnerProfile/bloc/car_owner_prof
 import 'package:r_w_r/screens/profileScreens/carOwnerProfile/bloc/car_owner_profile_state.dart';
 import 'package:r_w_r/screens/profileScreens/carOwnerProfile/car_owner_profile_api_service.dart';
 import 'package:r_w_r/screens/profileScreens/carOwnerProfile/car_owner_profile_repository.dart';
-import 'package:r_w_r/screens/profileScreens/carOwnerProfile/views/profile_form.dart';
 import 'package:r_w_r/screens/profileScreens/eRickshawProfile/rickshaw_profile_form.dart';
 import 'package:r_w_r/utils/common_utils.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 
 import '../carOwnerProfile/bloc/car_owner_profile_event.dart';
 import '../carOwnerProfile/views/edit_profile_header.dart';
+import 'driver_profile_form.dart';
 
-class ERickshawOwnerProfile extends StatefulWidget {
+class DriverProfileUpdateScreen extends StatefulWidget {
   final String userType;
-  const ERickshawOwnerProfile({this.userType="",super.key});
+  const DriverProfileUpdateScreen({this.userType="",super.key});
 
   @override
-  State<ERickshawOwnerProfile> createState() => _ERickshawOwnerProfileState();
+  State<DriverProfileUpdateScreen> createState() => _DriverProfileUpdateScreenState();
 }
 
-class _ERickshawOwnerProfileState extends State<ERickshawOwnerProfile> {
+class _DriverProfileUpdateScreenState extends State<DriverProfileUpdateScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
@@ -53,49 +53,53 @@ class _ERickshawOwnerProfileState extends State<ERickshawOwnerProfile> {
               }
 
               if (state is ProfileLoaded) {
-                return SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      SizedBox(
-                        height: 40,
-                      ),
-                      Row(
-                        children: [
-                          BackButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                            },
-                            color: Colors.white,
-                          ),
-                          Expanded(
-                              child: Text(
-                            "Profile",
-                            style: CommonUtils.commonTitleStyle(
-                                color: Colors.white),
-                          ))
-                        ],
-                      ),
-                      EditProfileHeader(
-                          profile: state.profile,
-                          coverImage: (value) {
-                            if (value.isNotEmpty) {}
+                return Column(
+                  children: [
+                    SizedBox(
+                      height: 40,
+                    ),
+                    Row(
+                      children: [
+                        BackButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
                           },
-                          profileImage: (value) {
-                            if (value.isNotEmpty) {}
-                          }),
-                      const SizedBox(height: 10),
-                      RickshawProfileForm(
-                        profile: state.profile.data,
-                        onUpdate: () {
-                          context.read<CarOwnerProfileBloc>().add(
-                                CarOwnerProfileEvent({
-                                  "name": state.profile.data?.firstName ?? "",
-                                }),
-                              );
-                        },
-                      ),
-                    ],
-                  ),
+                          color: Colors.white,
+                        ),
+                        Expanded(
+                            child: Text(
+                              "Profile",
+                              style: CommonUtils.commonTitleStyle(
+                                  color: Colors.white),
+                            ))
+                      ],
+                    ),
+                   Expanded(child: SingleChildScrollView(
+                     child: Column(
+                       children: [
+                         EditProfileHeader(
+                             profile: state.profile,
+                             coverImage: (value) {
+                               if (value.isNotEmpty) {}
+                             },
+                             profileImage: (value) {
+                               if (value.isNotEmpty) {}
+                             }),
+                         const SizedBox(height: 10),
+                         DriverProfileForm(
+                           profile: state.profile.data,
+                           onUpdate: () {
+                             context.read<CarOwnerProfileBloc>().add(
+                               CarOwnerProfileEvent({
+                                 "name": state.profile.data?.firstName ?? "",
+                               }),
+                             );
+                           },
+                         ),
+                       ],
+                     ),
+                   ))
+                  ],
                 );
               }
 

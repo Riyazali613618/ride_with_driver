@@ -30,93 +30,67 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        InkWell(
-          onTap: () {
-            if (!_submitting) {
-              _showPhotoEditingOptions("profile");
-            }
-          },
-          child: Image.network(
+    return SizedBox(
+      height: 190, // cover(140) + avatar overflow
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Image.network(
             _coverImageUrl != null && _coverImageUrl!.isNotEmpty
                 ? _coverImageUrl!
                 : (widget.profile.data?.coverImage ?? ""),
             height: 140,
             width: double.infinity,
             fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                width: double.infinity,
-                height: 140,
-                color: Color(0x1A000000),
-              );
-            },
           ),
-        ),
-        Positioned(
-          left: 20,
-          bottom: -45,
-          child: Stack(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+
+          Positioned(
+            left: 20,
+            bottom: 0, // ✅ no negative offset
+            child: Stack(
+              children: [
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () {
+                    _showPhotoEditingOptions("profile");
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: CircleAvatar(
+                      radius: 40,
+                      backgroundImage: NetworkImage(
+                        widget.profile.data?.profilePhoto ?? "",
+                      ),
+                    ),
+                  ),
                 ),
-                child: CircleAvatar(
-                  radius: 40,
-                  backgroundImage:
-                      NetworkImage(widget.profile.data?.profilePhoto ?? ""),
+
+                Positioned(
+                  bottom: 4,
+                  right: 4,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      _showPhotoEditingOptions("profile");
+                    },
+                    child: SvgPicture.asset(
+                      "assets/svg/camera_edit_profile.svg",
+                      width: 22,
+                      height: 22,
+                    ),
+                  ),
                 ),
-              ),
-              Positioned(
-                bottom: 5,
-                right: 5,
-                child: SvgPicture.asset("assets/svg/camera_edit_profile.svg",
-                    width: 20, height: 20),
-              ),
-            ],
-          ),
-        ),
-        Positioned(
-          bottom: 15,
-          right: 10,
-          child: InkWell(
-            onTap: () {
-              if (!_submitting) {
-                _showPhotoEditingOptions("cover");
-              }
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(5)),
-              ),
-              child: Text(
-                "Change Cover Picture",
-                style: CommonUtils.commonTitleStyle(
-                    color: Colors.black, weight: FontWeight.w400, fontSize: 12),
-              ),
+              ],
             ),
           ),
-        ),
-        if (_submitting)
-          Align(
-            alignment: Alignment.center,
-            child: SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(
-                color: Colors.white,
-              ),
-            ),
-          )
-      ],
+        ],
+      ),
     );
+
   }
 
   bool _submitting = false;

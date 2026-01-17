@@ -13,6 +13,8 @@ class InitiatePayment extends PaymentEvent {
   final PaymentType paymentType;
   final String? category;
   final String? currentCategory;
+  final String? planName;
+  final List<String>? benefits;
   final double? finalPrice;
   final int? duration;
   final int? maxvehicles;
@@ -24,6 +26,8 @@ class InitiatePayment extends PaymentEvent {
     required this.finalPrice,
     this.isAdOns=false,
     this.maxvehicles,
+    this.benefits,
+    this.planName,
     required this.plan,
     required this.planType,
     required this.currentCategory,

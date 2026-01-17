@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 
 import '../../../constants/api_constants.dart';
@@ -528,3 +530,164 @@ class _MyRatingsScreenState extends State<MyRatingsScreen> {
     );
   }
 }
+
+
+
+class RatingsReviewsPage extends StatelessWidget {
+  const RatingsReviewsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: CommonParentContainer(
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// APP BAR
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    const SizedBox(width: 8),
+                     Text(
+                      "Ratings & Reviews",
+                      style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              /// RATING SUMMARY
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: List.generate(
+                        4,
+                            (_) => const Icon(Icons.star,
+                            color: Colors.amber, size: 28),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                     Text(
+                      "4/5 Ratings (102)",
+                      style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              /// REVIEWS LIST
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 2,
+                  itemBuilder: (context, index) {
+                    return const ReviewCard();
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// ---------------- REVIEW CARD ----------------
+
+class ReviewCard extends StatelessWidget {
+  const ReviewCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          width: 1,
+          color: AppColors.blue,
+        ),
+        color: Colors.white.withOpacity(0.95),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// STARS
+          Row(
+            children: List.generate(
+              4,
+                  (_) => const Icon(Icons.star,
+                  color: Colors.amber, size: 18),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// NAME
+          const Text(
+            "Alex M.",
+            style: TextStyle(
+              fontFamily: AppConstants.ptSansFont,
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// REVIEW TEXT
+          const Text(
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
+                "Pellentesque porttitor purus sit amet efficitur pellentesque. "
+                "Pellentesque fermentum efficitur erat nec viverra.",
+            style: TextStyle(
+              fontFamily: AppConstants.ptSansFont,
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              color: Color(0x99000000),
+              height: 1.4,
+            ),
+          ),
+
+          const SizedBox(height: 14),
+
+          /// DATE
+          const Text(
+            "Posted on August 15, 2023",
+            style: TextStyle(
+              fontFamily: AppConstants.ptSansFont,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: Color(0x99000000),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

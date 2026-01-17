@@ -24,6 +24,7 @@ import '../../other/launch_url.dart';
 import '../../other/setting.dart';
 import '../../other/support_screen.dart';
 import '../../other/terms_and_coditions_bottom_sheet.dart';
+import '../../profileScreens/driverProfile/driver_profil_update_screen.dart';
 import 'edit_account_screen.dart';
 
 class MoreScreen extends StatefulWidget {
@@ -154,11 +155,11 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
           final userType = profileProvider.profileData!.usertype;
           print('User Type ✅✅✅✅✅: $userType');
 
-          if (userType == 'USER') {
+          if (userType == 'DRIVER') {
             await Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (context) => ProfileUpdateScreen(),
+                builder: (context) => DriverProfileUpdateScreen(userType: "DRIVER",),
               ),
             );
           }
@@ -324,7 +325,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
                 onTap: () {
                   Navigator.push(
                     context,
-                    CupertinoPageRoute(builder: (context) => MyRatingsScreen()),
+                    CupertinoPageRoute(builder: (context) => RatingsReviewsPage()),
                   );
                 },
               ),

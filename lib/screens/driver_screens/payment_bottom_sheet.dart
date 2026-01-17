@@ -32,12 +32,16 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
   final String? category;
   final String? currentCategory;
   final String vehicleCount;
+  final List<String>? benefits;
+  final String planName;
   final bool isAdOns;
 
   const PaymentBottomSheetBlocView({
     super.key,
     required this.rwdBalance,
     required this.finalPrice,
+    this.benefits,
+    this.planName = "",
     this.isAdOns = false,
     required this.plan,
     required this.currentCategory,
@@ -271,6 +275,8 @@ class _PaymentBottomSheetBlocViewState
                                 earlyBirdDiscountPrice:
                                     widget.plan.earlyBirdDiscountPrice,
                                 plan: widget.plan,
+                                planName: widget.planName??"",
+                                benefits: widget.benefits??[],
                                 maxvehicles: widget.vehicleCount.isNotEmpty
                                     ? int.parse(widget.vehicleCount)
                                     : widget.plan.maxVehicles,

@@ -192,11 +192,11 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                               if (isCheckingLimit) return;
                                               isCheckingLimit = true;
                                               setState(() {});
-                                              if (eligibilityModel != null &&
-                                                  eligibilityModel?.data !=
-                                                      null &&
-                                                  eligibilityModel
-                                                          ?.data?.category
+                                              profile =
+                                                  await UserProfileService()
+                                                      .getUserProfile();
+                                              if (profile != null &&
+                                                  (profile?.usertype ?? "")
                                                           .toLowerCase() ==
                                                       "driver") {
                                                 isCheckingLimit = false;

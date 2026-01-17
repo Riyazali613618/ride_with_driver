@@ -2,7 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/color_constants.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../block/provider/profile_provider.dart';
@@ -273,20 +276,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
     final localizations = AppLocalizations.of(context)!;
 
     return Container(
-      margin: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
       child: Padding(
-        padding: const EdgeInsets.all(14.0),
+        padding: const EdgeInsets.symmetric(horizontal: 14.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -295,13 +286,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
               child: _isEditing
                   ? _buildEditableProfileImage(initialImage)
                   : Container(
-                      width: 120,
-                      height: 120,
+                      width: 100,
+                      height: 100,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: ColorConstants.primaryColor.withOpacity(0.3),
-                          width: 3,
+                          color: Colors.white,
+                          width: 10,
                         ),
                       ),
                       child: ClipOval(
@@ -386,13 +377,13 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
     return Stack(
       children: [
         Container(
-          width: 120,
-          height: 120,
+          width: 100,
+          height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: ColorConstants.primaryColor.withOpacity(0.3),
-              width: 3,
+              color: Colors.white,
+              width: 10,
             ),
           ),
           child: ClipOval(
@@ -420,14 +411,14 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
         ),
         // Edit button overlay
         Positioned(
-          bottom: 0,
-          right: 0,
+          bottom: 6,
+          right: 6,
           child: InkWell(
             onTap: _showPhotoEditingOptions,
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              width: 40,
-              height: 40,
+              width: 20,
+              height: 20,
               decoration: BoxDecoration(
                 color: ColorConstants.primaryColor,
                 shape: BoxShape.circle,
@@ -442,7 +433,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
               child: Icon(
                 Icons.camera_alt,
                 color: Colors.white,
-                size: 20,
+                size: 10,
               ),
             ),
           ),
@@ -740,68 +731,42 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
           offset: Offset(0, 20 * (1 - value)),
           child: Opacity(
             opacity: value,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.grey.withOpacity(0.3),
-                ),
-                color: enabled ? Colors.white : Colors.grey[50],
-              ),
-              child: TextFormField(
-                controller: controller,
-                keyboardType: keyboardType,
-                validator: validator,
-                enabled: enabled,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: enabled ? Colors.black87 : Colors.grey[600],
-                ),
-                decoration: InputDecoration(
-                  labelText: label,
-                  prefixIcon: Container(
-                    margin: const EdgeInsets.all(12),
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: ColorConstants.primaryColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: ColorConstants.primaryColor,
-                      size: 20,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label,style: CommonUtils.commonTextLabelsStyle(),),
+                const SizedBox(height: 5,),
+                Container(
+                  height: 48,
+                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 0),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                    border: Border.all(
+                        color: Color(0xFF641BB4),
+                        width: 1
                     ),
                   ),
-                  labelStyle: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 14,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide(
-                      color: ColorConstants.primaryColor,
-                      width: 2,
+                  child: TextFormField(
+                    controller: controller,
+                    keyboardType: keyboardType,
+                    validator: validator,
+                    enabled: enabled,
+                    style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      errorBorder: InputBorder.none,
+                      focusedErrorBorder: InputBorder.none,
                     ),
                   ),
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(
-                      color: Colors.red,
-                      width: 2,
-                    ),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 16,
-                  ),
-                  filled: true,
-                  fillColor: enabled ? Colors.white : Colors.grey[50],
-                ),
-              ),
+                )
+              ],
             ),
           ),
         );
@@ -1016,19 +981,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
         //     onPressed: () => Navigator.of(context).pop(),
         //   ),
         // ),
-        body: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                ColorConstants.primaryColorNew,
-                ColorConstants.redColorNew,
-                ColorConstants.whiteNew,
-              ],
-              stops: const [0.0, 0.20, 0.80],
-            ),
-          ),
+        body: CommonParentContainer(
           child:
               profileProvider.isLoading && profileProvider.profileData == null
                   ? Center(
@@ -1080,11 +1033,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
                                             children: [
                                               Text(
                                                 localizations.edit_profile,
-                                                style: TextStyle(
-                                                  color: ColorConstants.white,
-                                                  fontSize: 18,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
+                                                style: CommonUtils.commonTitleStyle(color: Colors.white),
                                               ),
                                             ],
                                           ),

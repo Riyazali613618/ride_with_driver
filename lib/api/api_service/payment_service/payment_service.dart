@@ -67,6 +67,8 @@ class PaymentService {
     bool isAdOns = false,
     int durationInMonths = 1,
     double rwd_balance = 0,
+    List<String>? benefits,
+    String planName="",
     int maxvehicles = 1,
     double pay_amount = 1,
     double earlyBirdDiscountPrice = 1,
@@ -82,9 +84,12 @@ class PaymentService {
     }else
     if (currentCategory.isNotEmpty) {
       return _createUpgradeOrder({
+        'benefits': benefits,
+        'planName': planName,
         'chosen_category': category,
         'subscriptionPlanId': planId,
         'max_vehicles': maxvehicles,
+        'maxvehicles': maxvehicles,
         'rwd_balance': rwd_balance.toInt(),
         'durationInMonths': durationInMonths,
         'pay_amount': pay_amount<=0?1:pay_amount,
