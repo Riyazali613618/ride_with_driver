@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart';
 
 import '../../../../api/api_model/user_model/my_profile_model.dart';
 import '../../../../api/api_service/payment_service/payment_service.dart';
@@ -419,7 +420,7 @@ class _AddOnPlanBottomSheetState extends State<AddOnPlanBottomSheet> {
                           finalPrice: amountToPay,
                           rwdBalance: rwdBalance,
                           planType: widget.category,
-                          vehicleCount:
+                          vehicleCount:widget.isAdOns?widget.count.toString():
                           ((widget.plan.maxVehicles ?? 0)).toString(),
                           currentCategory: widget.currentCategory,
                           paymentType: PaymentType.registrationWithSubscription,

@@ -955,10 +955,22 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildFeatureTag(
-                                icon: "assets/img/seats.png",
-                                text: '${vehicle?.seatingCapacity ?? 'N/A'} Seats',
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                 Image.asset("assets/img/seats.png", width: 14, height: 14),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${vehicle?.seatingCapacity ?? 'N/A'} Seats',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey[700],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
+
                               const SizedBox(width: 8),
                               if (vehicle?.airConditioning != null &&
                                   vehicle!.airConditioning.isNotEmpty)

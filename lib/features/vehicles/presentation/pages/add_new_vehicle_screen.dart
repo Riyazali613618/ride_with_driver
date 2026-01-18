@@ -227,10 +227,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
   @override
   void initState() {
     if (widget.vehicle != null) {
-      // _selectedVehicleType = widget.vehicle?.vehicleType;
       _vehicleNameController.text = widget.vehicle?.vehicleName ?? "";
       _vehicleNumberController.text = widget.vehicle?.vehicleNumber ?? "";
-      _selectedSeatingCapacity = widget.vehicle?.seatingCapacity.toString();
+     // _selectedSeatingCapacity = widget.vehicle?.seatingCapacity.toString();
       _selectedAirConditioning = widget.vehicle?.airConditioning ?? "Non-AC";
       _minimumChargeController.text =
           widget.vehicle?.minimumCharge.toString() ?? "";
@@ -1643,13 +1642,14 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         final data = await UserProfileService().getVehicleTypeList();
         if (data.data != null) {
           _vehicleTypes = data.data?.categories ?? [];
-          /*if (!widget.userType.toLowerCase().contains("rickshaw")) {
-            _selectedVehicleType = _vehicleTypes.firstWhere(
-              (element) =>
-                  element.code == "RICKSHAW" || element.code == "E_RICKSHAW",
-            );
 
-          }*/
+          if(widget.vehicle!=null && widget.vehicle?.vehicleType!=null){
+            _selectedVehicleType=_vehicleTypes.firstWhere(
+                  (element) =>
+              element.code == widget.vehicle?.vehicleType,
+            );
+            _selectedSeatingCapacity=widget.vehicle?.seatingCapacity.toString();
+          }else
           if(widget.userType=="Auto-Rickshaw"){
             _selectedVehicleType=_vehicleTypes.firstWhere(
                   (element) =>

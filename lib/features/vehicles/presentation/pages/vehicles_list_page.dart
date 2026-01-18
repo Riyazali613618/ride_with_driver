@@ -24,7 +24,12 @@ import '../../../../components/app_loader.dart';
 import '../../../../constants/api_constants.dart';
 import '../../../../plan/data/repositories/plan_repository.dart';
 import '../../../../plan/presentation/bloc/plan_bloc.dart';
+import '../../../../screens/autoRikshawDriverRegistration.dart';
+import '../../../../screens/driverRegistrationScreen.dart';
 import '../../../../screens/driver_screens/payment_bottom_sheet.dart';
+import '../../../../screens/eRickshawRegistration.dart';
+import '../../../../screens/independentCarOwnerRegistration.dart';
+import '../../../../screens/transporterRegistration.dart';
 import '../../../../screens/user_screens/PartnerRegistrationWidget.dart';
 import '../../../../utils/common_utils.dart';
 import '../addOns/add_on_vehicles_bottom_sheet.dart';
@@ -53,20 +58,7 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     super.initState();
     initPref();
     context.read<VehicleListBloc>().add(FetchVehicles());
-    WidgetsBinding.instance.addPostFrameCallback(
-      (timeStamp) async {
-        eligibilityModel = await getEligibilityData();
-        profile = await getProfileData();
-        limit = profile?.vehicleLimit ?? 0;
-        int totalVehicleAdded = profile!.vehicles.length;
-        if ((profile?.addonVehicles ?? []).isNotEmpty) {
-          limit = limit + (profile?.addonVehicles?[0].addOnVehicles ?? 0);
-        }
-        if (mounted) {
-          setState(() {});
-        }
-      },
-    );
+    getVehicleLimit();
   }
 
   @override
@@ -150,17 +142,26 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                       if (mounted) {
                                         setState(() {});
                                       }
-                                      int limit = profile?.vehicleLimit ?? 0;
+                                      int vLimit = profile?.vehicleLimit ?? 0;
+                                      int addOnsLimit =
+                                          profile?.addOnVehicleLimit ?? 0;
+                                      if (addOnsLimit > 0) {
+                                        vLimit = addOnsLimit;
+                                      }
                                       int totalVehicleAdded =
                                           profile?.vehicles.length ?? 0;
-                                      if ((profile?.addonVehicles ?? [])
+                                      if (vLimit != limit) {
+                                        limit = vLimit;
+                                        updateState();
+                                      }
+                                      /*if ((profile?.addonVehicles ?? [])
                                           .isNotEmpty) {
-                                        limit = limit +
+                                        vLimit = vLimit +
                                             (profile?.addonVehicles?[0]
                                                     .addOnVehicles ??
                                                 0);
-                                      }
-                                      if (totalVehicleAdded >= limit) {
+                                      }*/
+                                      if (totalVehicleAdded >= vLimit) {
                                         showUpgradeDialog(
                                             context,
                                             profile?.usertype ?? "",
@@ -189,6 +190,15 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
                                       onTap: state is ProfileLoading
                                           ? null
                                           : () async {
+                                              if (eligibilityModel
+                                                      ?.data?.paymentPhase ==
+                                                  AppConstants
+                                                      .preRegistration) {
+                                                showCompleteYourRegistrationDialog(
+                                                    context,
+                                                    eligibilityModel?.data?.category ?? "");
+                                                return;
+                                              }
                                               if (isCheckingLimit) return;
                                               isCheckingLimit = true;
                                               setState(() {});
@@ -361,6 +371,31 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
     );
   }
 
+  void showCompleteYourRegistrationDialog(
+      BuildContext context, String userType) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("Complete Your Registration"),
+        content: Text(
+            "It seems you haven't completed you upgrade partner registration. Please complete your registration in order to ${userType == "TRANSPORTER" ? "add new vehicle" : "upgrade your user type."}"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _navigateToApplication(userType);
+            },
+            child: const Text("Complete Registration"),
+          ),
+        ],
+      ),
+    );
+  }
+
   MyProfileData? myProfileData;
 
   Future<MyProfileData?> getProfileData() async {
@@ -426,6 +461,55 @@ class _VehiclesListingPageState extends State<VehiclesListingPage> {
               currentCategory, planType, count);
         },
       ),
+    );
+  }
+
+  void updateState() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void hghdsg() {}
+
+  Future<void> _navigateToApplication(String type) async {
+    Widget? destination;
+
+    String userType = type;
+    if (userType == "RICKSHAW") {
+      destination = AutoRickshawDriverFlow();
+    } else if (userType == "DRIVER") {
+      destination = DriverRegistrationFlow();
+    } else if (userType == "E_RICKSHAW") {
+      destination = ERickshawDriverFlow();
+    } else if (userType == "TRANSPORTER") {
+      destination = TransporterRegistrationFlow();
+    } else if (userType == "INDEPENDENT_CAR_OWNER") {
+      destination = IndependentTaxiOwnerFlow();
+    }
+
+    if (destination != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => destination!),
+      ).then((_) {
+        getVehicleLimit();
+      });
+    }
+  }
+
+  void getVehicleLimit() {
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        eligibilityModel = await getEligibilityData();
+        profile = await getProfileData();
+        limit = profile?.vehicleLimit ?? 0;
+        int addOnsLimit = profile?.addOnVehicleLimit ?? 0;
+        if (addOnsLimit > 0) {
+          limit = addOnsLimit;
+        }
+        updateState();
+      },
     );
   }
 }

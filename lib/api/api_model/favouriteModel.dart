@@ -16,15 +16,6 @@ class FavouriteModel {
     }
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    if (this.data != null) {
-      data['data'] = this.data!.map((v) => v.toJson()).toList();
-    }
-    return data;
-  }
 }
 
 class Data {
@@ -63,23 +54,6 @@ class Data {
     mobileNumber = json['mobileNumber'];
   }
 
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['favoriteId'] = this.favoriteId;
-    data['partnerId'] = this.partnerId;
-    data['vehicleId'] = this.vehicleId;
-    data['partnerType'] = this.partnerType;
-    if (this.vehicle != null) {
-      data['vehicle'] = this.vehicle!.toJson();
-    }
-    if (this.profile != null) {
-      data['profile'] = this.profile!.toJson();
-    }
-    data['addedAt'] = this.addedAt;
-    data['isBlocked'] = this.isBlocked;
-    data['mobileNumber'] = this.mobileNumber;
-    return data;
-  }
 }
 
 class Vehicle {
@@ -87,6 +61,7 @@ class Vehicle {
   String? userId;
   String? vehicleType;
   String? vehicleName;
+  String? brandName;
   String? vehicleNumber;
   int? seatingCapacity;
   String? airConditioning;
@@ -104,13 +79,13 @@ class Vehicle {
   String? createdAt;
   String? updatedAt;
   int? iV;
-  String? brandName;
 
   Vehicle(
       {this.sId,
         this.userId,
         this.vehicleType,
         this.vehicleName,
+        this.brandName,
         this.vehicleNumber,
         this.seatingCapacity,
         this.airConditioning,
@@ -127,14 +102,14 @@ class Vehicle {
         this.isDisabled,
         this.createdAt,
         this.updatedAt,
-        this.iV,
-        this.brandName});
+        this.iV});
 
   Vehicle.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
     userId = json['userId'];
     vehicleType = json['vehicleType'];
     vehicleName = json['vehicleName'];
+    brandName = json['brandName'];
     vehicleNumber = json['vehicleNumber'];
     seatingCapacity = json['seatingCapacity'];
     airConditioning = json['airConditioning'];
@@ -154,7 +129,6 @@ class Vehicle {
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
     iV = json['__v'];
-    brandName = json['brandName'];
   }
 
   Map<String, dynamic> toJson() {
@@ -163,6 +137,7 @@ class Vehicle {
     data['userId'] = this.userId;
     data['vehicleType'] = this.vehicleType;
     data['vehicleName'] = this.vehicleName;
+    data['brandName'] = this.brandName;
     data['vehicleNumber'] = this.vehicleNumber;
     data['seatingCapacity'] = this.seatingCapacity;
     data['airConditioning'] = this.airConditioning;
@@ -182,7 +157,6 @@ class Vehicle {
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     data['__v'] = this.iV;
-    data['brandName'] = this.brandName;
     return data;
   }
 }
@@ -190,21 +164,18 @@ class Vehicle {
 class ServiceLocation {
   double? lat;
   double? lng;
-  String? name;
 
-  ServiceLocation({this.lat, this.lng, this.name});
+  ServiceLocation({this.lat, this.lng});
 
   ServiceLocation.fromJson(Map<String, dynamic> json) {
     lat = json['lat'];
     lng = json['lng'];
-    name = json['name'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['lat'] = this.lat;
     data['lng'] = this.lng;
-    data['name'] = this.name;
     return data;
   }
 }
@@ -264,16 +235,19 @@ class Profile {
     lastName = json['lastName'];
     profilePhoto = json['profilePhoto'];
     email = json['email'];
-    rating = toDouble(json['rating']);
+    rating = json['rating'];
     totalRating = json['totalRating'];
     experience = json['experience'];
     minimumCharges = json['minimumCharges'];
     negotiable = json['negotiable'];
     if (json['vehicleType'] != null) {
-      vehicleType =(json['vehicleType'] as List<dynamic>?)?.cast<String>() ?? [];
+      vehicleType = <String>[];
+      vehicleType= (json['vehicleType'] as List<dynamic>?)?.cast<String>() ?? [];
     }
     if (json['languageSpoken'] != null) {
-      languageSpoken =  (json['languageSpoken'] as List<dynamic>?)?.cast<String>() ?? [];
+      languageSpoken = <String>[];
+      languageSpoken= (json['languageSpoken'] as List<dynamic>?)?.cast<String>() ?? [];
+
     }
     serviceLocation = json['serviceLocation'] != null
         ? new ServiceLocation.fromJson(json['serviceLocation'])
@@ -296,61 +270,7 @@ class Profile {
     preferencesChat = json['preferencesChat'];
   }
 
-  double? toDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is double) return value;
-    if (value is int) return value.toDouble();
-    if (value is String) return double.tryParse(value);
-    return null;
-  }
-
-  Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['firstName'] = this.firstName;
-    data['lastName'] = this.lastName;
-    data['profilePhoto'] = this.profilePhoto;
-    data['email'] = this.email;
-    data['rating'] = this.rating;
-    data['totalRating'] = this.totalRating;
-    data['experience'] = this.experience;
-    data['minimumCharges'] = this.minimumCharges;
-    data['negotiable'] = this.negotiable;
-    if (this.vehicleType != null) {
-      data['vehicleType'] = this.vehicleType!;
-    }
-    if (this.languageSpoken != null) {
-      data['languageSpoken'] =
-          this.languageSpoken!;
-    }
-    if (this.serviceLocation != null) {
-      data['serviceLocation'] = this.serviceLocation!.toJson();
-    }
-    if (this.city != null) {
-      data['city'] = this.city!.toJson();
-    }
-    if (this.state != null) {
-      data['state'] = this.state!.toJson();
-    }
-    if (this.country != null) {
-      data['country'] = this.country!.toJson();
-    }
-    data['businessMobileNumber'] = this.businessMobileNumber;
-    data['companyName'] = this.companyName;
-    data['fleetSize'] = this.fleetSize;
-    if (this.counts != null) {
-      data['counts'] = this.counts!.toJson();
-    }
-    if (this.independentCarOwnerFleetSize != null) {
-      data['independentCarOwnerFleetSize'] =
-          this.independentCarOwnerFleetSize!.toJson();
-    }
-    data['preferencesWhatsapp'] = this.preferencesWhatsapp;
-    data['preferencesPhone'] = this.preferencesPhone;
-    data['preferencesChat'] = this.preferencesChat;
-    return data;
-  }
 }
-
 
 
 class City {
@@ -401,15 +321,13 @@ class Counts {
   int? car;
   int? bus;
   int? minivan;
-  int? suv;
 
-  Counts({this.car, this.bus, this.minivan, this.suv});
+  Counts({this.car, this.bus, this.minivan});
 
   Counts.fromJson(Map<String, dynamic> json) {
     car = json['car'];
     bus = json['bus'];
     minivan = json['minivan'];
-    suv = json['suv'];
   }
 
   Map<String, dynamic> toJson() {
@@ -417,7 +335,6 @@ class Counts {
     data['car'] = this.car;
     data['bus'] = this.bus;
     data['minivan'] = this.minivan;
-    data['suv'] = this.suv;
     return data;
   }
 }

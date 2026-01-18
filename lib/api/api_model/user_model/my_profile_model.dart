@@ -107,6 +107,7 @@ class MyProfileData {
     required this.renewalSubscriptions,
     required this.addonVehicles,
     required this.vehicleLimit,
+    required this.addOnVehicleLimit,
     required this.rwdBalance,
   });
 
@@ -174,6 +175,7 @@ class MyProfileData {
   final List<dynamic> renewalSubscriptions;
   final List<AddOnVehicles>? addonVehicles;
   final int? vehicleLimit;
+  final int? addOnVehicleLimit;
   final double? rwdBalance;
 
   MyProfileData copyWith({
@@ -241,6 +243,7 @@ class MyProfileData {
     List<dynamic>? renewalSubscriptions,
     List<AddOnVehicles>? addonVehicles,
     int? vehicleLimit,
+    int? addOnVehicleLimit,
     double? rwdBalance,
   }) {
     return MyProfileData(
@@ -310,6 +313,7 @@ class MyProfileData {
       renewalSubscriptions: renewalSubscriptions ?? this.renewalSubscriptions,
       addonVehicles: addonVehicles ?? this.addonVehicles,
       vehicleLimit: vehicleLimit ?? this.vehicleLimit,
+      addOnVehicleLimit: addOnVehicleLimit ?? this.addOnVehicleLimit,
       rwdBalance: rwdBalance ?? this.rwdBalance,
     );
   }
@@ -411,6 +415,7 @@ class MyProfileData {
           : List<AddOnVehicles>.from(
               json["addonVehicles"]!.map((x) => AddOnVehicles.fromJson(x))),
       vehicleLimit: json["vehicleLimit"],
+      addOnVehicleLimit: json["addon_vehicle_limit"]??0,
       rwdBalance: double.parse(json["rwd_balance"].toString()) ?? 0,
     );
   }
@@ -482,6 +487,7 @@ class MyProfileData {
         "renewal_subscriptions": renewalSubscriptions.map((x) => x).toList(),
         "addonVehicles": addonVehicles?.map((x) => x).toList() ?? [],
         "vehicleLimit": vehicleLimit,
+        "addon_vehicle_limit": addOnVehicleLimit,
         "rwd_balance": rwdBalance,
       };
 

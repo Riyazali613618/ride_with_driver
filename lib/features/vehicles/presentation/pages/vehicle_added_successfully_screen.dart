@@ -128,12 +128,16 @@ class _VehicleAddedSuccessfullyScreenState
                                 setState(() {});
                               }
                               int limit = profile.vehicleLimit ?? 0;
+                              int addOnsLimit = profile.addOnVehicleLimit ?? 0;
+                              if(addOnsLimit>0){
+                                limit=addOnsLimit;
+                              }
                               int totalVehicleAdded = profile.vehicles.length;
-                              if ((profile.addonVehicles ?? []).isNotEmpty) {
+                             /* if ((profile.addonVehicles ?? []).isNotEmpty) {
                                 limit = limit +
                                     (profile.addonVehicles?[0].addOnVehicles ??
                                         0);
-                              }
+                              }*/
                               if (totalVehicleAdded >= limit) {
                                 showUpgradeDialog(
                                     context, profile.usertype ?? "", profile);

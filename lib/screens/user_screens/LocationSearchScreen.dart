@@ -663,6 +663,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
               // Results Section
               Expanded(
                 child: Container(
+                  clipBehavior: Clip.hardEdge,
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.only(
