@@ -50,6 +50,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     'BUS',
     'DRIVER' // Changed from 'driver' to match homescreen
   ];
+  final FilterController _filterController = FilterController();
 
   final List<VehicleType> vehicles = [
     VehicleType(
@@ -149,6 +150,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         final locationName = locationData['name'] as String;
 
         print("🔍 Setting current location: $locationName");
+        if(_searchController.text.toString().isEmpty)
         _searchController.text = locationName;
         setState(() {
           currentLocationCoordinates = coordinates;
@@ -566,7 +568,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         child: TextField(
                           controller: _searchController,
                           focusNode: _searchFocusNode,
-                          style:  CommonUtils.commonTextLabelsStyle(),
+                          style: CommonUtils.commonTextLabelsStyle(),
                           decoration: InputDecoration(
                             contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 0, vertical: 5),
@@ -584,8 +586,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                               ),
                             ),
                             hintText: localizations.searchLocation,
-                            hintStyle:  CommonUtils.commonHintTextStyle(),
-
+                            hintStyle: CommonUtils.commonHintTextStyle(),
                             prefixIcon: Icon(
                               Icons.search,
                               color: gradientSecond,
@@ -609,6 +610,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                     // Filter Button
                     GestureDetector(
                       onTap: () async {
+                        FocusManager.instance.primaryFocus?.unfocus();
                         final result =
                             await showModalBottomSheet<Map<String, dynamic>>(
                           context: context,
@@ -617,14 +619,37 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             borderRadius:
                                 BorderRadius.vertical(top: Radius.circular(25)),
                           ),
-                          builder: (context) => FilterBottomSheet(),
+                          builder: (context) =>
+                              FilterBottomSheet(listener: (filter) {
+                            final filterList =
+                            filter;
+                            print("Applied Filter List: ${filterList}");
+                            _selectedCategory =
+                                filterList['vehicleType'] ?? "Car";
+                            filterData=filterList;
+                            searchedSelected = true;
+                           /* setState(() {
+                              searchedSelected = true;
+                              filterData=filter;
+
+                          // filters=filterData;awwwwwwq
+                             // _filterController.refresh?.call(); // 🔥 REFRESH API
+
+                            });
+                            _searchLocationsWithService(
+                                _selectedCategory.toString().toUpperCase());*/
+                          }),
                         );
                         if (result != null) {
+                          print("Filtersssssssssss");
+                          print("$filters");
                           setState(() {
                             searchedSelected = true;
                             filters = result;
+                            _filterController.refresh?.call();
                           });
-                          _searchLocationsWithService(
+                          _filterController.refresh?.call();
+                               _searchLocationsWithService(
                               result['vehicleType'].toString().toUpperCase());
                           Future.delayed(Duration(milliseconds: 500)).then((_) {
                             setState(() {
@@ -636,7 +661,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             });
                           });
                           print('Applied Filters: $result');
-                          // Use the filters in your API call or filtering logic
+                         // Use the filters in your API call or filtering logic
                         }
                         // Navigator.push(context, MaterialPageRoute<void>(
                         //   builder: (BuildContext context) => (),
@@ -755,10 +780,13 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     );
   }
 
+  Map<String,String> filterData={};
   Widget _buildVehicleSearchContent() {
     return VehicleSearchScreen(
       // Make this a widget, not a screen
+      filterController: _filterController,
       selectedLocation: selectedLocationData,
+      filterData: filterData,
       selectedCategory:
           (_selectedCategory == 'ALL') ? 'ALLVEHICLES' : _selectedCategory,
       appliedFilters: filters,
@@ -767,4 +795,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 // Widget _buildOwnerSearchContent(){
 //   return Owners(selectedLocation: selectedLocationData,);
 // }
+}
+
+class FilterController {
+  VoidCallback? refresh;
 }

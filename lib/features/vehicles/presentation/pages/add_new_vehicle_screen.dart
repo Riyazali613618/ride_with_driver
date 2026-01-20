@@ -229,7 +229,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
     if (widget.vehicle != null) {
       _vehicleNameController.text = widget.vehicle?.vehicleName ?? "";
       _vehicleNumberController.text = widget.vehicle?.vehicleNumber ?? "";
-     // _selectedSeatingCapacity = widget.vehicle?.seatingCapacity.toString();
+      // _selectedSeatingCapacity = widget.vehicle?.seatingCapacity.toString();
       _selectedAirConditioning = widget.vehicle?.airConditioning ?? "Non-AC";
       _minimumChargeController.text =
           widget.vehicle?.minimumCharge.toString() ?? "";
@@ -309,10 +309,15 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
       } else {
         type = "rcBookBack";
       }
-      final String? url = await MediaService().uploadFileAndGetUrl(
-        file,
-        kind: type,
-      );
+      final String? url = await MediaService()
+          .uploadFileAndGetUrl(file, kind: type, context: context);
+      if (url == null || url.isEmpty) {
+        isLoading = false;
+        if (mounted) {
+          setState(() {});
+        }
+        return [];
+      }
       urls.add(url ?? "");
     }
     return urls;
@@ -361,24 +366,36 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
       setState(() {});
       List<String> imageUrls = [];
       for (var images in _vehicleImages) {
-        final String? url = await MediaService().uploadFileAndGetUrl(
-          images,
-          kind: "vehicleImage",
-        );
+        final String? url = await MediaService().uploadFileAndGetUrl(images,
+            kind: "vehicleImage", context: context);
         imageUrls.add(url ?? "");
+        if (url == null || url.isEmpty) {
+          isLoading = false;
+          if (mounted) {
+            setState(() {});
+          }
+          return;
+        }
       }
       List<String> videoUrls = [];
       for (var videos in _vehicleVideos) {
-        final String? url = await MediaService().uploadFileAndGetUrl(
-          videos,
-          kind: "vehicleVideo",
-        );
+        final String? url = await MediaService().uploadFileAndGetUrl(videos,
+            kind: "vehicleVideo", context: context);
         videoUrls.add(url ?? "");
+        if (url == null || url.isEmpty) {
+          isLoading = false;
+          if (mounted) {
+            setState(() {});
+          }
+          return;
+        }
       }
       print(videoUrls);
       List<String> rcUrls =
           _shouldShowRCPhotos ? await _uploadFiles(_rcImages, 'rc') : [];
-
+      if (rcUrls.length < 2) {
+        return;
+      }
       String? rcFrontUrl =
           _shouldShowRCPhotos && rcUrls.isNotEmpty ? rcUrls[0] : null;
       String? rcBackUrl =
@@ -416,7 +433,7 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
               builder: (context) => BlocProvider(
                     create: (_) => ProfileBloc(ProfileRepository()),
                     child: VehicleAddedSuccessfullyScreen(
-                      isFromRegistration: widget.isFromRegistration,
+                        isFromRegistration: widget.isFromRegistration,
                         userType: widget.userType),
                   )),
         );
@@ -1455,184 +1472,6 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
     );
   }
 
-  Widget _buildRCUploadSectionOld() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'RC (Front & Back)',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey.shade300),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: [
-                const Icon(
-                  Icons.cloud_upload_outlined,
-                  size: 40,
-                  color: Colors.grey,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'select your file or drag and drop',
-                  style: TextStyle(
-                    color: Colors.black87,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'png, pdf, jpg, docx accepted',
-                  style: TextStyle(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () => _pickImage('rc'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: gradientFirst,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 8,
-                    ),
-                  ),
-                  child: const Text(
-                    'Browse',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (_rcImages.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _rcImages.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.file(
-                              _rcImages[index],
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: -4,
-                          right: -4,
-                          child: GestureDetector(
-                            onTap: () => _removeFile('rc', index),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-          if (_rcImagesServer.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            SizedBox(
-              height: 80,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: _rcImagesServer.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.only(right: 8),
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: CachedNetworkImage(
-                              imageUrl: _rcImagesServer[index],
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                        Positioned(
-                          top: -4,
-                          right: -4,
-                          child: GestureDetector(
-                            onTap: () => _removeFile('rc', index),
-                            child: Container(
-                              padding: const EdgeInsets.all(2),
-                              decoration: const BoxDecoration(
-                                color: Colors.red,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.close,
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   List<Categories> _vehicleTypes = [];
   List<String> _seatingCapacities = [];
 
@@ -1643,28 +1482,25 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         if (data.data != null) {
           _vehicleTypes = data.data?.categories ?? [];
 
-          if(widget.vehicle!=null && widget.vehicle?.vehicleType!=null){
-            _selectedVehicleType=_vehicleTypes.firstWhere(
-                  (element) =>
-              element.code == widget.vehicle?.vehicleType,
+          if (widget.vehicle != null && widget.vehicle?.vehicleType != null) {
+            _selectedVehicleType = _vehicleTypes.firstWhere(
+              (element) => element.code == widget.vehicle?.vehicleType,
             );
-            _selectedSeatingCapacity=widget.vehicle?.seatingCapacity.toString();
-          }else
-          if(widget.userType=="Auto-Rickshaw"){
-            _selectedVehicleType=_vehicleTypes.firstWhere(
-                  (element) =>
-              element.code == "RICKSHAW",
+            _selectedSeatingCapacity =
+                widget.vehicle?.seatingCapacity.toString();
+          } else if (widget.userType == "Auto-Rickshaw") {
+            _selectedVehicleType = _vehicleTypes.firstWhere(
+              (element) => element.code == "RICKSHAW",
             );
-          }else if(widget.userType=="E-Rickshaw"){
-            _selectedVehicleType=_vehicleTypes.firstWhere(
-                  (element) =>
-              element.code == "E_RICKSHAW",
+          } else if (widget.userType == "E-Rickshaw") {
+            _selectedVehicleType = _vehicleTypes.firstWhere(
+              (element) => element.code == "E_RICKSHAW",
             );
           }
           final min = _selectedVehicleType?.seatingLimits?.min ?? 1;
           final max = _selectedVehicleType?.seatingLimits?.max ?? 2;
-          _seatingCapacities = List.generate(
-              max - min + 1, (index) => (min + index).toString());
+          _seatingCapacities =
+              List.generate(max - min + 1, (index) => (min + index).toString());
           setState(() {});
         }
       },
@@ -1771,16 +1607,6 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
         ),
       ),
     );
-  }
-
-  static Future<Map<String, dynamic>?> getCurrentLocationWithDetails() async {
-    try {
-      final locationData =
-          await GoogleLocationSearchService.getCurrentLocationWithDetails();
-    } catch (e) {
-      print('Error getting current location with details: $e');
-      return null;
-    }
   }
 
   final searchLocationController = TextEditingController();

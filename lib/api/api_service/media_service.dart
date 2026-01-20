@@ -101,6 +101,7 @@ class MediaService {
   Future<String?> uploadFileAndGetUrl(
     File file, {
     required String kind,
+    BuildContext? context,
   }) async {
     try {
       developer.log('Starting direct file upload for kind: $kind',
@@ -117,6 +118,13 @@ class MediaService {
             name: result.url ?? "");
         return result.url;
       } else {
+        if(context!=null && context.mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(result.errorMessage??"Failed to upload File"),
+            backgroundColor: Colors.red,
+          ),
+        );
         developer.log(
           'Direct file upload failed: ${result.errorMessage}',
           name: _logTag,

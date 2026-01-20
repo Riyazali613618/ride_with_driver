@@ -7,7 +7,9 @@ import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/main.dart';
+import 'package:r_w_r/screens/user_screens/LocationSearchScreen.dart';
 import 'package:r_w_r/screens/user_screens/vehicle_details_transporter.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_service/filter_service.dart';
@@ -22,12 +24,16 @@ import 'filter_one.dart';
 import '../../api/api_model/favouriteModel.dart' as fm;
 
 class VehicleSearchScreen extends StatefulWidget {
+  final FilterController? filterController;
+  final Map<String,String>? filterData;
   final String selectedCategory;
   final GooglePlaceDetails? selectedLocation;
   final Map<String, dynamic>? appliedFilters;
 
   const VehicleSearchScreen({
     Key? key,
+    this.filterData,
+    this.filterController,
     required this.selectedCategory,
     this.selectedLocation,
     this.appliedFilters,
@@ -97,7 +103,11 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     _activeFilters = widget.appliedFilters!;
     _scrollController.addListener(_scrollListener);
     _searchFocusNode.addListener(_handleSearchFocusChange);
-    getFavourites();
+    if (widget.filterController != null) {
+      widget.filterController?.refresh = getFavourites;
+    } else {
+      getFavourites();
+    }
   }
 
   Future<void> getFavourites() async {
@@ -177,8 +187,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(localizations.no_locations_found(e)
-              // 'Could not access location: $e'
-            ),
+                // 'Could not access location: $e'
+                ),
             duration: Duration(seconds: 3),
           ),
         );
@@ -216,7 +226,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
             placeId: 'current_location',
             mainText: _currentLocation!.displayName,
             secondaryText:
-            _currentLocation!.addressDetails ?? 'Current Location',
+                _currentLocation!.addressDetails ?? 'Current Location',
             fullText: _currentLocation!.displayName,
             isRecentLocation: false,
             isCurrentLocation: true,
@@ -248,7 +258,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               placeId: 'current_location',
               mainText: _currentLocation!.displayName,
               secondaryText:
-              _currentLocation!.addressDetails ?? 'Current Location',
+                  _currentLocation!.addressDetails ?? 'Current Location',
               fullText: _currentLocation!.displayName,
               isRecentLocation: false,
               isCurrentLocation: true,
@@ -271,7 +281,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               placeId: 'current_location',
               mainText: _currentLocation!.displayName,
               secondaryText:
-              _currentLocation!.addressDetails ?? 'Current Location',
+                  _currentLocation!.addressDetails ?? 'Current Location',
               fullText: _currentLocation!.displayName,
               isRecentLocation: false,
               isCurrentLocation: true,
@@ -292,7 +302,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   Future<List<GooglePlacesSuggestion>> _fetchGooglePlacesSuggestions(
       String input) async {
     final url =
-    Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
+        Uri.parse('https://places.googleapis.com/v1/places:autocomplete');
     final headers = {
       'Content-Type': 'application/json',
       'X-Goog-Api-Key': _apiKey,
@@ -458,7 +468,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
           displayName: suggestion.mainText,
           addressDetails: suggestion.secondaryText,
           pincode:
-          placeDetails.pinCode != 'Not found' ? placeDetails.pinCode : null,
+              placeDetails.pinCode != 'Not found' ? placeDetails.pinCode : null,
         );
         _locationService.addToRecentLocations(locationData);
         _loadRecentLocations();
@@ -473,11 +483,10 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            VehicleSearchScreen(
-              selectedCategory: widget.selectedCategory,
-              selectedLocation: placeDetails,
-            ),
+        builder: (context) => VehicleSearchScreen(
+          selectedCategory: widget.selectedCategory,
+          selectedLocation: placeDetails,
+        ),
       ),
     );
   }
@@ -540,7 +549,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     });
     try {
       final res =
-      await _vehicleService.addToFavourites(partnerId, vehicleId).then((_) {
+          await _vehicleService.addToFavourites(partnerId, vehicleId).then((_) {
         setState(() {
           favAdded = false;
         });
@@ -575,8 +584,17 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     }
   }
 
+  void applyFilterAndSearchVehicles() {
+    _searchVehicles();
+  }
+
   Future<void> _searchVehicles({bool reset = true}) async {
     final localizations = AppLocalizations.of(context)!;
+    print("==============================");
+    print(widget.filterData);
+    print("==============================");
+    print(_activeFilters);
+    print("==============================");
 
     developer.log('=== Starting Vehicle Search ===');
     developer
@@ -618,7 +636,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         searchType: convertVehicleType(_selectedVehicleType),
         page: _currentPage,
         limit: _itemsPerPage,
-        filters: _activeFilters,
+        filters: widget.filterData??{},
       );
 
       developer.log('API call completed successfully');
@@ -632,8 +650,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
           for (var owner in _vehicles) {
             _currentVehicleIndex[owner.id] = 0;
             developer.log(
-                'Owner: ${owner.firstName}, ID: ${owner
-                    .id}, Vehicle Count: ${owner.vehicles.length}');
+                'Owner: ${owner.firstName}, ID: ${owner.id}, Vehicle Count: ${owner.vehicles.length}');
           }
           _hasMoreItems = response.data.results.length >= _itemsPerPage;
         });
@@ -680,9 +697,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       activity: ActivityType.CLICK,
       type: getMyType(owner.vehicles.length > 1
           ? "Transporter"
-          : owner.vehicles
-          .elementAt(0)
-          .vehicleType),
+          : owner.vehicles.elementAt(0).vehicleType),
       baseUrl: ApiConstants.baseUrl,
     );
 
@@ -695,21 +710,20 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     }
     final currentIndex = _currentVehicleIndex[owner.id] ?? 0;
     final vehicle =
-    owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
-        ? owner.vehicles[currentIndex]
-        : null;
+        owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
+            ? owner.vehicles[currentIndex]
+            : null;
     final serviceLocation =
-    owner.serviceLocation != null ? owner.serviceLocation : null;
+        owner.serviceLocation != null ? owner.serviceLocation : null;
     if (vehicle != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) =>
-              VehicleDetailScreenTransPorter(
-                  owner: owner,
-                  vehicle: vehicle,
-                  type: widget.selectedCategory,
-                  serviceLocation: serviceLocation!),
+          builder: (context) => VehicleDetailScreenTransPorter(
+              owner: owner,
+              vehicle: vehicle,
+              type: widget.selectedCategory,
+              serviceLocation: serviceLocation!),
         ),
       );
     }
@@ -751,15 +765,14 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     final currentIndex = _currentVehicleIndex[owner.id] ?? 0;
     final hasMultipleVehicles = owner.vehicles.length > 1;
     final vehicle =
-    owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
-        ? owner.vehicles[currentIndex]
-        : null;
+        owner.vehicles.isNotEmpty && currentIndex < owner.vehicles.length
+            ? owner.vehicles[currentIndex]
+            : null;
     final localizations = AppLocalizations.of(context)!;
     updateFavState(vehicle);
     return InkWell(
       onTap: () {
         _navigateToVehicleDetail(owner);
-
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -804,8 +817,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     top: 12,
                     right: 12,
                     child: Container(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.black.withOpacity(0.6),
                         borderRadius: BorderRadius.circular(12),
@@ -875,35 +888,37 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
             Expanded(
               child: Column(
-                children:[
+                children: [
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 12,right: 12,top: 12),
+                      padding:
+                          const EdgeInsets.only(left: 12, right: 12, top: 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Vehicle Name and Rating
                           Row(
                             children: [
-                              Flexible(
-                                child: Text(
-                                  vehicle?.vehicleName ?? localizations.no_vehicles_found,
-                                  style: TextStyle(
-                                    fontSize: (vehicle != null &&
-                                        vehicle.vehicleName.isNotEmpty)
-                                        ? 16
-                                        : 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              Text(
+                                getVehicleName(vehicle?.vehicleName ??
+                                    localizations.no_vehicles_found),
+                                style: TextStyle(
+                                  fontFamily: AppConstants.ptSansFont,
+                                  fontSize: (vehicle != null &&
+                                          vehicle.vehicleName.isNotEmpty)
+                                      ? 16
+                                      : 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(width: 10),
                               Text(
                                 vehicle?.vehicleType ?? '',
                                 style: TextStyle(
+                                  fontFamily: AppConstants.ptSansFont,
                                   fontSize: 12,
                                   color: ColorConstants.black2,
                                   fontWeight: FontWeight.w400,
@@ -911,17 +926,21 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (vehicle != null && vehicle.vehicleName.isNotEmpty)
+                              if (vehicle != null &&
+                                  vehicle.vehicleName.isNotEmpty)
                                 Spacer()
                               else
                                 const SizedBox(width: 20),
                               // Rating Badge
+                              Spacer(),
                               Container(
+                                alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 4, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Colors.amber[50],
-                                  border: BoxBorder.all(color: Color(0xFFF9E9AD)),
+                                  border:
+                                      BoxBorder.all(color: Color(0xFFF9E9AD)),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -930,18 +949,17 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     const Icon(
                                       Icons.star,
                                       size: 14,
-                                      color: Colors.amber,
+                                      color: Color(0xFFFFC633),
                                     ),
                                     const SizedBox(width: 2),
                                     Text(
                                       owner.rating > 0
                                           ? owner.rating.toStringAsFixed(1)
                                           : '4.3',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w400,
-                                      ),
+                                      style: CommonUtils.commonTitleStyle(
+                                          fontSize: 12,
+                                          color: Color(0xFFF38B0F),
+                                          weight: FontWeight.w400),
                                     ),
                                   ],
                                 ),
@@ -949,8 +967,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                             ],
                           ),
 
-                          const SizedBox(height: 12),
-
+                          const SizedBox(height: 10),
                           // Features Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -958,19 +975,16 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                 Image.asset("assets/img/seats.png", width: 14, height: 14),
+                                  Image.asset("assets/img/seats.png",
+                                      width: 14, height: 14),
                                   const SizedBox(width: 4),
                                   Text(
                                     '${vehicle?.seatingCapacity ?? 'N/A'} Seats',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[700],
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                    style: CommonUtils.commonTextLabelsStyle(
+                                        fontSize: 12),
                                   ),
                                 ],
                               ),
-
                               const SizedBox(width: 8),
                               if (vehicle?.airConditioning != null &&
                                   vehicle!.airConditioning.isNotEmpty)
@@ -990,28 +1004,30 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     await addToFav(vehicle!.userId, vehicle.id);
                                     setState(() {
                                       favoriteStates[vehicle.id] =
-                                      !(favoriteStates[vehicle.id] ?? false);
+                                          !(favoriteStates[vehicle.id] ??
+                                              false);
                                     });
                                   }
                                 },
                                 child: (favAdded || deletFav)
                                     ? Center(
-                                  child: CircularProgressIndicator(),
-                                )
+                                        child: CircularProgressIndicator(),
+                                      )
                                     : Icon(
-                                  (favoriteStates[vehicle?.id] ?? false)
-                                      ? Icons.favorite
-                                      : Icons.favorite_border,
-                                  color: (favoriteStates[vehicle?.id] ?? false)
-                                      ? Colors.red
-                                      : Colors.grey[400],
-                                  size: 22,
-                                ),
+                                        (favoriteStates[vehicle?.id] ?? false)
+                                            ? Icons.favorite
+                                            : Icons.favorite_border,
+                                        color: (favoriteStates[vehicle?.id] ??
+                                                false)
+                                            ? Colors.red
+                                            : Colors.grey[400],
+                                        size: 22,
+                                      ),
                               ),
                             ],
                           ),
 
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 5),
                           // Price and Negotiable Badge
                           Row(
                             children: [
@@ -1019,31 +1035,26 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 children: [
                                   Text(
                                     'Minimum Charge',
-                                    style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.black,
-                                        fontWeight: FontWeight.w400),
+                                    style: CommonUtils.commonTextLabelsStyle(
+                                        fontSize: 12),
                                   ),
                                   const SizedBox(width: 5),
                                   Text(
-                                    '₹ ${vehicle?.minimumChargePerHour ??
-                                        owner.minimumCharges}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
+                                    '₹ ${vehicle?.minimumChargePerHour ?? owner.minimumCharges}',
+                                    style: CommonUtils.commonTitleStyle(
+                                        fontSize: 12),
                                   ),
                                   const SizedBox(width: 10),
                                 ],
                               ),
                               // Negotiable Badge
-                              if (vehicle?.isPriceNegotiable == true || owner.negotiable)
+                              if (vehicle?.isPriceNegotiable == true ||
+                                  owner.negotiable)
                                 Flexible(
                                     child: Container(
-                                      padding:
-                                      EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      /* decoration: BoxDecoration(
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  /* decoration: BoxDecoration(
                                   color: gradientSecond,
                                   borderRadius: BorderRadius.circular(20),
                                   border: Border.all(
@@ -1051,26 +1062,25 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     width: 0.5,
                                   ),
                                 ),*/
-                                      child: Text(
-                                        (vehicle?.isPriceNegotiable == true ||
+                                  child: Text(
+                                    (vehicle?.isPriceNegotiable == true ||
                                             owner.negotiable)
-                                            ? localizations.negotiable
-                                            : localizations.fixedPrice,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: gradientSecond,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    )),
+                                        ? localizations.negotiable
+                                        : localizations.fixedPrice,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: CommonUtils.commonTitleStyle(
+                                        fontSize: 12,
+                                        color: Color(0xFF1FAF38),
+                                        weight: FontWeight.w400),
+                                  ),
+                                )),
                               const SizedBox(width: 10),
                             ],
                           ),
                           // Action Buttons and Favorite Icon Row
                           SizedBox(
-                            height: 20,
+                            height: 10,
                           ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1085,12 +1095,13 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     type: 'MESSAGE',
                                     phone: owner.businessMobileNumber,
                                     activityType: ActivityType.WHATSAPP,
-                                    userType: getMyType(owner.vehicles.length > 1 &&
-                                        owner.vehicles.isNotEmpty
+                                    userType: getMyType(owner.vehicles.length >
+                                                1 &&
+                                            owner.vehicles.isNotEmpty
                                         ? "Transporter"
                                         : owner.vehicles.isNotEmpty
-                                        ? owner.vehicles.first.vehicleType
-                                        : "Unknown"),
+                                            ? owner.vehicles.first.vehicleType
+                                            : "Unknown"),
                                   ),
                                   const SizedBox(width: 20),
                                   CustomActivity(
@@ -1100,12 +1111,13 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     type: 'WHATSAPP',
                                     phone: owner.businessMobileNumber,
                                     activityType: ActivityType.WHATSAPP,
-                                    userType: getMyType(owner.vehicles.length > 1 &&
-                                        owner.vehicles.isNotEmpty
+                                    userType: getMyType(owner.vehicles.length >
+                                                1 &&
+                                            owner.vehicles.isNotEmpty
                                         ? "Transporter"
                                         : owner.vehicles.isNotEmpty
-                                        ? owner.vehicles.first.vehicleType
-                                        : "Unknown"),
+                                            ? owner.vehicles.first.vehicleType
+                                            : "Unknown"),
                                   ),
                                   const SizedBox(width: 20),
                                   CustomActivity(
@@ -1115,11 +1127,12 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     type: 'PHONE',
                                     phone: owner.businessMobileNumber,
                                     activityType: ActivityType.PHONE,
-                                    userType: getMyType(owner.vehicles.length > 1
+                                    userType: getMyType(owner.vehicles.length >
+                                            1
                                         ? "Transporter"
                                         : owner.vehicles.isNotEmpty
-                                        ? owner.vehicles.first.vehicleType
-                                        : "Unknown"),
+                                            ? owner.vehicles.first.vehicleType
+                                            : "Unknown"),
                                   ),
                                 ],
                               ),
@@ -1131,35 +1144,19 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                   },
                                   child: Container(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 4, vertical: 2),
+                                        horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: gradientSecond,
-                                      borderRadius: BorderRadius.circular(2),
-                                      border: Border.all(
-                                        color: AppColors.blue,
-                                        width: 0.5,
-                                      ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "Send Request",
-                                          style: const TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Icon(
-                                          Icons.send,
-                                          size: 12,
-                                          color: Colors.white,
-                                        ),
-                                      ],
+                                    child: Text(
+                                      "👉 Send Request",
+                                      style: CommonUtils.commonTitleStyle(
+                                          fontSize: 10,
+                                          weight: FontWeight.w400,
+                                          color: Colors.white),
                                     ),
                                   ),
-
                                 ),
                               ),
                             ],
@@ -1170,10 +1167,12 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                   ),
                   // Owner Info Section (Moved Below View More)
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12,vertical: 8),
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       color: Colors.white,
-                      borderRadius: BorderRadius.only(bottomLeft: Radius.circular(16),bottomRight: Radius.circular(16)),
+                      borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(16),
+                          bottomRight: Radius.circular(16)),
                     ),
                     child: Row(
                       children: [
@@ -1184,25 +1183,27 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                           decoration: BoxDecoration(
                               color: Colors.grey[300],
                               shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 1)),
+                              border:
+                                  Border.all(color: Colors.white, width: 1)),
                           child: owner.profilePhoto.isNotEmpty
                               ? ClipOval(
-                            child: Image.network(
-                              owner.profilePhoto,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                            ),
-                          )
+                                  child: Image.network(
+                                    owner.profilePhoto,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 18,
+                                    ),
+                                  ),
+                                )
                               : const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 18,
-                          ),
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                         ),
                         const SizedBox(width: 4),
                         // Owner Name and Details
@@ -1214,12 +1215,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 children: [
                                   Flexible(
                                     child: Text(
-                                      "${owner.firstName } ${owner.lastName}",
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.black87,
-                                      ),
+                                      "${owner.firstName} ${owner.lastName}",
+                                      style: CommonUtils.commonTextLabelsStyle(
+                                          fontSize: 12),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -1244,18 +1242,16 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                         Row(
                           children: [
                             Text(
-                              'Vehicles Owned',
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w400),
+                              'Vehicles',
+                              style: CommonUtils.commonTextLabelsStyle(
+                                  fontSize: 12),
                             ),
                             SizedBox(
                               width: 10,
                             ),
                             Container(
-                              padding:
-                              EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 2),
                               decoration: BoxDecoration(
                                 color: gradientFirst.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(20),
@@ -1265,13 +1261,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 ),
                               ),
                               child: Text(
-                                '${owner.vehicles.length.toString().padLeft(
-                                    2, '0')}',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
+                                '${owner.vehicles.length.toString().padLeft(2, '0')}',
+                                style: CommonUtils.commonTitleStyle(
+                                    fontSize: 10, weight: FontWeight.w700),
                               ),
                             ),
                           ],
@@ -1279,7 +1271,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                       ],
                     ),
                   )
-                ] ,
+                ],
               ),
             ),
           ],
@@ -1307,11 +1299,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
           const SizedBox(width: 4),
           Text(
             text,
-            style: TextStyle(
-              fontSize: 11,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w500,
-            ),
+            style: CommonUtils.commonTextLabelsStyle(fontSize: 10),
           ),
           const SizedBox(width: 4),
         ],
@@ -1404,8 +1392,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   }
 
 // Enhanced action button (you'll need to update this method too)
-  Widget _buildEnhancedActionButton(String asset, Color color,
-      VoidCallback onTap) {
+  Widget _buildEnhancedActionButton(
+      String asset, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1500,7 +1488,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(localizations.retry),
             ),
@@ -1555,7 +1543,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: Text(localizations.refresh),
             ),
@@ -1581,14 +1569,14 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                icon: Icon(Icons.close),
-                onPressed: () {
-                  setState(() {
-                    _searchController.clear();
-                    _initializeSearchSuggestions();
-                  });
-                },
-              )
+                      icon: Icon(Icons.close),
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                          _initializeSearchSuggestions();
+                        });
+                      },
+                    )
                   : null,
               filled: true,
               fillColor: Colors.grey[100],
@@ -1636,7 +1624,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               suggestion.mainText,
               style: TextStyle(
                 fontWeight:
-                isCurrentLocation ? FontWeight.bold : FontWeight.normal,
+                    isCurrentLocation ? FontWeight.bold : FontWeight.normal,
               ),
             ),
             subtitle: isCurrentLocation
@@ -1699,18 +1687,17 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
           if (_showLocationSearch) ...[
             _buildLocationSearchBar(),
             _buildLocationSuggestions(),
-          ] else
-            ...[
-              Expanded(
-                child: _isLoading
-                    ? _buildLoadingWidget()
-                    : _errorMessage != null
-                    ? _buildErrorWidget()
-                    : _vehicles.isEmpty
-                    ? _buildEmptyWidget()
-                    : _buildVehiclesList(),
-              ),
-            ],
+          ] else ...[
+            Expanded(
+              child: _isLoading
+                  ? _buildLoadingWidget()
+                  : _errorMessage != null
+                      ? _buildErrorWidget()
+                      : _vehicles.isEmpty
+                          ? _buildEmptyWidget()
+                          : _buildVehiclesList(),
+            ),
+          ],
         ],
       ),
     );
@@ -1727,7 +1714,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         physics: const AlwaysScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 1,
-          childAspectRatio: 0.92, // Adjusted for new card height
+          childAspectRatio: 0.96, // Adjusted for new card height
           crossAxisSpacing: 0.5,
           mainAxisSpacing: 0.5,
         ),
@@ -1750,48 +1737,48 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
               ),
               child: _isLoadingMore
                   ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        ColorConstants.primaryColor,
-                      ),
-                      strokeWidth: 2,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Loading more...',
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              ColorConstants.primaryColor,
+                            ),
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'Loading more...',
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    )
                   : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.check_circle_outline,
-                    color: Colors.green,
-                    size: 28,
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'All loaded',
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.check_circle_outline,
+                          color: Colors.green,
+                          size: 28,
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          'All loaded',
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             );
           }
           return _buildVehicleCard(_vehicles[index]);
@@ -1922,5 +1909,13 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     _searchFocusNode.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  String getVehicleName(String name) {
+    if (name.length > 20) {
+      return name.substring(0, 20) + "..";
+    } else {
+      return name;
+    }
   }
 }

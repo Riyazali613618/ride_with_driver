@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../utils/color.dart';
 
@@ -20,7 +23,9 @@ class FilterDemo extends StatelessWidget {
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
               ),
-              builder: (context) => const FilterBottomSheet(),
+              builder: (context) => FilterBottomSheet(
+                listener: (filter) {},
+              ),
             );
           },
           child: const Text('Open Filters'),
@@ -31,7 +36,9 @@ class FilterDemo extends StatelessWidget {
 }
 
 class FilterBottomSheet extends StatefulWidget {
-  const FilterBottomSheet({Key? key}) : super(key: key);
+  final void Function(Map<String, String>) listener;
+
+  const FilterBottomSheet({required this.listener, super.key});
 
   @override
   State<FilterBottomSheet> createState() => _FilterBottomSheetState();
@@ -68,6 +75,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void removeFilter(String key) {
     setState(() {
       filters[key]?.isActive = false;
+      if(appliedFilter.containsKey(key))
+      appliedFilter.remove(key);
     });
   }
 
@@ -78,9 +87,20 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   }
 
   void updateFilterValue(String key, String value) {
+    print(value);
+    print(key);
+
     setState(() {
       filters[key]?.value = value;
     });
+    final activeFilters =
+    filters.entries.where((e) => e.value.isActive).toList();
+    activeFilters.forEach(
+          (element) {
+        appliedFilter[element.key] = element.value.value;
+      },
+    );
+    widget.listener(appliedFilter);
   }
 
   void clearAll() {
@@ -90,47 +110,50 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       });
     });
   }
+
   Map<String, dynamic> getActiveFilters() {
     Map<String, dynamic> activeFilters = {};
-    filters.forEach((key, value) {
-      if (value.isActive) {
-        activeFilters[key] = value.value;
-      }
+    appliedFilter.forEach((key, value) {
+      activeFilters[key] = value;
     });
+
     return activeFilters;
   }
 
   void applyFilters() {
+    appliedFilter.clear();
+    widget.listener(appliedFilter);
     Navigator.pop(context, getActiveFilters());
   }
+
+  Map<String, String> appliedFilter = {};
 
   @override
   Widget build(BuildContext context) {
     final inactiveFilters =
-    filters.entries.where((e) => !e.value.isActive).toList();
+        filters.entries.where((e) => !e.value.isActive).toList();
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20), topRight: Radius.circular(20))),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Header
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Filters',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              IconButton(
-                onPressed:applyFilters,
-                icon: const Icon(Icons.close),
-              ),
-            ],
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              onPressed: () {
+                widget.listener(appliedFilter);
+                Navigator.pop(context,getActiveFilters());
+              },
+              icon: const Icon(Icons.cancel_outlined),
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
 
           // Active Filter Chips
           ...filters.entries.map((entry) {
@@ -164,21 +187,25 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           const SizedBox(height: 20),
 
           // Clear All Button
-          OutlinedButton(
-            onPressed: clearAll,
-            style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(25),
+          GestureDetector(
+            onTap: clearAll,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.blue),
+                  borderRadius: BorderRadius.all(Radius.circular(14))),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Clear All',
+                      style: CommonUtils.commonTitleStyle(
+                          fontSize: 14,
+                          color: Colors.black,
+                          weight: FontWeight.w400)),
+                  SizedBox(width: 8),
+                  Icon(Icons.close, size: 18),
+                ],
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Text('Clear All'),
-                SizedBox(width: 8),
-                Icon(Icons.close, size: 18),
-              ],
             ),
           ),
           const SizedBox(height: 20),
@@ -205,76 +232,73 @@ class FilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.topRight,
-          colors: [
-            gradientFirst,
-            gradientSecond,
-          ],
-          stops: [0.0, 0.25],
-        ),
-        borderRadius: BorderRadius.circular(15),
+        color: Color(0x1F641BB4),
+        borderRadius: BorderRadius.circular(10),
       ),
-      child: Padding(
-        padding: const EdgeInsets.only(left: 4, top: 4, bottom: 4, right: 12),
-        child: Row(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.topRight,
+                colors: [
+                  gradientFirst,
+                  gradientSecond,
+                ],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
               child: Text(
                 filterData.label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
+                style: CommonUtils.commonTitleStyle(
+                    fontSize: 18, weight: FontWeight.w400, color: Colors.white),
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 0,
+          ),
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: filterData.value,
+                  isExpanded: true,
+                  style: CommonUtils.commonTitleStyle(
+                      fontSize: 18,
+                      weight: FontWeight.w400,
+                      color: Colors.black),
+                  icon: SvgPicture.asset("assets/svg/drop_down_gradient.svg"),
+                  items: filterData.options.map((option) {
+                    return DropdownMenuItem(
+                      value: option,
+                      child: Text(option),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) onValueChanged(value);
+                  },
                 ),
               ),
             ),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: filterData.value,
-                    isExpanded: true,
-                    icon: const Icon(Icons.keyboard_arrow_down),
-                    items: filterData.options.map((option) {
-                      return DropdownMenuItem(
-                        value: option,
-                        child: Text(option),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) onValueChanged(value);
-                    },
-                  ),
-                ),
-              ),
+          ),
+          const SizedBox(width: 8),
+          InkWell(
+            onTap: onRemove,
+            child: const Icon(
+              Icons.close,
+              color: Colors.black,
+              size: 18,
             ),
-            const SizedBox(width: 8),
-            InkWell(
-              onTap: onRemove,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.close,
-                  color: Colors.white,
-                  size: 18,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
     );
   }
