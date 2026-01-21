@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
@@ -172,6 +173,8 @@ class CommonUtils {
       color: isBlack?Colors.black:Colors.white,
     );
   }
+
+
 }
 
 class showAadhaarCardImages extends StatefulWidget {

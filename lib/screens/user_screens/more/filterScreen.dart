@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../utils/color.dart';
@@ -147,8 +148,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             alignment: Alignment.centerRight,
             child: IconButton(
               onPressed: () {
-                widget.listener(appliedFilter);
-                Navigator.pop(context,getActiveFilters());
+                Navigator.pop(context);
               },
               icon: const Icon(Icons.cancel_outlined),
             ),
@@ -187,26 +187,57 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           const SizedBox(height: 20),
 
           // Clear All Button
-          GestureDetector(
-            onTap: clearAll,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-              decoration: BoxDecoration(
-                  border: Border.all(color: AppColors.blue),
-                  borderRadius: BorderRadius.all(Radius.circular(14))),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('Clear All',
-                      style: CommonUtils.commonTitleStyle(
-                          fontSize: 14,
-                          color: Colors.black,
-                          weight: FontWeight.w400)),
-                  SizedBox(width: 8),
-                  Icon(Icons.close, size: 18),
-                ],
-              ),
-            ),
+          Row(
+            children: [
+              SizedBox(width: 20,),
+              Expanded(child: GestureDetector(
+                onTap: clearAll,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.blue),
+                      borderRadius: BorderRadius.all(Radius.circular(14))),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Clear All',
+                          style: CommonUtils.commonTitleStyle(
+                              fontSize: 14,
+                              color: Colors.black,
+                              weight: FontWeight.w400)),
+                      SizedBox(width: 8),
+                      Icon(Icons.close, size: 18),
+                    ],
+                  ),
+                ),
+              )),
+              SizedBox(width: 20,),
+              Expanded(child: GestureDetector(
+                onTap: () {
+                  widget.listener(appliedFilter);
+                  Navigator.pop(context,getActiveFilters());                },
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+                  decoration: BoxDecoration(
+                      color: ColorConstants.primaryColor,
+                      border: Border.all(color: AppColors.blue),
+                      borderRadius: BorderRadius.all(Radius.circular(14))),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Apply',
+                          style: CommonUtils.commonTitleStyle(
+                              fontSize: 14,
+                              color: Colors.white,
+                              weight: FontWeight.w400)),
+                      SizedBox(width: 8),
+                    ],
+                  ),
+                ),
+              )),
+              SizedBox(width: 20,),
+            ],
           ),
           const SizedBox(height: 20),
         ],

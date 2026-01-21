@@ -33,7 +33,7 @@ class ProfileProvider with ChangeNotifier {
 
   String? get userType => profileData?.usertype ?? _rawProfileData?['userType'];
 
-  String? get userId => profileData?.userId ?? _rawProfileData?['userId'];
+  String? get userId => profileData?.userId?.id ?? _rawProfileData?['userId'];
 
   String? get fullName {
     return profileData?.firstName ??

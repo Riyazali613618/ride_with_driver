@@ -9,7 +9,7 @@ class MyBookingPreviewPage extends StatelessWidget {
   final BuildContext parentContext;
   final List<String> selectedVehicle;
 
-  MyBookingPreviewPage({required this.parentContext,required this.selectedVehicle, super.key});
+ const MyBookingPreviewPage({required this.parentContext,required this.selectedVehicle, super.key});
 
 
   @override

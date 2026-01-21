@@ -21,6 +21,8 @@ import 'package:r_w_r/screens/user_screens/more/more_screen.dart';
 import 'package:r_w_r/screens/user_screens/vehicles.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:video_player/video_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 import '../../api/api_model/VehicleType.dart';
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_model/user_model/user_eligibility_model.dart';
@@ -198,7 +200,9 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   bool isPressed = false;
   bool _currentSubscriptionVisibility = false;
   List<Map<String, dynamic>> bannerData = [];
+  List<Map<String, dynamic>> tutorialData = [];
   bool isLoadingBanners = true;
+  bool isLoadingTutorial = true;
 
   // Default location (Sector-62, Noida)
   LatLng _currentLocation = const LatLng(28.6139, 77.3910);
@@ -225,13 +229,12 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
         isLoadingBanners = true;
       });
       // Get user data from ProfileProvider
-      final profileProvider =
-          Provider.of<ProfileProvider>(context, listen: false);
+
       final userId = profileProvider.userId;
       final token = await TokenManager.getToken();
 
       final response = await http.get(
-        Uri.parse('${ApiConstants.baseUrl}/user/banners/mobile'),
+        Uri.parse('${ApiConstants.baseUrl}/user/banners'),
         headers: {
           'Content-Type': 'application/json',
           'x-user-id': userId ?? '',
@@ -241,7 +244,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = json.decode(response.body);
 
-        if (responseData['status'] == true && responseData['data'] != null) {
+        if (responseData['success'] == true && responseData['data'] != null) {
           setState(() {
             bannerData = List<Map<String, dynamic>>.from(responseData['data']);
             isLoadingBanners = false;
@@ -263,6 +266,54 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       setState(() {
         bannerData = [];
         isLoadingBanners = false;
+      });
+    }
+  }
+
+  Future<void> _fetchVideoTutorials() async {
+    try {
+      setState(() {
+        isLoadingTutorial = true;
+      });
+      // Get user data from ProfileProvider
+      Provider.of<ProfileProvider>(context, listen: false);
+      final userId = profileProvider.userId;
+      final token = await TokenManager.getToken();
+
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/user/tutorials'),
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': userId ?? '',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> responseData = json.decode(response.body);
+
+        if (responseData['success'] == true && responseData['data'] != null) {
+          setState(() {
+            tutorialData =
+                List<Map<String, dynamic>>.from(responseData['data']);
+            isLoadingTutorial = false;
+          });
+        } else {
+          // Handle API error response
+          setState(() {
+            tutorialData = [];
+            isLoadingTutorial = false;
+          });
+        }
+      } else {
+        setState(() {
+          tutorialData = [];
+          isLoadingTutorial = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        tutorialData = [];
+        isLoadingTutorial = false;
       });
     }
   }
@@ -375,36 +426,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   @override
   void initState() {
     super.initState();
-    getVehicleTypeList();
-    startAutoScroll();
-    _containerSearchController.addListener(() {
-      setState(() {});
-    });
-    _createMarkers();
-    _getCurrentLocation();
-    _initializeSelectedLanguage();
-    _fetchBanners(); // Add this line
-    WidgetsBinding.instance.addObserver(this);
-    _currentSubscriptionVisibility = widget.showDriverSubscription ?? false;
-    _loadRecentLocations();
-    profileProvider = Provider.of<ProfileProvider>(context, listen: false);
-
-    if (widget.isFirstTime ?? false) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _getCurrentLocation();
-        profileProvider.showDialogBox(context);
-      });
-    }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfileData();
-      getEligibilityData();
-    });
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      try {
-        context.read<EligibilityBloc>().add(FetchEligibilityEvent());
-      } catch (e) {}
-    });
+    initData();
   }
 
   Future<void> _loadProfileData() async {
@@ -1029,7 +1051,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
                       child: Image.network(
-                        banner['image'] ?? '',
+                        banner['imageurl'] ?? '',
                         fit: BoxFit.cover,
                         width: double.infinity,
                         errorBuilder: (context, error, stackTrace) {
@@ -1119,761 +1141,777 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
   }
 
   @override
-
   Widget build(BuildContext context) {
-    addVehicles();
-
     _currentSubscriptionVisibility = widget.showDriverSubscription ?? false;
     final localizations = AppLocalizations.of(context)!;
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                Container(
-                  height: height * .4,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        gradientFirst,
-                        gradientSecond,
-                        gradientThird,
-                        Colors.white
-                      ],
-                      // stops: [
-                      //   0.0,
-                      //   0.20,
-                      //   0.80,
-                      // ],
+      body: RefreshIndicator(
+        onRefresh: onRefreshPage,
+        child: SingleChildScrollView(
+          controller: _scrollController,
+          child: Column(
+            children: [
+              Stack(
+                children: [
+                  Container(
+                    height: height * .4,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          gradientFirst,
+                          gradientSecond,
+                          gradientThird,
+                          Colors.white
+                        ],
+                        // stops: [
+                        //   0.0,
+                        //   0.20,
+                        //   0.80,
+                        // ],
+                      ),
                     ),
                   ),
-                ),
-                SafeArea(
-                  child: Column(
-                    children: [
-                      Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: GestureDetector(
-                            onTap: () async {
-                              final profile = await TokenManager.getProfile();
-                              final showPlan = profile?.subscriptions != null &&
-                                  profile!.subscriptions.isNotEmpty;
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: GestureDetector(
+                              onTap: () async {
+                                final profile = await TokenManager.getProfile();
+                                final showPlan =
+                                    profile?.subscriptions != null &&
+                                        profile!.subscriptions.isNotEmpty;
 
-                              Navigator.push(
-                                context,
-                                CupertinoPageRoute(
-                                  builder: (context) => MoreScreen(
-                                    showPlan: showPlan,
-                                    showDriverSubscription:
-                                        widget.showDriverSubscription ?? false,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Row(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: ClipOval(
-                                    child: Image.network(
-                                      profileProvider.profilePhoto.toString(),
-                                      width: 40,
-                                      height: 40,
-                                      fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                        return const Icon(
-                                          Icons.account_circle_sharp,
-                                          color: Colors.grey,
-                                          size: 35,
-                                        );
-                                      },
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (context) => MoreScreen(
+                                      showPlan: showPlan,
+                                      showDriverSubscription:
+                                          widget.showDriverSubscription ??
+                                              false,
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 6),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Hi, ${profileProvider.fullName ?? "Getting Name"}',
-                                        style: const TextStyle(
-                                          fontFamily: AppConstants.ptSansFont,
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
+                                );
+                              },
+                              child: Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: ClipOval(
+                                      child: Image.network(
+                                        profileProvider.profilePhoto.toString(),
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (context, error, stackTrace) {
+                                          return const Icon(
+                                            Icons.account_circle_sharp,
+                                            color: Colors.grey,
+                                            size: 35,
+                                          );
+                                        },
                                       ),
-                                      Text(
-                                        currentLocationName,
-                                        style: GoogleFonts.inter(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 1,
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Consumer<LanguageProvider>(
-                                  builder: (context, languageProvider, child) {
-                                    return GestureDetector(
-                                      onTap: null,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 6),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Image.asset(
-                                              'assets/img/flagIcon.png',
-                                              height: 22,
-                                              width: 22,
-                                            ),
-                                            SizedBox(
-                                              width: 5,
-                                            ),
-                                            GestureDetector(
-                                              onTap: () async {
-                                                final lang =
-                                                    await Navigator.push<bool>(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          const LanguageSelectionScreen()),
-                                                );
-                                              },
-                                              child: Text(
-                                                languageProvider.currentLanguage
-                                                        ?.name ??
-                                                    'En',
-                                                style: GoogleFonts.lexendDeca(
-                                                  color: Colors.white,
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.w500,
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Hi, ${profileProvider.fullName ?? "Getting Name"}',
+                                          style: const TextStyle(
+                                            fontFamily: AppConstants.ptSansFont,
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                        Text(
+                                          currentLocationName,
+                                          style: GoogleFonts.inter(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Consumer<LanguageProvider>(
+                                    builder:
+                                        (context, languageProvider, child) {
+                                      return GestureDetector(
+                                        onTap: null,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 6),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Image.asset(
+                                                'assets/img/flagIcon.png',
+                                                height: 22,
+                                                width: 22,
+                                              ),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              GestureDetector(
+                                                onTap: () async {
+                                                  final lang = await Navigator
+                                                      .push<bool>(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const LanguageSelectionScreen()),
+                                                  );
+                                                },
+                                                child: Text(
+                                                  languageProvider
+                                                          .currentLanguage
+                                                          ?.name ??
+                                                      'En',
+                                                  style: GoogleFonts.lexendDeca(
+                                                    color: Colors.white,
+                                                    fontSize: 17,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: 6),
-                                GestureDetector(
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(width: 6),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              NotificationListScreen(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Icon(
+                                      CupertinoIcons.bell_solid,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )),
+
+                        _buildImageSlider(),
+
+                        const SizedBox(height: 22),
+
+                        Container(
+                          margin:
+                              EdgeInsets.only(left: 12, right: 12, bottom: 16),
+                          decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(12)),
+                              boxShadow: [
+                                BoxShadow(
+                                    offset: Offset(0, 0),
+                                    color: Colors.grey.shade300,
+                                    blurRadius: 40,
+                                    spreadRadius: 0)
+                              ]),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                InkWell(
                                   onTap: () {
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
-                                            NotificationListScreen(),
-                                      ),
-                                    );
-                                  },
-                                  child: const Icon(
-                                    CupertinoIcons.bell_solid,
-                                    color: Colors.white,
-                                    size: 22,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )),
-
-                      _buildImageSlider(),
-
-                      const SizedBox(height: 22),
-
-                      Container(
-                        margin:
-                            EdgeInsets.only(left: 12, right: 12, bottom: 16),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                            boxShadow: [
-                              BoxShadow(
-                                  offset: Offset(0, 0),
-                                  color: Colors.grey.shade300,
-                                  blurRadius: 40,
-                                  spreadRadius: 0)
-                            ]),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              InkWell(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          LocationSearchScreen(
-                                        selectedCategory: mapVehicleToCategory(
-                                            selectedVehicle),
-                                        isRentVehicle: isRentVehicle,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        gradientFirst,
-                                        gradientSecond,
-                                        // gradientThird,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(1.4),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          PopupMenuButton<String>(
-                                            color: Colors.white,
-                                            onSelected: (String value) async {
-                                              setState(() {
-                                                selectedVehicle = value;
-                                                isRentVehicle = true;
-                                              });
-                                            },
-                                            itemBuilder:
-                                                (BuildContext context) {
-                                              return [
-                                                PopupMenuItem<String>(
-                                                  value: "All Services",
-                                                  child: Text(
-                                                    "All Services",
-                                                    style: TextStyle(
-                                                      fontFamily: AppConstants
-                                                          .ptSansFont,
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                                ...vehicles
-                                                    .map((VehicleType vehicle) {
-                                                  return PopupMenuItem<String>(
-                                                    value: vehicle.name,
-                                                    child: Text(
-                                                      vehicle.name,
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                      ),
-                                                    ),
-                                                  );
-                                                }).toList(),
-                                              ];
-                                            },
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 9,
-                                                      horizontal: 14),
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xffF1F5F9),
-                                                borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(12),
-                                                  bottomLeft:
-                                                      Radius.circular(12),
-                                                ),
-                                              ),
-                                              child: Center(
-                                                child: ShaderMask(
-                                                  shaderCallback: (bounds) =>
-                                                      LinearGradient(
-                                                    colors: [
-                                                      gradientFirst,
-                                                      gradientSecond,
-                                                    ],
-                                                    begin: Alignment.topLeft,
-                                                    end: Alignment.bottomRight,
-                                                  ).createShader(Rect.fromLTWH(
-                                                          0,
-                                                          0,
-                                                          bounds.width,
-                                                          bounds.height)),
-                                                  blendMode: BlendMode.srcIn,
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        selectedVehicle ==
-                                                                "All Services"
-                                                            ? localizations
-                                                                .all_Services
-                                                            : selectedVehicle,
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
-                                                      ),
-                                                      const SizedBox(width: 4),
-                                                      const Text(
-                                                        "▾",
-                                                        style: TextStyle(
-                                                            fontSize: 20),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-
-                                          SizedBox(
-                                            width: 16,
-                                          ),
-                                          Expanded(
-                                              child: Text(
-                                            "Enter pickup location (e.g., Mumbai)",
-                                            style: TextStyle(
-                                              fontSize: 10.5,
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          )),
-                                          SizedBox(
-                                            width: 8,
-                                          )
-                                          // Expanded(
-                                          //   child: GestureDetector(
-                                          //     onTap: () {
-                                          //       Navigator.push(
-                                          //         context,
-                                          //         MaterialPageRoute(
-                                          //           builder: (context) =>
-                                          //               LocationSearchScreen(
-                                          //             selectedCategory: "driver",
-                                          //             isRentVehicle:
-                                          //                 isRentVehicle,
-                                          //           ),
-                                          //         ),
-                                          //       );
-                                          //     },
-                                          //     child: Padding(
-                                          //       padding:
-                                          //           const EdgeInsets.all(4.0),
-                                          //       child: Container(
-                                          //         padding:
-                                          //             const EdgeInsets.symmetric(
-                                          //                 vertical: 10),
-                                          //         decoration: BoxDecoration(
-                                          //           color: !isRentVehicle
-                                          //               ? Colors.white
-                                          //               : Colors.transparent,
-                                          //           borderRadius:
-                                          //               BorderRadius.circular(25),
-                                          //           boxShadow: !isRentVehicle
-                                          //               ? [
-                                          //                   BoxShadow(
-                                          //                     color: Colors.grey
-                                          //                         .withOpacity(
-                                          //                             0.3),
-                                          //                     blurRadius: 8,
-                                          //                     offset:
-                                          //                         const Offset(
-                                          //                             0, 2),
-                                          //                   ),
-                                          //                 ]
-                                          //               : null,
-                                          //         ),
-                                          //         child: Text(
-                                          //           localizations.hire_driver,
-                                          //           textAlign: TextAlign.center,
-                                          //           style: TextStyle(
-                                          //             color: !isRentVehicle
-                                          //                 ? const Color(
-                                          //                     0xFF090040)
-                                          //                 : Colors.white,
-                                          //             fontWeight: !isRentVehicle
-                                          //                 ? FontWeight.bold
-                                          //                 : FontWeight.normal,
-                                          //           ),
-                                          //         ),
-                                          //       ),
-                                          //     ),
-                                          //   ),
-                                          // ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              // const SizedBox(height: 10),
-                              // _buildContainerSearchBar(),
-                              // const SizedBox(height: 10),
-
-                              // Available vehicles section
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            left: 16, right: 16, bottom: 10, top: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              localizations.suggestions,
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            GridViewExample()));
-                              },
-                              child: Text(
-                                localizations.see_all,
-                                style: TextStyle(
-                                  color: Colors.grey.shade600,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 15),
-
-                      SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Padding(
-                          padding: const EdgeInsets.only(
-                              left: 8, right: 8, bottom: 10),
-                          child: Row(
-                            children: vehicles.asMap().entries.map((entry) {
-                              int index = entry.key;
-                              VehicleType vehicle = entry.value;
-
-                              return Container(
-                                margin:
-                                    const EdgeInsets.symmetric(horizontal: 5.0),
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    setState(() {
-                                      selectedVehicleIndex = index;
-                                    });
-
-                                    await Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
                                             LocationSearchScreen(
                                           selectedCategory:
-                                              _getSelectedCategory(),
+                                              mapVehicleToCategory(
+                                                  selectedVehicle),
                                           isRentVehicle: isRentVehicle,
                                         ),
                                       ),
                                     );
-                                    setState(() {
-                                      selectedVehicleIndex = -1;
-                                    });
                                   },
                                   child: Container(
-                                    padding: EdgeInsets.only(
-                                        top: 28, bottom: 22, left: 4, right: 8),
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
                                         colors: [
-                                          vehicle.color1,
-                                          vehicle.color,
+                                          gradientFirst,
+                                          gradientSecond,
+                                          // gradientThird,
                                         ],
-                                        stops: const [0.0, 0.7],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
                                       ),
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: selectedVehicleIndex == index
-                                          ? Border.all(
-                                              color:
-                                                  ColorConstants.primaryColor,
-                                              width: 2,
-                                            )
-                                          : null,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 8),
-                                          child: Image.asset(
-                                            vehicle.assetImagePath ?? "",
-                                            width: 90,
-                                            height: 55,
-                                            fit: BoxFit.contain,
-                                          ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(1.4),
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.white,
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
-                                        const SizedBox(height: 4),
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 8),
-                                          child: Text(
-                                            vehicle.name,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.black,
+                                        child: Row(
+                                          children: [
+                                            PopupMenuButton<String>(
+                                              color: Colors.white,
+                                              onSelected: (String value) async {
+                                                setState(() {
+                                                  selectedVehicle = value;
+                                                  isRentVehicle = true;
+                                                });
+                                              },
+                                              itemBuilder:
+                                                  (BuildContext context) {
+                                                return [
+                                                  PopupMenuItem<String>(
+                                                    value: "All Services",
+                                                    child: Text(
+                                                      "All Services",
+                                                      style: TextStyle(
+                                                        fontFamily: AppConstants
+                                                            .ptSansFont,
+                                                        fontSize: 14,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  ...vehicles.map(
+                                                      (VehicleType vehicle) {
+                                                    return PopupMenuItem<
+                                                        String>(
+                                                      value: vehicle.name,
+                                                      child: Text(
+                                                        vehicle.name,
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }).toList(),
+                                                ];
+                                              },
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 9,
+                                                        horizontal: 14),
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xffF1F5F9),
+                                                  borderRadius:
+                                                      BorderRadius.only(
+                                                    topLeft:
+                                                        Radius.circular(12),
+                                                    bottomLeft:
+                                                        Radius.circular(12),
+                                                  ),
+                                                ),
+                                                child: Center(
+                                                  child: ShaderMask(
+                                                    shaderCallback: (bounds) =>
+                                                        LinearGradient(
+                                                      colors: [
+                                                        gradientFirst,
+                                                        gradientSecond,
+                                                      ],
+                                                      begin: Alignment.topLeft,
+                                                      end:
+                                                          Alignment.bottomRight,
+                                                    ).createShader(
+                                                            Rect.fromLTWH(
+                                                                0,
+                                                                0,
+                                                                bounds.width,
+                                                                bounds.height)),
+                                                    blendMode: BlendMode.srcIn,
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(
+                                                          selectedVehicle ==
+                                                                  "All Services"
+                                                              ? localizations
+                                                                  .all_Services
+                                                              : selectedVehicle,
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                        const SizedBox(
+                                                            width: 4),
+                                                        const Text(
+                                                          "▾",
+                                                          style: TextStyle(
+                                                              fontSize: 20),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
                                             ),
-                                          ),
+
+                                            SizedBox(
+                                              width: 16,
+                                            ),
+                                            Expanded(
+                                                child: Text(
+                                              "Enter pickup location (e.g., Mumbai)",
+                                              style: TextStyle(
+                                                fontSize: 10.5,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            )),
+                                            SizedBox(
+                                              width: 8,
+                                            )
+                                            // Expanded(
+                                            //   child: GestureDetector(
+                                            //     onTap: () {
+                                            //       Navigator.push(
+                                            //         context,
+                                            //         MaterialPageRoute(
+                                            //           builder: (context) =>
+                                            //               LocationSearchScreen(
+                                            //             selectedCategory: "driver",
+                                            //             isRentVehicle:
+                                            //                 isRentVehicle,
+                                            //           ),
+                                            //         ),
+                                            //       );
+                                            //     },
+                                            //     child: Padding(
+                                            //       padding:
+                                            //           const EdgeInsets.all(4.0),
+                                            //       child: Container(
+                                            //         padding:
+                                            //             const EdgeInsets.symmetric(
+                                            //                 vertical: 10),
+                                            //         decoration: BoxDecoration(
+                                            //           color: !isRentVehicle
+                                            //               ? Colors.white
+                                            //               : Colors.transparent,
+                                            //           borderRadius:
+                                            //               BorderRadius.circular(25),
+                                            //           boxShadow: !isRentVehicle
+                                            //               ? [
+                                            //                   BoxShadow(
+                                            //                     color: Colors.grey
+                                            //                         .withOpacity(
+                                            //                             0.3),
+                                            //                     blurRadius: 8,
+                                            //                     offset:
+                                            //                         const Offset(
+                                            //                             0, 2),
+                                            //                   ),
+                                            //                 ]
+                                            //               : null,
+                                            //         ),
+                                            //         child: Text(
+                                            //           localizations.hire_driver,
+                                            //           textAlign: TextAlign.center,
+                                            //           style: TextStyle(
+                                            //             color: !isRentVehicle
+                                            //                 ? const Color(
+                                            //                     0xFF090040)
+                                            //                 : Colors.white,
+                                            //             fontWeight: !isRentVehicle
+                                            //                 ? FontWeight.bold
+                                            //                 : FontWeight.normal,
+                                            //           ),
+                                            //         ),
+                                            //       ),
+                                            //     ),
+                                            //   ),
+                                            // ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
-                              );
-                            }).toList(),
+
+                                // const SizedBox(height: 10),
+                                // _buildContainerSearchBar(),
+                                // const SizedBox(height: 10),
+
+                                // Available vehicles section
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-
-                      SizedBox(
-                        height: 10,
-                      ),
-                      BlocBuilder<EligibilityBloc, EligibilityState>(
-                        builder: (context, state) {
-                          if (state is EligibilityLoaded &&
-                              (state.userType.isEmpty ||
-                                  state.userType.toLowerCase() == "user")) {
-                            return Container(
-                              height: 50,
-                              width: double.infinity,
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          12), // ✅ works fine
-                                    ),
-                                    elevation: 0,
-                                    backgroundColor: Color(0xff0064E0)),
-                                onPressed: () {
+                        Padding(
+                          padding: const EdgeInsets.only(
+                              left: 16, right: 16, bottom: 10, top: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                localizations.suggestions,
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
                                   Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => BlocProvider(
-                                        create: (context) => PlanBloc(
-                                          RepositoryProvider.of<PlanRepository>(
-                                              context),
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) =>
+                                              GridViewExample()));
+                                },
+                                child: Text(
+                                  localizations.see_all,
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 15),
+
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 8, right: 8, bottom: 10),
+                            child: Row(
+                              children: vehicles.asMap().entries.map((entry) {
+                                int index = entry.key;
+                                VehicleType vehicle = entry.value;
+
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 5.0),
+                                  child: GestureDetector(
+                                    onTap: () async {
+                                      setState(() {
+                                        selectedVehicleIndex = index;
+                                      });
+
+                                      await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              LocationSearchScreen(
+                                            selectedCategory:
+                                                _getSelectedCategory(),
+                                            isRentVehicle: isRentVehicle,
+                                          ),
                                         ),
-                                        child: PartnerRegistrationWidget(),
+                                      );
+                                      setState(() {
+                                        selectedVehicleIndex = -1;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.only(
+                                          top: 28,
+                                          bottom: 22,
+                                          left: 4,
+                                          right: 8),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            vehicle.color1,
+                                            vehicle.color,
+                                          ],
+                                          stops: const [0.0, 0.7],
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: selectedVehicleIndex == index
+                                            ? Border.all(
+                                                color:
+                                                    ColorConstants.primaryColor,
+                                                width: 2,
+                                              )
+                                            : null,
+                                      ),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 8),
+                                            child: Image.asset(
+                                              vehicle.assetImagePath ?? "",
+                                              width: 90,
+                                              height: 55,
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Padding(
+                                            padding:
+                                                const EdgeInsets.only(left: 8),
+                                            child: Text(
+                                              vehicle.name,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  );
-                                },
-                                child: const Text(
-                                  'Become Partner',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                            );
-                          }
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
 
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                      SizedBox(
-                        height: 10,
-                      ),
-                      BlocBuilder<EligibilityBloc, EligibilityState>(
-                        builder: (context, state) {
-                          if (state is EligibilityLoaded &&
-                              state.paymentPhase == 'PRE_REGISTRATION') {
-                            return Container(
-                              height: 50,
-                              width: double.infinity,
-                              margin: EdgeInsets.symmetric(
-                                  horizontal: 15, vertical: 10),
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(
-                                          12), // ✅ works fine
-                                    ),
-                                    elevation: 0,
-                                    backgroundColor: Color(0xff0064E0)),
-                                onPressed: () {
-                                  _navigateToApplication(state.userType);
-                                },
-                                child: const Text(
-                                  'Complete Your Application',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        BlocBuilder<EligibilityBloc, EligibilityState>(
+                          builder: (context, state) {
+                            if (state is EligibilityLoaded &&
+                                (state.userType.isEmpty ||
+                                    state.userType.toLowerCase() == "user")) {
+                              return Container(
+                                height: 50,
+                                width: double.infinity,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 15, vertical: 10),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            12), // ✅ works fine
+                                      ),
+                                      elevation: 0,
+                                      backgroundColor: Color(0xff0064E0)),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => BlocProvider(
+                                          create: (context) => PlanBloc(
+                                            RepositoryProvider.of<
+                                                PlanRepository>(context),
+                                          ),
+                                          child: PartnerRegistrationWidget(),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Text(
+                                    'Become Partner',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                              ),
-                            );
-                          }
-
-                          return const SizedBox.shrink();
-                        },
-                      ),
-/*
-                      FutureBuilder<ApplicationStatus>(
-                        future: _loadWhoRegAndStatus(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            final status = snapshot.data!;
-                            if (status != ApplicationStatus.notStarted &&
-                                status != ApplicationStatus.submitted &&
-                                status != ApplicationStatus.approved &&
-                                status !=
-                                    ApplicationStatus.fareAndCitiesComplete &&
-                                status != ApplicationStatus.rejected) {
-                              return AutoRickshawProgressCard();
-                            } else if (isRegistrationIncomplete &&
-                                whoReg?.toLowerCase() != "user") {
-                              return _buildActionButton();
+                              );
                             }
+
                             return const SizedBox.shrink();
-                          }
+                          },
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        BlocBuilder<EligibilityBloc, EligibilityState>(
+                          builder: (context, state) {
+                            if (state is EligibilityLoaded &&
+                                state.paymentPhase == 'PRE_REGISTRATION') {
+                              return Container(
+                                height: 50,
+                                width: double.infinity,
+                                margin: EdgeInsets.symmetric(
+                                    horizontal: 15, vertical: 10),
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(
+                                            12), // ✅ works fine
+                                      ),
+                                      elevation: 0,
+                                      backgroundColor: Color(0xff0064E0)),
+                                  onPressed: () {
+                                    _navigateToApplication(state.userType);
+                                  },
+                                  child: const Text(
+                                    'Complete Your Application',
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              );
+                            }
 
-                          return const Center(
-                              child: CircularProgressIndicator());
-                        },
-                      ),
-*/
-                      _buildMediaSection(),
-                      // Padding(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                      //   child: Container(
-                      //     decoration: BoxDecoration(
-                      //       color: Colors.white,
-                      //       borderRadius: BorderRadius.circular(10),
-                      //       boxShadow: [
-                      //         BoxShadow(
-                      //           color: Colors.grey.withOpacity(0.3),
-                      //           blurRadius: 10,
-                      //           offset: const Offset(0, 5),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //     child: Column(
-                      //       children: [
-                      //         // Around You Header
-                      //         Padding(
-                      //           padding: const EdgeInsets.all(16.0),
-                      //           child: Align(
-                      //             alignment: Alignment.centerLeft,
-                      //             child: Text(
-                      //               localizations.around_you,
-                      //               style: TextStyle(
-                      //                 fontSize: 16,
-                      //                 fontWeight: FontWeight.w600,
-                      //               ),
-                      //             ),
-                      //           ),
-                      //         ),
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                        /*
+                        FutureBuilder<ApplicationStatus>(
+                          future: _loadWhoRegAndStatus(),
+                          builder: (context, snapshot) {
+                            if (snapshot.hasData) {
+                              final status = snapshot.data!;
+                              if (status != ApplicationStatus.notStarted &&
+                                  status != ApplicationStatus.submitted &&
+                                  status != ApplicationStatus.approved &&
+                                  status !=
+                                      ApplicationStatus.fareAndCitiesComplete &&
+                                  status != ApplicationStatus.rejected) {
+                                return AutoRickshawProgressCard();
+                              } else if (isRegistrationIncomplete &&
+                                  whoReg?.toLowerCase() != "user") {
+                                return _buildActionButton();
+                              }
+                              return const SizedBox.shrink();
+                            }
 
-                      //         // Map Section
-                      //         Padding(
-                      //           padding: const EdgeInsets.only(
-                      //               left: 8.0, right: 8.0, bottom: 10.0),
-                      //           child: Container(
-                      //             height: 300,
-                      //             decoration: BoxDecoration(
-                      //               borderRadius: BorderRadius.circular(15),
-                      //               boxShadow: [
-                      //                 BoxShadow(
-                      //                   color: Colors.grey.withOpacity(0.2),
-                      //                   blurRadius: 8,
-                      //                   offset: const Offset(0, 3),
-                      //                 ),
-                      //               ],
-                      //             ),
-                      //             child: ClipRRect(
-                      //               borderRadius: BorderRadius.circular(15),
-                      //               child: GoogleMap(
-                      //                 onMapCreated: (GoogleMapController controller) {
-                      //                   mapController = controller;
-                      //                 },
-                      //                 initialCameraPosition: CameraPosition(
-                      //                   target: _currentLocation,
-                      //                   zoom: 14.0,
-                      //                 ),
-                      //                 markers: _markers,
-                      //                 myLocationEnabled: true,
-                      //                 myLocationButtonEnabled: true,
-                      //                 zoomControlsEnabled: false,
-                      //                 mapToolbarEnabled: false,
-                      //                 compassEnabled: true,
-                      //                 rotateGesturesEnabled: true,
-                      //                 scrollGesturesEnabled: true,
-                      //                 tiltGesturesEnabled: true,
-                      //                 zoomGesturesEnabled: true,
-                      //                 mapType: MapType.normal,
-                      //                 onCameraMove: (CameraPosition position) {},
-                      //                 onTap: (LatLng position) {},
-                      //               ),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       ],
-                      //     ),
-                      //   ),
-                      // ),
-                      // _buildMediaSection(),
-                      const SizedBox(height: 20),
-                    ],
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          },
+                        ),
+          */
+                        _buildMediaSection(),
+                        // Padding(
+                        //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                        //   child: Container(
+                        //     decoration: BoxDecoration(
+                        //       color: Colors.white,
+                        //       borderRadius: BorderRadius.circular(10),
+                        //       boxShadow: [
+                        //         BoxShadow(
+                        //           color: Colors.grey.withOpacity(0.3),
+                        //           blurRadius: 10,
+                        //           offset: const Offset(0, 5),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //     child: Column(
+                        //       children: [
+                        //         // Around You Header
+                        //         Padding(
+                        //           padding: const EdgeInsets.all(16.0),
+                        //           child: Align(
+                        //             alignment: Alignment.centerLeft,
+                        //             child: Text(
+                        //               localizations.around_you,
+                        //               style: TextStyle(
+                        //                 fontSize: 16,
+                        //                 fontWeight: FontWeight.w600,
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ),
+
+                        //         // Map Section
+                        //         Padding(
+                        //           padding: const EdgeInsets.only(
+                        //               left: 8.0, right: 8.0, bottom: 10.0),
+                        //           child: Container(
+                        //             height: 300,
+                        //             decoration: BoxDecoration(
+                        //               borderRadius: BorderRadius.circular(15),
+                        //               boxShadow: [
+                        //                 BoxShadow(
+                        //                   color: Colors.grey.withOpacity(0.2),
+                        //                   blurRadius: 8,
+                        //                   offset: const Offset(0, 3),
+                        //                 ),
+                        //               ],
+                        //             ),
+                        //             child: ClipRRect(
+                        //               borderRadius: BorderRadius.circular(15),
+                        //               child: GoogleMap(
+                        //                 onMapCreated: (GoogleMapController controller) {
+                        //                   mapController = controller;
+                        //                 },
+                        //                 initialCameraPosition: CameraPosition(
+                        //                   target: _currentLocation,
+                        //                   zoom: 14.0,
+                        //                 ),
+                        //                 markers: _markers,
+                        //                 myLocationEnabled: true,
+                        //                 myLocationButtonEnabled: true,
+                        //                 zoomControlsEnabled: false,
+                        //                 mapToolbarEnabled: false,
+                        //                 compassEnabled: true,
+                        //                 rotateGesturesEnabled: true,
+                        //                 scrollGesturesEnabled: true,
+                        //                 tiltGesturesEnabled: true,
+                        //                 zoomGesturesEnabled: true,
+                        //                 mapType: MapType.normal,
+                        //                 onCameraMove: (CameraPosition position) {},
+                        //                 onTap: (LatLng position) {},
+                        //               ),
+                        //             ),
+                        //           ),
+                        //         ),
+                        //       ],
+                        //     ),
+                        //   ),
+                        // ),
+                        // _buildMediaSection(),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1898,30 +1936,29 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
             height: MediaQuery.of(context).size.height * .14,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              itemCount: 5,
+              itemCount: tutorialData.length,
               itemBuilder: (context, index) {
-                List<String> videos = [
-                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                  'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-                ];
+                final videoUrl = tutorialData[index]['videoUrl'] ?? '';
 
                 return Container(
-                    width: MediaQuery.of(context).size.width * .428,
-                    margin: EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 6,
-                          offset: Offset(0, 3),
+                  width: MediaQuery.of(context).size.width * .428,
+                  margin: const EdgeInsets.only(right: 12),
+                  child: VideoThumbnailView(
+                    videoUrl: videoUrl,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              FullScreenVideoPlayer(videoUrl: videoUrl),
                         ),
-                      ],
-                    ),
-                    child: Container());
+                      );
+                    },
+                  ),
+                );
               },
             ),
-          ),
+          )
         ],
       ),
     );
@@ -2059,6 +2096,63 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       },
     );
   }
+
+  initData() {
+    profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+    addVehicles();
+    getVehicleTypeList();
+    startAutoScroll();
+    _containerSearchController.addListener(() {
+      setState(() {});
+    });
+    _createMarkers();
+    _getCurrentLocation();
+    _initializeSelectedLanguage();
+    _fetchBanners(); // Add this line
+    _fetchVideoTutorials(); // Add this line
+    WidgetsBinding.instance.addObserver(this);
+    _currentSubscriptionVisibility = widget.showDriverSubscription ?? false;
+    _loadRecentLocations();
+
+    if (widget.isFirstTime ?? false) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _getCurrentLocation();
+        profileProvider.showDialogBox(context);
+      });
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfileData();
+      getEligibilityData();
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        context.read<EligibilityBloc>().add(FetchEligibilityEvent());
+      } catch (e) {}
+    });
+  }
+
+  Future<void> onRefreshPage() async {
+    try {
+      addVehicles(); // sync – keep as-is
+
+      await Future.wait([
+        getVehicleTypeList(),
+        _getCurrentLocation(),
+        _initializeSelectedLanguage(),
+        _fetchBanners(),
+        _fetchVideoTutorials(),
+        _loadProfileData(),
+        getEligibilityData(),
+      ]);
+
+      // Fire-and-forget (no await needed)
+      context.read<EligibilityBloc>().add(FetchEligibilityEvent());
+    } catch (e, stackTrace) {
+      debugPrint('Refresh error: $e');
+      debugPrintStack(stackTrace: stackTrace);
+    }
+  }
 }
 
 List<Map<String, dynamic>> getLocalizedSuggestions(BuildContext context) {
@@ -2114,4 +2208,146 @@ List<Map<String, dynamic>> getLocalizedSuggestions(BuildContext context) {
       "color1": Color(0xFFE1F5FE),
     },
   ];
+}
+
+class VideoThumbnailView extends StatefulWidget {
+  final String videoUrl;
+  final VoidCallback onTap;
+
+  const VideoThumbnailView({
+    Key? key,
+    required this.videoUrl,
+    required this.onTap,
+  }) : super(key: key);
+
+  @override
+  State<VideoThumbnailView> createState() => _VideoThumbnailViewState();
+}
+
+class _VideoThumbnailViewState extends State<VideoThumbnailView> {
+  Uint8List? thumbnail;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThumbnail();
+  }
+
+  Future<void> _loadThumbnail() async {
+    final data = await VideoThumbnail.thumbnailData(
+      video: widget.videoUrl,
+      imageFormat: ImageFormat.JPEG,
+      maxWidth: 400,
+      quality: 75,
+    );
+
+    if (mounted) {
+      setState(() => thumbnail = data);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              color: Colors.black12,
+            ),
+            child: thumbnail != null
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: Image.memory(
+                      thumbnail!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  )
+                : const Center(child: CircularProgressIndicator()),
+          ),
+
+          // ▶ Play icon
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black54,
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(12),
+            child: const Icon(
+              Icons.play_arrow,
+              color: Colors.white,
+              size: 36,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class FullScreenVideoPlayer extends StatefulWidget {
+  final String videoUrl;
+
+  const FullScreenVideoPlayer({Key? key, required this.videoUrl})
+      : super(key: key);
+
+  @override
+  State<FullScreenVideoPlayer> createState() => _FullScreenVideoPlayerState();
+}
+
+class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
+  late VideoPlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = VideoPlayerController.networkUrl(
+      Uri.parse(widget.videoUrl),
+    )..initialize().then((_) {
+        setState(() {});
+        _controller.play();
+      });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Center(
+              child: _controller.value.isInitialized
+                  ? AspectRatio(
+                      aspectRatio: _controller.value.aspectRatio,
+                      child: VideoPlayer(_controller),
+                    )
+                  : const CircularProgressIndicator(),
+            ),
+
+            // Close button
+            Positioned(
+              top: 16,
+              left: 16,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

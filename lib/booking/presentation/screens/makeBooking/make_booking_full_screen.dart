@@ -1,14 +1,24 @@
+import 'package:dio/dio.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:r_w_r/booking/presentation/screens/makeBooking/repository/comm_repo.dart';
 import 'package:r_w_r/components/app_loader.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/constants/api_constants.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../../screens/multi_step_progress_bar.dart';
 import '../../../../utils/color.dart';
 import '../../../domain/model/booking.dart';
 import '../../widgets/booking_details_form.dart';
 import '../../widgets/quotation_terms_page.dart';
+import 'bloc/communication_bloc.dart';
+import 'bloc/communication_event.dart';
+import 'bloc/communication_state.dart';
 import 'make_booking_preview_page.dart';
+import 'model/communications.dart';
 
 class MakeBookingFullScreen extends StatefulWidget {
   final Booking? initialBooking;
@@ -31,6 +41,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     "Preview"
   ];
   int step = 1;
+  final _clientMobileNumberController = TextEditingController();
 
   List<String> selectedVehicle = ['Tata SUV'];
 
@@ -54,6 +65,37 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
   }
 
   void goToNextStep() {
+    String errorMag = "";
+    bool isValid = false;
+    switch (selectedStep) {
+      case 0:
+        if (_clientMobileNumberController.text.toString().isEmpty) {
+          isValid = false;
+          errorMag = "Please select client type first";
+        } else {
+          isValid = true;
+        }
+        break;
+      case 1:
+        break;
+      case 2:
+        break;
+      case 3:
+        break;
+    }
+    if (!isValid) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(
+            errorMag,
+            style: CommonUtils.commonTitleStyle(
+                fontSize: 14, weight: FontWeight.w500, color: Colors.white),
+          ),
+          backgroundColor: Colors.red,
+        ));
+      }
+      return;
+    }
     if (selectedStep < 3) {
       setState(() {
         selectedStep++;
@@ -76,6 +118,10 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: CommonParentContainer(
+          child: BlocProvider(
+        create: (_) => CommunicationBloc(
+          CommunicationRepositoryImpl(Dio()),
+        )..add(FetchCommunications()),
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 10),
           child: Column(
@@ -129,7 +175,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
             ],
           ),
         ),
-      ),
+      )),
     );
   }
 
@@ -151,9 +197,12 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                       borderRadius: BorderRadius.circular(3.0))),
                 ),
                 onPressed: goToPreviousStep,
-                child: const Text(
+                child: Text(
                   "Previous",
-                  style: TextStyle(color: Colors.white),
+                  style: CommonUtils.commonTitleStyle(
+                      fontSize: 12,
+                      weight: FontWeight.w500,
+                      color: Colors.white),
                 ),
               ),
             ),
@@ -180,7 +229,8 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
               },
               child: Text(
                 selectedStep == 3 ? "Submit" : "Next",
-                style: TextStyle(color: Colors.white),
+                style: CommonUtils.commonTitleStyle(
+                    fontSize: 12, weight: FontWeight.w500, color: Colors.white),
               ),
             ),
           ),
@@ -256,8 +306,8 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
       Row(children: [
         Row(
           children: [
-            const Text('Booking Type :',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            Text('Booking Type :',
+                style: CommonUtils.commonTitleStyle(fontSize: 14)),
             const SizedBox(height: 8),
             Radio<int>(
               value: 1,
@@ -269,7 +319,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
               },
             ),
             Text("Outstation",
-                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12))
+                style: CommonUtils.commonTextLabelsStyle(fontSize: 12))
           ],
         ),
         Row(
@@ -284,100 +334,105 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
               },
             ),
             Text("City Break",
-                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12))
+                style: CommonUtils.commonTextLabelsStyle(fontSize: 12)
+            )
           ],
         ),
       ]),
       const SizedBox(height: 16),
-      const Text('Client:', style: TextStyle(fontWeight: FontWeight.bold)),
+      Text('Client:', style: CommonUtils.commonTextLabelsStyle(fontSize: 12)),
       const SizedBox(height: 8),
       _clientTypeWidget(context),
       const SizedBox(height: 20),
-      const Text('Mobile No:', style: TextStyle(fontWeight: FontWeight.bold)),
+      Text('Mobile No:',
+          style: CommonUtils.commonTextLabelsStyle(fontSize: 12)),
       const SizedBox(height: 8),
       TextField(
+          readOnly: true,
+          controller: _clientMobileNumberController,
+          style: CommonUtils.commonTextLabelsStyle(fontSize: 12),
           decoration: InputDecoration(
               constraints: BoxConstraints(
                 maxHeight: 40,
               ),
               contentPadding: EdgeInsets.only(left: 15, right: 10),
               hintText: '+91',
-              hintStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+              hintStyle: CommonUtils.commonTitleStyle(
+                  fontSize: 12,
+                  color: Color(0xFFACAAAA),
+                  weight: FontWeight.w400),
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(8)))),
     ]);
   }
 
+
+  Communication? selectedClient;
+
   Widget _clientTypeWidget(BuildContext context) {
-    return PopupMenuButton<String>(
-      offset: Offset(50, 50),
-      constraints: BoxConstraints.expand(height: 180),
-      padding: EdgeInsets.zero,
-      menuPadding: EdgeInsets.zero,
-      onSelected: (val) async {},
-      itemBuilder: (_) => const [
-        PopupMenuItem(
-            value: 'Type 1',
-            child: ListTile(
-                title: Text(
-              'Type 1',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400),
-            ))),
-        PopupMenuItem(
-            value: 'Type 2',
-            child: ListTile(
-                title: Text(
-              'Type 2',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400),
-            ))),
-        PopupMenuItem(
-            value: 'Type 1',
-            child: ListTile(
-                title: Text(
-              'Type 3',
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w400),
-            ))),
-      ],
-      child: Container(
-          alignment: Alignment.centerLeft,
-          height: 40,
-          width: MediaQuery.of(context).size.width,
-          padding: EdgeInsets.only(left: 10, right: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: BoxBorder.fromBorderSide(
-                BorderSide(color: Colors.grey, width: 1)),
-            /*suffixIcon: IconButton(
-                icon: const Icon(
-                  Icons.arrow_drop_down,
-                  color: Colors.grey,
+    return BlocBuilder<CommunicationBloc, CommunicationState>(
+      builder: (context, state) {
+        if (state is CommunicationLoading) {
+          return const SizedBox(
+            height: 40,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (state is CommunicationLoaded) {
+          return DropdownSearch<Communication>(
+            items: (filter, loadProps) {
+              return state.communications;
+            },
+            compareFn: (item1, item2) {
+              return item1.mobile == item2.mobile;
+            },
+            selectedItem: selectedClient,
+            itemAsString: (Communication c) => c.fullName,
+            popupProps: PopupProps.menu(
+              showSearchBox: true,
+              searchFieldProps: TextFieldProps(
+                decoration: InputDecoration(
+                  hintText: 'Search client...',
+                  labelStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                  hintStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
-                onPressed: () {},
               ),
-              hintStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),*/
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                  child: Text(
-                "Select Type",
-                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
-              )),
-              const Icon(
-                Icons.arrow_drop_down,
-                color: Colors.grey,
-              )
-            ],
-          )),
+            ),
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                hintText: 'Select Type',
+                labelStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                hintStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                selectedClient = value;
+                _clientMobileNumberController.text =
+                    selectedClient?.mobile ?? "";
+              });
+            },
+          );
+        }
+
+        if (state is CommunicationError) {
+          return Text(
+            state.message,
+            style: const TextStyle(color: Colors.red),
+          );
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -392,9 +447,11 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     }
     return SingleChildScrollView(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text('Booking Detail:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        const SizedBox(height: 12),
+         Text('Booking Detail:',
+            style: TextStyle(
+              fontFamily: AppConstants.ptSansFont,
+                fontWeight: FontWeight.bold, fontSize: 16)
+        ),
         if (selectedBookingType == 2)
           Row(
             children: [
@@ -427,6 +484,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                         child: Text(
                           bookingDetails[index],
                           style: TextStyle(
+                              fontFamily: AppConstants.ptSansFont,
                               fontWeight: FontWeight.w400,
                               fontSize: 10,
                               color: Colors.white),
@@ -444,6 +502,7 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
                 child: Text(
                   "+ Add Day",
                   style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: AppColors.blue),

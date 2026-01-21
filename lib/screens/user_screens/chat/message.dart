@@ -165,33 +165,33 @@ class _MessagingScreenState extends State<MessagingScreen>
           });
           break;
         case 'message_received':
-          _handleNewMessage(data);
+          _handleNewMessage(data['data']);
           break;
         case 'message_sent':
-          _updateMessageStatus(data['messageId'], 'sent');
+          _updateMessageStatus(data['data']['messageId'], 'sent');
           break;
         case 'message_delivered':
-          _updateMessageStatus(data['messageId'], 'delivered');
+          _updateMessageStatus(data['data']['messageId'], 'delivered');
           break;
         case 'message_read':
-          _updateMessageStatus(data['messageId'], 'read');
+          _updateMessageStatus(data['data']['messageId'], 'read');
           break;
         case 'user_typing_start':
-          if (data['userId'] == widget.otherPersonUserId) {
+          if (data['data']['userId'] == widget.otherPersonUserId) {
             setState(() {
               _otherUserTyping = true;
             });
           }
           break;
         case 'user_typing_stop':
-          if (data['userId'] == widget.otherPersonUserId) {
+          if (data['data']['userId'] == widget.otherPersonUserId) {
             setState(() {
               _otherUserTyping = false;
             });
           }
           break;
         case 'user_online':
-          if (data['userId'] == widget.otherPersonUserId) {
+          if (data['data']['userId'] == widget.otherPersonUserId) {
             setState(() {
               _otherUserOnline = true;
               _otherUserLastSeen = null;
@@ -199,11 +199,11 @@ class _MessagingScreenState extends State<MessagingScreen>
           }
           break;
         case 'user_offline':
-          if (data['userId'] == widget.otherPersonUserId) {
+          if (data['data']['userId'] == widget.otherPersonUserId) {
             setState(() {
               _otherUserOnline = false;
               _otherUserLastSeen =
-                  DateTime.fromMillisecondsSinceEpoch(data['timestamp']);
+                  DateTime.fromMillisecondsSinceEpoch(data['data']['timestamp']);
             });
           }
           break;
@@ -211,7 +211,7 @@ class _MessagingScreenState extends State<MessagingScreen>
           // Connection is alive
           break;
         case 'error':
-          _showError(data['message']);
+          _showError(data['data']['message']);
           break;
       }
     } catch (e) {
@@ -226,7 +226,7 @@ class _MessagingScreenState extends State<MessagingScreen>
       isSent: data['isSent'] ?? false,
       messageType: data['messageType'],
       timestamp:
-          DateTime.fromMillisecondsSinceEpoch(data['timestamp'] ?? data['at']),
+          DateTime.fromMillisecondsSinceEpoch(data['timestamp'] ?? data['at']).toUtc(),
       senderId: data['senderId'],
     );
 
@@ -260,14 +260,14 @@ class _MessagingScreenState extends State<MessagingScreen>
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        if (data['status'] == true) {
+        if (data['success'] == true) {
           final messages = data['data'] as List;
           setState(() {
             _messages.clear();
             _messages.addAll(messages.map((msg) => ChatMessage(
-                  messageId: msg['messageId'],
+                  messageId: msg['_id'],
                   message: msg['message'],
-                  isSent: msg['isSent'],
+                  isSent: msg['deliveryStatus']=="sent",
                   messageType: msg['messageType'],
                   timestamp: DateTime.parse(msg['at']),
                   deliveryStatus: msg['deliveryStatus'],
@@ -297,7 +297,8 @@ class _MessagingScreenState extends State<MessagingScreen>
     final messageData = {
       'type': 'message',
       'message': messageText,
-      'recipientId': widget.otherPersonUserId,
+      'chatId': widget.chatId,
+      'recipientId': widget.chatId,
       'messageType': 'TEXT',
     };
 
@@ -360,6 +361,7 @@ class _MessagingScreenState extends State<MessagingScreen>
     final messageData = {
       'type': 'message',
       'message': mediaUrl,
+      'chatId': widget.chatId,
       'recipientId': widget.otherPersonUserId,
       'messageType': messageType,
     };
@@ -394,6 +396,7 @@ class _MessagingScreenState extends State<MessagingScreen>
       try {
         _channel?.sink.add(json.encode({
           'type': 'typing_start',
+          'chatId': widget.chatId,
         }));
       } catch (e) {
         print('Error sending typing start: $e');
@@ -412,6 +415,7 @@ class _MessagingScreenState extends State<MessagingScreen>
       try {
         _channel?.sink.add(json.encode({
           'type': 'typing_stop',
+          'chatId': widget.chatId,
         }));
       } catch (e) {
         print('Error sending typing stop: $e');
@@ -763,7 +767,7 @@ class _MessagingScreenState extends State<MessagingScreen>
           const SizedBox(height: 8),
           MediaUploader(
             label: localizations.select_media_source,
-            kind: "CHAT",
+            kind: "chatImage",
             showPreview: true,
             useGallery: true,
             showDirectImage: true,
@@ -989,8 +993,9 @@ class _MessagingScreenState extends State<MessagingScreen>
   }
 
   String _formatTime(DateTime dateTime) {
-    int hour = dateTime.hour;
-    int minute = dateTime.minute;
+    DateTime localTime=dateTime.toLocal();
+    int hour = localTime.hour;
+    int minute = localTime.minute;
     String period = hour >= 12 ? 'PM' : 'AM';
 
     // Convert to 12-hour format

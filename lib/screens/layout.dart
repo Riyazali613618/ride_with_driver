@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
 import 'package:r_w_r/api/api_service/verify_otp_service.dart';
@@ -174,7 +175,7 @@ class _LayoutState extends State<Layout> {
         // PartnerRegistrationWidget(),
         ChatListScreen(controller: _chatListController),
 
-        const BookingTabs(),
+        // const BookingTabs(),
 
 /*
         const MoreScreen(showDriverSubscription: false),
@@ -202,21 +203,31 @@ class _LayoutState extends State<Layout> {
     if (_showDashboard) {
       return [
         BottomNavigationBarItem(
-          icon: const Icon(CupertinoIcons.home, color: Colors.black),
+          icon: SvgPicture.asset(
+            "assets/svg/home_new.svg",
+          ),
           label: localizations.explore,
-          activeIcon: Icon(CupertinoIcons.house_fill,
-              color: ColorConstants.primaryColor),
+          activeIcon: SvgPicture.asset(
+            "assets/svg/home_new_selected.svg",
+          ),
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.favorite_border, color: Colors.black),
+          icon: SvgPicture.asset(
+            "assets/svg/favourite_new.svg",
+            color: ColorConstants.black3,
+          ),
           label: 'Favorite',
-          activeIcon:
-              Icon(Icons.favorite_border, color: ColorConstants.primaryColor),
+          activeIcon: SvgPicture.asset(
+            "assets/svg/favourite_new.svg",
+            color: ColorConstants.primaryColor,
+          ),
         ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.dashboard_outlined, color: Colors.black),
+          icon: SvgPicture.asset("assets/svg/dashboard_new.svg"),
           label: localizations.dashboard,
-          activeIcon: Icon(Icons.dashboard, color: ColorConstants.primaryColor),
+          activeIcon: SvgPicture.asset(
+            "assets/svg/dashboard_new_selected.svg",
+          ),
         ),
         // BottomNavigationBarItem(
         //   icon: const Icon(Icons.handshake_outlined, color: Colors.black),
@@ -224,9 +235,13 @@ class _LayoutState extends State<Layout> {
         //   activeIcon: Icon(Icons.handshake, color: ColorConstants.primaryColor),
         // ),
         BottomNavigationBarItem(
-          icon: const Icon(Icons.message_outlined, color: Colors.black),
+          icon: SvgPicture.asset(
+            "assets/svg/message_new.svg",
+          ),
           label: localizations.message,
-          activeIcon: Icon(Icons.message, color: ColorConstants.primaryColor),
+          activeIcon: SvgPicture.asset(
+            "assets/svg/message_new_selected.svg",
+          ),
         ),
         /* BottomNavigationBarItem(
           icon: const Icon(CupertinoIcons.profile_circled, color: Colors.black),
@@ -235,53 +250,64 @@ class _LayoutState extends State<Layout> {
               color: ColorConstants.primaryColor),
         ),*/
         BottomNavigationBarItem(
-          icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
+          icon: SvgPicture.asset("assets/svg/booking_unselected.svg"),
           label: "Booking",
-          activeIcon:
-              Icon(CupertinoIcons.car_fill, color: ColorConstants.primaryColor),
+          activeIcon: SvgPicture.asset("assets/svg/booking_new.svg"),
         ),
       ];
     }
     return [
       BottomNavigationBarItem(
-        icon: const Icon(CupertinoIcons.home, color: Colors.black),
-        label: localizations.home,
-        activeIcon:
-            Icon(CupertinoIcons.house_fill, color: ColorConstants.primaryColor),
+        icon: SvgPicture.asset(
+          "assets/svg/home_new.svg",
+        ),
+        label: localizations.explore,
+        activeIcon: SvgPicture.asset(
+          "assets/svg/home_new_selected.svg",
+        ),
       ),
       BottomNavigationBarItem(
-        icon: const Icon(Icons.favorite_border, color: Colors.black),
+        icon: SvgPicture.asset(
+          "assets/svg/favourite_new.svg",
+          color: ColorConstants.black3,
+        ),
         label: 'Favorite',
-        activeIcon:
-            Icon(Icons.favorite_border, color: ColorConstants.primaryColor),
+        activeIcon: SvgPicture.asset(
+          "assets/svg/favourite_new.svg",
+          color: ColorConstants.primaryColor,
+        ),
       ),
       BottomNavigationBarItem(
-        icon: const Icon(Icons.message_outlined, color: Colors.black),
+        icon: SvgPicture.asset(
+          "assets/svg/message_new.svg",
+        ),
         label: localizations.message,
-        activeIcon: Icon(Icons.message, color: ColorConstants.primaryColor),
+        activeIcon: SvgPicture.asset(
+          "assets/svg/message_new_selected.svg",
+        ),
       ),
-      /*BottomNavigationBarItem(
-        icon: const Icon(CupertinoIcons.profile_circled, color: Colors.black),
-        label: localizations.profile,
-        activeIcon: Icon(CupertinoIcons.profile_circled,
-            color: ColorConstants.primaryColor),
-      ),*/
+      /* BottomNavigationBarItem(
+          icon: const Icon(CupertinoIcons.profile_circled, color: Colors.black),
+          label: localizations.profile,
+          activeIcon: Icon(CupertinoIcons.profile_circled,
+              color: ColorConstants.primaryColor),
+        ),*/
       BottomNavigationBarItem(
-        icon: const Icon(CupertinoIcons.car_fill, color: Colors.black),
+        icon: SvgPicture.asset("assets/svg/booking_unselected.svg"),
         label: "Booking",
-        activeIcon:
-            Icon(CupertinoIcons.car_fill, color: ColorConstants.primaryColor),
+        activeIcon: SvgPicture.asset("assets/svg/booking_new.svg"),
       ),
     ];
   }
 
-  Future<void> _onItemTapped(int index, List<Widget> pages) async {
+  Future<void> _onItemTapped(int index, List<Widget> pages,
+      List<BottomNavigationBarItem> navigationItems) async {
     if (!mounted) return;
     final favoriteTabIndex = 1;
     if (index == favoriteTabIndex) {
       _favoriteController.refresh?.call(); // 🔥 REFRESH API
     }
-    if (index == pages.length - 1) {
+    if (index == navigationItems.length - 1) {
       final userType = await TokenManager.getUserType() ?? "user";
 
       if (userType.toLowerCase() == UserTypes.user.name) {
@@ -290,9 +316,10 @@ class _LayoutState extends State<Layout> {
           MaterialPageRoute(builder: (context) => const MyBookingPage()),
         );
         return;
+      } else {
+        showBookingBottomSheet();
+        return;
       }
-      showBookingBottomSheet();
-      return;
     }
 
     final chatTabIndex = pages.length == 5 ? 3 : 2;
@@ -525,7 +552,8 @@ class _LayoutState extends State<Layout> {
                   type: BottomNavigationBarType.fixed,
                   selectedItemColor: ColorConstants.primaryColor,
                   unselectedItemColor: Colors.black,
-                  onTap: (index) => _onItemTapped(index, pages),
+                  onTap: (index) =>
+                      _onItemTapped(index, pages, navigationItems),
                   elevation: 0,
                   showUnselectedLabels: true,
                   selectedFontSize: 12,
@@ -609,15 +637,17 @@ class _LayoutState extends State<Layout> {
   Future<void> getUserProfile() async {
     final data = await UserProfileService().getUserProfile();
     final prefs = await SharedPreferences.getInstance();
-    if (data != null && data!.subscriptions != null &&data!.subscriptions!.isNotEmpty) {
+    if (data != null &&
+        data!.subscriptions != null &&
+        data!.subscriptions!.isNotEmpty) {
       for (var sub in data!.subscriptions!) {
         if ((sub.status ?? "").toLowerCase() == "active") {
           prefs.setString('who_reg', sub.category ?? "");
           break;
         }
       }
-    }else{
-      prefs.setString('who_reg',"USER");
+    } else {
+      prefs.setString('who_reg', "USER");
     }
     if (data != null && data!.usertype!.toLowerCase() != "user") {
       _showDashboard = true;
@@ -684,4 +714,3 @@ enum UserTypes {
 class FavoriteController {
   VoidCallback? refresh;
 }
-

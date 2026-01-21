@@ -145,6 +145,8 @@ class CustomActivity extends StatelessWidget {
   final String icon;
   final String type;
   final String phone;
+  final String userName;
+  final String userImage;
   final ActivityType activityType;
   final UserType userType;
   final VoidCallback? onBeforeTap;
@@ -159,6 +161,8 @@ class CustomActivity extends StatelessWidget {
     required this.activityType,
     required this.userType,
     this.onBeforeTap,
+    this.userName="",
+    this.userImage="",
   });
 
   @override
@@ -216,10 +220,10 @@ class CustomActivity extends StatelessWidget {
                             // cause: userType.name,
                             conversationId: chatModel.data.chatId,
                             chatId: chatModel.data.chatId,
-                            name: chatModel.data.name,
-                            image: chatModel.data.image,
-                            otherPersonId: chatModel.data.otherPersonId,
-                            otherPersonUserId: chatModel.data.otherPersonUserId,
+                            name: userName,
+                            image: userImage,
+                            otherPersonId: "",
+                            otherPersonUserId: chatModel.data.chatId,
                           )));
             } catch (e) {
               debugPrint("❌ Chat creation failed: $e");
@@ -246,10 +250,13 @@ class CustomActivity extends StatelessWidget {
             break;
         }
       },
-      child: SvgPicture.asset(
-        icon,
-        height: 20,
-        width: 20,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
+        child: SvgPicture.asset(
+          icon,
+          height: 20,
+          width: 20,
+        ),
       ),
     );
   }

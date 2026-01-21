@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
 import 'package:r_w_r/booking/presentation/widgets/vehicle_details_card.dart';
+import 'package:r_w_r/placeSearch/google_place_search_widget_booking.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../components/app_loader.dart';
+import '../../../constants/api_constants.dart';
 
 class BookingDetailsForm extends StatefulWidget {
   final int index;
@@ -19,12 +23,6 @@ class BookingDetailsForm extends StatefulWidget {
 class _BookingDetailsFormState extends State<BookingDetailsForm> {
   int selectedStep = 0;
   int? selectedBookingType = 0;
-  final steps = [
-    "Booking Type",
-    "Booking Details",
-    "Quotation & terms",
-    "Preview"
-  ];
   final _totalPassengers = TextEditingController(text: '7');
   final _pickup = TextEditingController();
   final _pickupDate = TextEditingController(
@@ -40,20 +38,29 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
   @override
   Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(children: [
           Expanded(
-              child: SizedBox(
-            height: 40,
-            child: _commonTextFields(
-                controller: _pickup, labelText: "Pickup Point"),
-          )),
+              child: GooglePlaceSearchWidgetBooking(
+                  onSelected: (value) async {
+                    final data = await getLatLngForSelectedLoc(value.placeId);
+                    if (data['latitude'] != null) {}
+                  },
+                  controller: _pickup,
+                  type: "Pickup Point")),
           const SizedBox(width: 10),
           SizedBox(
             width: 110,
             height: 40,
             child: _commonTextFields(
-                controller: _totalPassengers, labelText: 'Passengers'),
+                controller: _totalPassengers,
+                labelText: 'Total Passengers',
+                textInputType: TextInputType.number,
+                maxLength: 2,
+                inputFormatter: [
+                  FilteringTextInputFormatter.digitsOnly,
+                ]),
           ),
         ]),
         const SizedBox(height: 12),
@@ -64,7 +71,9 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
               height: 40,
               child: _commonTextFields(
                   readOnly: true,
-                  callback: () {},
+                  callback: () {
+                    _selectDatePicker(context, "PICKUP");
+                  },
                   controller: _pickupDate,
                   labelText: "Pickup Date"),
             )),
@@ -74,14 +83,20 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
               width: 110,
               child: _commonTextFields(
                   readOnly: true,
-                  callback: () {},
+                  callback: () {
+                    _selectTimePicker(context, "PICKUP");
+                  },
                   controller: _pickupTime,
                   labelText: "Pickup Time"),
             )
           ],
         ),
         const SizedBox(height: 12),
-        const Text('Destinations :'),
+        Text(
+          'Destinations :',
+          style: CommonUtils.commonTitleStyle(
+              fontSize: 14, weight: FontWeight.w400, color: Colors.black),
+        ),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -101,8 +116,9 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
                     });
                   }
                 },
-                child: const Text('+ Add',
+                child: Text('+ Add',
                     style: TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
                         color: AppColors.blue,
                         fontSize: 16,
                         fontWeight: FontWeight.bold)))
@@ -170,10 +186,13 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
         const SizedBox(height: 12),
         Row(children: [
           Expanded(
-              child: SizedBox(
-            height: 40,
-            child: _commonTextFields(
-                controller: _returnPoint, labelText: "Input Type"),
+              child: GooglePlaceSearchWidgetBooking(
+            onSelected: (value) async {
+              final data = await getLatLngForSelectedLoc(value.placeId);
+              if (data['latitude'] != null) {}
+            },
+            controller: _returnPoint,
+            type: "Return Point",
           )),
           const SizedBox(width: 10),
           SizedBox(
@@ -181,7 +200,9 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
             width: 110,
             child: _commonTextFields(
                 readOnly: true,
-                callback: () {},
+                callback: () {
+                  _selectDatePicker(context, "RETURN");
+                },
                 controller: _returnDate,
                 labelText: "Return Date"),
           )
@@ -238,20 +259,43 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
   _commonTextFields(
       {required TextEditingController controller,
       required String labelText,
+      TextInputType? textInputType,
+      List<TextInputFormatter>? inputFormatter,
       GestureTapCallback? callback,
       Widget? suffix,
+      int? maxLength,
       bool readOnly = false}) {
     return TextField(
         readOnly: readOnly,
         onTap: callback,
+        maxLength: maxLength,
+        keyboardType: textInputType,
+        inputFormatters: inputFormatter,
         controller: controller,
-        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+        buildCounter: (
+          context, {
+          required int currentLength,
+          required bool isFocused,
+          required int? maxLength,
+        }) {
+          return null; // 👈 hides the counter
+        },
+        style: TextStyle(
+            fontFamily: AppConstants.ptSansFont,
+            fontSize: 11,
+            fontWeight: FontWeight.w400),
         decoration: InputDecoration(
             suffixIcon: suffix,
-            hintStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+            hintStyle: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 14,
+                fontWeight: FontWeight.w400),
             contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
             labelText: labelText,
-            labelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.w400),
+            labelStyle: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 11,
+                fontWeight: FontWeight.w400),
             border:
                 OutlineInputBorder(borderRadius: BorderRadius.circular(8))));
   }
@@ -388,5 +432,166 @@ class _BookingDetailsFormState extends State<BookingDetailsForm> {
         ],
       ),
     );
+  }
+
+  Widget _totalPassengerDropdown(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: Offset(50, 50),
+      constraints: BoxConstraints.expand(height: 180),
+      padding: EdgeInsets.zero,
+      menuPadding: EdgeInsets.zero,
+      onSelected: (val) async {},
+      itemBuilder: (_) => const [
+        PopupMenuItem(
+            value: '1',
+            child: ListTile(
+                title: Text(
+              '1',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: '2',
+            child: ListTile(
+                title: Text(
+              '2',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: '3',
+            child: ListTile(
+                title: Text(
+              '3',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: '4',
+            child: ListTile(
+                title: Text(
+              '4',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: '5',
+            child: ListTile(
+                title: Text(
+              '5',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+        PopupMenuItem(
+            value: '6',
+            child: ListTile(
+                title: Text(
+              '6',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w400),
+            ))),
+      ],
+      child: Container(
+          alignment: Alignment.centerLeft,
+          height: 40,
+          width: MediaQuery.of(context).size.width,
+          padding: EdgeInsets.only(left: 10, right: 10),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+            border: BoxBorder.fromBorderSide(
+                BorderSide(color: Colors.grey, width: 1)),
+            /*suffixIcon: IconButton(
+                icon: const Icon(
+                  Icons.arrow_drop_down,
+                  color: Colors.grey,
+                ),
+                onPressed: () {},
+              ),
+              hintStyle: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),*/
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                  child: Text(
+                "Select Type",
+                style: TextStyle(fontWeight: FontWeight.w400, fontSize: 12),
+              )),
+              const Icon(
+                Icons.arrow_drop_down,
+                color: Colors.grey,
+              )
+            ],
+          )),
+    );
+  }
+
+  final DateFormat _uiFormat = DateFormat('dd/MM/yyyy');
+  final DateFormat _serverFormat = DateFormat('yyyy-MM-dd');
+  String pickupDateServer = "";
+  String returnDateServer = "";
+  String pickupTimeServer = "";
+  String returnTimeServer = "";
+
+  String pickupDateLocal = "";
+  String returnDateLocal = "";
+  String pickupTimeLocal = "";
+  String returnTimeLocal = "";
+
+  Future<void> _selectDatePicker(BuildContext context, String type) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked != null) {
+      if (type == "PICKUP") {
+        pickupDateServer = _serverFormat.format(picked);
+        pickupDateLocal = _uiFormat.format(picked);
+        _pickupDate.text = pickupDateLocal;
+      } else {
+        returnDateServer = _serverFormat.format(picked);
+        returnDateLocal = _uiFormat.format(picked);
+        _returnDate.text = returnDateLocal;
+      }
+      updateState();
+    }
+  }
+
+  Future<void> _selectTimePicker(BuildContext context, String type) async {
+    final TimeOfDay? picked =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
+
+    if (picked != null) {
+      if (type == "PICKUP") {
+        pickupTimeServer = picked.format(context);
+        pickupTimeLocal = DateFormat('hh:mm a').format(
+            DateFormat('HH:mm').parse("${picked.hour}:${picked.minute}"));
+        _pickupTime.text = pickupTimeLocal;
+      } else {
+        returnTimeLocal = picked.format(context);
+        returnTimeServer = picked.format(context);
+      }
+      updateState();
+    }
+  }
+
+  void updateState() {
+    if (mounted) {
+      setState(() {});
+    }
   }
 }

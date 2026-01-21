@@ -1079,9 +1079,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                             ],
                           ),
                           // Action Buttons and Favorite Icon Row
-                          SizedBox(
-                            height: 10,
-                          ),
+
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -1092,7 +1090,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     baseUrl: ApiConstants.baseUrl,
                                     userId: owner.userId,
                                     icon: AssetsConstant.chatSVG,
-                                    type: 'MESSAGE',
+                                    type: 'CHAT',
+                                    userName: owner.firstName,
+                                    userImage: owner.profilePhoto,
                                     phone: owner.businessMobileNumber,
                                     activityType: ActivityType.WHATSAPP,
                                     userType: getMyType(owner.vehicles.length >
@@ -1103,7 +1103,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                             ? owner.vehicles.first.vehicleType
                                             : "Unknown"),
                                   ),
-                                  const SizedBox(width: 20),
                                   CustomActivity(
                                     baseUrl: ApiConstants.baseUrl,
                                     userId: owner.userId,
@@ -1119,7 +1118,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                             ? owner.vehicles.first.vehicleType
                                             : "Unknown"),
                                   ),
-                                  const SizedBox(width: 20),
                                   CustomActivity(
                                     baseUrl: ApiConstants.baseUrl,
                                     userId: owner.userId,

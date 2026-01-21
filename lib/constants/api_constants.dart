@@ -20,6 +20,8 @@ class ApiConstants {
   static const int receiveTimeout = 15;
 
   static const vehicles = '/user/vehicles';
+
+  static const String communication="/user/communications";
 }
 
 class AppConstants {

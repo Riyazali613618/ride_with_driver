@@ -27,6 +27,7 @@ dependencies:
   #  visibility_detector: ^0.4.0+2
   image_picker: ^1.1.2
   fl_chart: ^0.71.0
+  video_thumbnail: ^0.5.3
   shimmer_animation: ^2.2.2+1
   speedometer_chart: ^1.0.8
   share_plus: ^11.0.0
