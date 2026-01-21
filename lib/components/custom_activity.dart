@@ -254,8 +254,8 @@ class CustomActivity extends StatelessWidget {
         padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
         child: SvgPicture.asset(
           icon,
-          height: 20,
-          width: 20,
+          height: 25,
+          width: 25,
         ),
       ),
     );

@@ -1080,84 +1080,88 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                           ),
                           // Action Buttons and Favorite Icon Row
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  CustomActivity(
-                                    baseUrl: ApiConstants.baseUrl,
-                                    userId: owner.userId,
-                                    icon: AssetsConstant.chatSVG,
-                                    type: 'CHAT',
-                                    userName: owner.firstName,
-                                    userImage: owner.profilePhoto,
-                                    phone: owner.businessMobileNumber,
-                                    activityType: ActivityType.WHATSAPP,
-                                    userType: getMyType(owner.vehicles.length >
-                                                1 &&
-                                            owner.vehicles.isNotEmpty
-                                        ? "Transporter"
-                                        : owner.vehicles.isNotEmpty
-                                            ? owner.vehicles.first.vehicleType
-                                            : "Unknown"),
-                                  ),
-                                  CustomActivity(
-                                    baseUrl: ApiConstants.baseUrl,
-                                    userId: owner.userId,
-                                    icon: AssetsConstant.whatsAppSVG,
-                                    type: 'WHATSAPP',
-                                    phone: owner.businessMobileNumber,
-                                    activityType: ActivityType.WHATSAPP,
-                                    userType: getMyType(owner.vehicles.length >
-                                                1 &&
-                                            owner.vehicles.isNotEmpty
-                                        ? "Transporter"
-                                        : owner.vehicles.isNotEmpty
-                                            ? owner.vehicles.first.vehicleType
-                                            : "Unknown"),
-                                  ),
-                                  CustomActivity(
-                                    baseUrl: ApiConstants.baseUrl,
-                                    userId: owner.userId,
-                                    icon: AssetsConstant.callPhoneSVG,
-                                    type: 'PHONE',
-                                    phone: owner.businessMobileNumber,
-                                    activityType: ActivityType.PHONE,
-                                    userType: getMyType(owner.vehicles.length >
-                                            1
-                                        ? "Transporter"
-                                        : owner.vehicles.isNotEmpty
-                                            ? owner.vehicles.first.vehicleType
-                                            : "Unknown"),
-                                  ),
-                                ],
-                              ),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: InkWell(
-                                  onTap: () {
-                                    // _navigateToVehicleDetail(owner);
-                                  },
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: gradientSecond,
-                                      borderRadius: BorderRadius.circular(8),
+                          Container(
+                            color: Colors.transparent,
+                            child
+                                : Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    CustomActivity(
+                                      baseUrl: ApiConstants.baseUrl,
+                                      userId: owner.userId,
+                                      icon: AssetsConstant.chatSVG,
+                                      type: 'CHAT',
+                                      userName: owner.firstName,
+                                      userImage: owner.profilePhoto,
+                                      phone: owner.businessMobileNumber,
+                                      activityType: ActivityType.WHATSAPP,
+                                      userType: getMyType(owner.vehicles.length >
+                                                  1 &&
+                                              owner.vehicles.isNotEmpty
+                                          ? "Transporter"
+                                          : owner.vehicles.isNotEmpty
+                                              ? owner.vehicles.first.vehicleType
+                                              : "Unknown"),
                                     ),
-                                    child: Text(
-                                      "👉 Send Request",
-                                      style: CommonUtils.commonTitleStyle(
-                                          fontSize: 10,
-                                          weight: FontWeight.w400,
-                                          color: Colors.white),
+                                    CustomActivity(
+                                      baseUrl: ApiConstants.baseUrl,
+                                      userId: owner.userId,
+                                      icon: AssetsConstant.whatsAppSVG,
+                                      type: 'WHATSAPP',
+                                      phone: owner.businessMobileNumber,
+                                      activityType: ActivityType.WHATSAPP,
+                                      userType: getMyType(owner.vehicles.length >
+                                                  1 &&
+                                              owner.vehicles.isNotEmpty
+                                          ? "Transporter"
+                                          : owner.vehicles.isNotEmpty
+                                              ? owner.vehicles.first.vehicleType
+                                              : "Unknown"),
+                                    ),
+                                    CustomActivity(
+                                      baseUrl: ApiConstants.baseUrl,
+                                      userId: owner.userId,
+                                      icon: AssetsConstant.callPhoneSVG,
+                                      type: 'PHONE',
+                                      phone: owner.businessMobileNumber,
+                                      activityType: ActivityType.PHONE,
+                                      userType: getMyType(owner.vehicles.length >
+                                              1
+                                          ? "Transporter"
+                                          : owner.vehicles.isNotEmpty
+                                              ? owner.vehicles.first.vehicleType
+                                              : "Unknown"),
+                                    ),
+                                  ],
+                                ),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: InkWell(
+                                    onTap: () {
+                                      // _navigateToVehicleDetail(owner);
+                                    },
+                                    child: Container(
+                                      padding: EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: gradientSecond,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        "👉 Send Request",
+                                        style: CommonUtils.commonTitleStyle(
+                                            fontSize: 10,
+                                            weight: FontWeight.w400,
+                                            color: Colors.white),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ],
                       ),
