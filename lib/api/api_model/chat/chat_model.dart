@@ -7,6 +7,7 @@ class ChatItem {
   final String image;
   // final String userId;
   final String id;
+  final String? lastMessageDateTime;
   final DateTime? timestamp; // Nullable since it can be null in API
   // final String cause;
 
@@ -17,6 +18,7 @@ class ChatItem {
     // required this.userId,
     required this.id,
     this.timestamp,
+    this.lastMessageDateTime,
     // required this.cause,
   });
 
@@ -31,6 +33,7 @@ class ChatItem {
       final image = _extractStringField(json, 'image', 'ChatItem', allowEmpty: true);
       // final userId = _extractStringField(json, 'userId', 'ChatItem');
       final id = _extractStringField(json, 'id', 'ChatItem');
+      final lastMessageDateTime = _extractStringField(json, 'lastMessageDateTime', 'ChatItem');
       // final cause = _extractStringField(json, 'cause', 'ChatItem');
 
       // Handle timestamp separately as it can be null
@@ -55,6 +58,7 @@ class ChatItem {
         // userId: userId,
         id: id,
         timestamp: parsedTimestamp,
+        lastMessageDateTime: lastMessageDateTime,
         // cause: cause,
       );
 
@@ -109,6 +113,7 @@ class ChatItem {
       // 'userId': userId,
       'id': id,
       'timestamp': timestamp?.toIso8601String(),
+      'lastMessageDateTime': lastMessageDateTime??""
       // 'cause': cause,
     };
   }
@@ -120,6 +125,7 @@ class ChatItem {
     String? image,
     String? userId,
     String? id,
+    String? lastMessageDateTime,
     DateTime? timestamp,
     String? cause,
   }) {
@@ -129,6 +135,7 @@ class ChatItem {
       image: image ?? this.image,
       // userId: userId ?? this.userId,
       id: id ?? this.id,
+      lastMessageDateTime: lastMessageDateTime ?? this.lastMessageDateTime,
       timestamp: timestamp ?? this.timestamp,
       // cause: cause ?? this.cause,
     );
@@ -143,13 +150,14 @@ class ChatItem {
         other.image == image &&
         // other.userId == userId &&
         other.id == id &&
-        other.timestamp == timestamp;
+        other.timestamp == timestamp &&
+        other.lastMessageDateTime == lastMessageDateTime;
         // other.cause == cause;
   }
 
   @override
   int get hashCode {
-    return Object.hash(chatId, name, image, id, timestamp);
+    return Object.hash(chatId, name, image, id, timestamp,lastMessageDateTime);
   }
 
   @override
@@ -161,6 +169,7 @@ class ChatItem {
         // 'userId: $userId, '
         'id: $id, '
         'timestamp: $timestamp, '
+        'lastMessageDateTime: $lastMessageDateTime, '
         // 'cause: $cause'
         '}';
   }

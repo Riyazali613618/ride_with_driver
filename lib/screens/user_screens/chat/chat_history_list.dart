@@ -2,7 +2,11 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/color_constants.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../api/api_model/chat/chat_model.dart';
 import '../../../api/api_service/chat/chat_history_service.dart';
@@ -33,6 +37,7 @@ class ChatListScreen extends StatefulWidget {
 
 class _ChatListScreenState extends State<ChatListScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
+  List<ChatItem> chatListDisplay = [];
   List<ChatItem> chatList = [];
   bool isLoading = true;
   String? errorMessage;
@@ -41,6 +46,8 @@ class _ChatListScreenState extends State<ChatListScreen>
   String? _deletingChatId;
   bool _isDisposed = false;
   bool _hasLoadedOnce = false;
+  TextEditingController searchController = TextEditingController();
+  Timer? _searchDebounceTimer;
 
   @override
   void initState() {
@@ -101,6 +108,7 @@ class _ChatListScreenState extends State<ChatListScreen>
   void dispose() {
     developer.log('ChatListScreen disposing', name: 'ChatListScreen');
     _isDisposed = true;
+    _searchDebounceTimer?.cancel();
 
     // Remove the lifecycle observer
     WidgetsBinding.instance.removeObserver(this);
@@ -151,7 +159,8 @@ class _ChatListScreenState extends State<ChatListScreen>
 
         if (mounted) {
           setState(() {
-            chatList = response.data;
+            chatListDisplay = List<ChatItem>.from(response.data);
+            chatList = List<ChatItem>.from(response.data);
             isLoading = false;
             _hasLoadedOnce = true;
           });
@@ -221,7 +230,7 @@ class _ChatListScreenState extends State<ChatListScreen>
         // Remove the chat from the list
         if (mounted) {
           setState(() {
-            chatList.removeWhere((item) => item.chatId == chat.chatId);
+            chatListDisplay.removeWhere((item) => item.chatId == chat.chatId);
             _deletingChatId = null;
           });
         }
@@ -447,55 +456,98 @@ class _ChatListScreenState extends State<ChatListScreen>
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient:  LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              gradientFirst,
-              gradientSecond,
-              gradientThird,
-              Colors.white
-            ],
-            stops: [0.01, 0.25, 0.49, .95],
-          ),
-        ),
+      body: CommonParentContainer(
+        showLargeGradient: false,
         child: Column(
           children: [
-            // Custom App Bar with transparent background
             SafeArea(
               child: Container(
                 height: 56,
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    // Icon(
-                    //   Icons.circle_rounded,
-                    //   color: Colors.white,
-                    // ),
-                    // SizedBox(width: 16),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          localizations.message,
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+                    Text(
+                      "Chat History",
+                      style: CommonUtils.commonTitleStyle(color: Colors.white),
+                    ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Icon(
+                      Icons.keyboard_arrow_down,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                    SizedBox(
+                      width: 5,
+                    ),
+                    Text(
+                      chatListDisplay.length.toString(),
+                      style: CommonUtils.commonTitleStyle(
+                          color: Colors.white, fontSize: 12),
+                    ),
+                    Spacer(),
+                    Icon(
+                      Icons.more_vert,
+                      color: Colors.white,
+                      size: 24,
                     ),
                   ],
                 ),
               ),
             ),
+            const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Divider(
+                  color: Colors.white,
+                  height: 1,
+                )),
+            const SizedBox(
+              height: 10,
+            ),
+
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              height: 45,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.all(Radius.circular(20)),
+                color: Colors.white,
+              ),
+              child: TextField(
+                  controller: searchController,
+                  onChanged: (value) {
+                    _searchDebounceTimer?.cancel();
+                    _searchDebounceTimer = Timer(
+                      const Duration(milliseconds: 500),
+                      () => _filterList(value),
+                    );
+                  },
+                  style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400),
+                  decoration: InputDecoration(
+                      hint: Text("Search",
+                          style: TextStyle(
+                            fontFamily: AppConstants.ptSansFont,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                          )),
+                      hintStyle: TextStyle(
+                          fontFamily: AppConstants.ptSansFont,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                      border: InputBorder.none)),
+            ),
             // Main Content
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
-                  developer.log('Manual refresh triggered', name: 'ChatListScreen');
+                  developer.log('Manual refresh triggered',
+                      name: 'ChatListScreen');
                   await _loadChatList();
                 },
                 color: Colors.white,
@@ -508,17 +560,16 @@ class _ChatListScreenState extends State<ChatListScreen>
     );
   }
 
-
   Widget _buildBody() {
     developer.log(
-        'Building body - isLoading: $isLoading, errorMessage: $errorMessage, chatList length: ${chatList.length}',
+        'Building body - isLoading: $isLoading, errorMessage: $errorMessage, chatListDisplay length: ${chatListDisplay.length}',
         name: 'ChatListScreen');
 
     if (isLoading) {
       return _buildLoadingWidget();
     } else if (errorMessage != null) {
       return _buildErrorWidget();
-    } else if (chatList.isEmpty) {
+    } else if (chatListDisplay.isEmpty) {
       return _buildEmptyWidget();
     } else {
       return _buildChatList();
@@ -651,16 +702,16 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildChatList() {
-    developer.log('Building chat list with ${chatList.length} items',
+    developer.log('Building chat list with ${chatListDisplay.length} items',
         name: 'ChatListScreen');
 
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: chatList.length,
+        itemCount: chatListDisplay.length,
         itemBuilder: (context, index) {
-          final chat = chatList[index];
+          final chat = chatListDisplay[index];
           developer.log('Building chat item $index: ${chat.name}',
               name: 'ChatListScreen');
           return _buildChatItem(chat, index);
@@ -670,8 +721,7 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildChatItem(ChatItem chat, int index) {
-    developer.log(
-        'Building chat item: name=${chat.name}, image=${chat.image}',
+    developer.log('Building chat item: name=${chat.name}, image=${chat.image}',
         name: 'ChatListScreen');
 
     final isDeleting = _deletingChatId == chat.chatId;
@@ -687,17 +737,6 @@ class _ChatListScreenState extends State<ChatListScreen>
             opacity: value,
             child: Container(
               margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
@@ -707,7 +746,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                       ? null
                       : () => _showDeleteConfirmationDialog(chat),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(0),
                     child: Row(
                       children: [
                         _buildAvatar(chat, isDeleting),
@@ -726,7 +765,8 @@ class _ChatListScreenState extends State<ChatListScreen>
                                           ? chat.name
                                           : 'Unknown User',
                                       style: TextStyle(
-                                        fontSize: 16,
+                                        fontFamily: AppConstants.ptSansFont,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
                                         color: isDeleting
                                             ? Colors.grey[400]
@@ -738,6 +778,22 @@ class _ChatListScreenState extends State<ChatListScreen>
                                 ],
                               ),
                               const SizedBox(height: 4),
+/*
+                              Text(
+                                chat.name.isNotEmpty
+                                    ? chat.name
+                                    : 'Unknown User',
+                                style: TextStyle(
+                                  fontFamily: AppConstants.ptSansFont,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDeleting
+                                      ? Colors.grey[400]
+                                      : Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+*/
                               if (isDeleting)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
@@ -772,12 +828,20 @@ class _ChatListScreenState extends State<ChatListScreen>
                           ),
                         ),
                         const SizedBox(width: 8),
-                        if (!isDeleting)
+                        /*if (!isDeleting)
                           Icon(
                             Icons.arrow_forward_ios,
                             size: 16,
                             color: Colors.grey[400],
-                          ),
+                          ),*/
+
+                        Text(
+                          formatChatTime(chat.lastMessageDateTime ?? ""),
+                          style: CommonUtils.commonTitleStyle(
+                              fontSize: 14,
+                              weight: FontWeight.w600,
+                              color: Color(0x66000000)),
+                        )
                       ],
                     ),
                   ),
@@ -795,51 +859,48 @@ class _ChatListScreenState extends State<ChatListScreen>
         name: 'ChatListScreen');
 
     return Container(
-      width: 56,
-      height: 56,
+      width: 48,
+      height: 48,
+      clipBehavior: Clip.hardEdge,
       decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-      ),
-      child: ClipOval(
-        child: Opacity(
-          opacity: isDeleting ? 0.5 : 1.0,
-          child: chat.image.isNotEmpty && _isValidImageUrl(chat.image)
-              ? Image.network(
-                  chat.image,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    developer.log('Image load error for ${chat.image}: $error',
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      child: Opacity(
+        opacity: isDeleting ? 0.5 : 1.0,
+        child: chat.image.isNotEmpty && _isValidImageUrl(chat.image)
+            ? Image.network(
+                chat.image,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  developer.log('Image load error for ${chat.image}: $error',
+                      name: 'ChatListScreen');
+                  return _buildDefaultAvatar(chat.name);
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) {
+                    developer.log('Image loaded successfully for ${chat.name}',
                         name: 'ChatListScreen');
-                    return _buildDefaultAvatar(chat.name);
-                  },
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) {
-                      developer.log(
-                          'Image loaded successfully for ${chat.name}',
-                          name: 'ChatListScreen');
-                      return child;
-                    }
-                    return Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: [Colors.blue[300]!, Colors.blue[600]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                    return child;
+                  }
+                  return Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Colors.blue[300]!, Colors.blue[600]!],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child: const Center(
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
-                        ),
+                    ),
+                    child: const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
-                    );
-                  },
-                )
-              : _buildDefaultAvatar(chat.name),
-        ),
+                    ),
+                  );
+                },
+              )
+            : _buildDefaultAvatar(chat.name),
       ),
     );
   }
@@ -855,17 +916,23 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildDefaultAvatar(String name) {
-    final displayChar = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    final displayChar = name
+        .split(" ")
+        .map(
+          (e) => e.split('')[0],
+        )
+        .join('');
     developer.log('Building default avatar with character: $displayChar',
         name: 'ChatListScreen');
 
     return Container(
-      width: 56,
-      height: 56,
+      width: 48,
+      height: 48,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.all(Radius.circular(12)),
         gradient: LinearGradient(
-          colors: [Colors.blue[300]!, Colors.blue[600]!],
+          colors: [gradientFirst, gradientSecond],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -873,9 +940,10 @@ class _ChatListScreenState extends State<ChatListScreen>
       child: Center(
         child: Text(
           displayChar,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
+          style: TextStyle(
+            fontFamily: AppConstants.ptSansFont,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
         ),
@@ -907,4 +975,61 @@ class _ChatListScreenState extends State<ChatListScreen>
       ),
     );
   }
+
+  void _filterList(String value) {
+    if (value.isEmpty) {
+      chatListDisplay = chatList;
+      updateState();
+      return;
+    }
+    chatListDisplay.clear();
+    for (var element in chatList) {
+      if (element.name.toLowerCase().contains(value.toLowerCase())) {
+        chatListDisplay.add(element);
+      }
+    }
+    updateState();
+  }
+
+  void updateState() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+}
+
+String formatChatTime(String isoTime) {
+  final DateTime msgTime = DateTime.parse(isoTime);
+  final formattedDateTimeChat =
+      DateFormat("dd-MM-yyyy hh:mm:ss").format(msgTime);
+  final formattedDateTimeNow =
+      DateFormat("dd-MM-yyyy hh:mm:ss").format(DateTime.now());
+  final format = DateFormat('dd-MM-yyyy HH:mm:ss');
+
+  DateTime start = format.parse(formattedDateTimeChat);
+  DateTime end = format.parse(formattedDateTimeNow);
+
+  Duration difference = end.difference(start);
+  if (difference.inMinutes <= 0) {
+    return 'Just Now';
+  }
+  // Minutes ago
+  if (difference.inMinutes < 60) {
+    return '${difference.inMinutes}m ago';
+  }
+
+  // Hours ago
+  if (difference.inHours < 24) {
+    return '${difference.inHours}h ago';
+  }
+
+  // Days ago (up to 5 days)
+  if (difference.inDays <= 5) {
+    return difference.inDays == 1
+        ? '1 day ago'
+        : '${difference.inDays} days ago';
+  }
+
+  // Older than 5 days → formatted date
+  return DateFormat('dd MMM yyyy').format(msgTime);
 }

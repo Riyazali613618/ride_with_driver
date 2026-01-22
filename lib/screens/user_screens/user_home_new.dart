@@ -1032,6 +1032,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                   onTap: () {
                     // Handle banner tap - navigate to link if available
                     if (banner['link'] != null && banner['link'].isNotEmpty) {
+
                       // You can implement navigation to the link here
                       // Example: launch(banner['link']) if using url_launcher package
                     }

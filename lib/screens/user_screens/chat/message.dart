@@ -4,9 +4,13 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/constants/token_manager.dart';
+import 'package:r_w_r/utils/color.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:web_socket_channel/status.dart' as status;
@@ -202,8 +206,8 @@ class _MessagingScreenState extends State<MessagingScreen>
           if (data['data']['userId'] == widget.otherPersonUserId) {
             setState(() {
               _otherUserOnline = false;
-              _otherUserLastSeen =
-                  DateTime.fromMillisecondsSinceEpoch(data['data']['timestamp']);
+              _otherUserLastSeen = DateTime.fromMillisecondsSinceEpoch(
+                  data['data']['timestamp']);
             });
           }
           break;
@@ -226,7 +230,8 @@ class _MessagingScreenState extends State<MessagingScreen>
       isSent: data['isSent'] ?? false,
       messageType: data['messageType'],
       timestamp:
-          DateTime.fromMillisecondsSinceEpoch(data['timestamp'] ?? data['at']).toUtc(),
+          DateTime.fromMillisecondsSinceEpoch(data['timestamp'] ?? data['at'])
+              .toUtc(),
       senderId: data['senderId'],
     );
 
@@ -267,7 +272,7 @@ class _MessagingScreenState extends State<MessagingScreen>
             _messages.addAll(messages.map((msg) => ChatMessage(
                   messageId: msg['_id'],
                   message: msg['message'],
-                  isSent: msg['deliveryStatus']=="sent",
+                  isSent: msg['deliveryStatus'] == "sent",
                   messageType: msg['messageType'],
                   timestamp: DateTime.parse(msg['at']),
                   deliveryStatus: msg['deliveryStatus'],
@@ -517,215 +522,173 @@ class _MessagingScreenState extends State<MessagingScreen>
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        leading: CupertinoNavigationBarBackButton(
-          color: ColorConstants.white,
-        ),
-        title: Row(
+    return CommonParentContainer(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            CircleAvatar(
-              backgroundImage:
-                  widget.image.isNotEmpty ? NetworkImage(widget.image) : null,
-              child: widget.image.isEmpty
-                  ? Text(widget.name.isNotEmpty
-                      ? widget.name[0].toUpperCase()
-                      : '?')
-                  : null,
+            const SizedBox(
+              height: 40,
             ),
-            const SizedBox(width: 12),
+            Header(),
+            const SizedBox(
+              height: 10,
+            ),
+            // Messages List
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Container(
+                decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(16),
+                        topLeft: Radius.circular(16))),
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(16),
+                  itemCount: _messages.length,
+                  itemBuilder: (context, index) {
+                    final message = _messages[index];
+                    if (index == _messages.length - 1) message.isSent = false;
+                    return _buildMessageBubble(message);
+                  },
+                ),
+              ),
+            ),
+            if (showMediaUploader) _buildMediaUploaderSection(),
+
+            // Typing Indicator
+            if (_otherUserTyping)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 12,
+                      backgroundImage: widget.image.isNotEmpty
+                          ? NetworkImage(widget.image)
+                          : null,
+                      child: widget.image.isEmpty
+                          ? Text(
+                              widget.name.isNotEmpty
+                                  ? widget.name[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(fontSize: 10))
+                          : null,
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200],
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 10,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildTypingDot(0),
+                                _buildTypingDot(1),
+                                _buildTypingDot(2),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // Message Input
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              child: Row(
                 children: [
-                  Text(
-                    widget.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      color: ColorConstants.white,
-                      fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        showMediaUploader = !showMediaUploader;
+                      });
+                    },
+                    child: SvgPicture.asset(
+                      showMediaUploader
+                          ? "assets/svg/close.svg"
+                          : "assets/svg/attachment.svg",
+                      color: ColorConstants.primaryColor,
                     ),
                   ),
-                  if (_otherUserTyping)
-                    Text(
-                      localizations.typing,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.green,
-                        fontStyle: FontStyle.italic,
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  Expanded(
+                    child: Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border.all(color: Color(0xFFE2E8F0)),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                    )
-                  else
-                    Text(
-                      _getLastSeenText(),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: ColorConstants.white,
-                      ),
+                      child: Row(children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _messageController,
+                            decoration: InputDecoration(
+                              contentPadding:
+                                  EdgeInsets.symmetric(horizontal: 16),
+                              hintText: localizations.type_message,
+                              hintStyle: CommonUtils.commonTitleStyle(
+                                  fontSize: 14,
+                                  weight: FontWeight.w400,
+                                  color: Color(0xA1000000)),
+                              border: InputBorder.none,
+                            ),
+                            onChanged: (text) {
+                              if (text.isNotEmpty) {
+                                _startTyping();
+                              } else {
+                                _stopTyping();
+                              }
+                            },
+                            onSubmitted: (_) => _sendMessage(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: _sendMessage,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            child: isSendingMedia
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white),
+                                    ),
+                                  )
+                                : SvgPicture.asset("assets/svg/send_msg.svg"),
+                          ),
+                        ),
+                      ]),
                     ),
+                  ),
                 ],
               ),
             ),
           ],
         ),
-        backgroundColor: ColorConstants.primaryColor,
-        elevation: 1,
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            child: Icon(
-              _isConnected ? Icons.circle : Icons.circle_outlined,
-              color: _isConnected ? Colors.green : Colors.red,
-              size: 12,
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Messages List
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
-          ),
-          if (showMediaUploader) _buildMediaUploaderSection(),
-
-          // Typing Indicator
-          if (_otherUserTyping)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundImage: widget.image.isNotEmpty
-                        ? NetworkImage(widget.image)
-                        : null,
-                    child: widget.image.isEmpty
-                        ? Text(
-                            widget.name.isNotEmpty
-                                ? widget.name[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(fontSize: 10))
-                        : null,
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 20,
-                          height: 10,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _buildTypingDot(0),
-                              _buildTypingDot(1),
-                              _buildTypingDot(2),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Message Input
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey[300]!),
-              ),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    setState(() {
-                      showMediaUploader = !showMediaUploader;
-                    });
-                  },
-                  icon: Icon(
-                    showMediaUploader ? Icons.close : Icons.attach_file,
-                    color: ColorConstants.primaryColor,
-                  ),
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _messageController,
-                    decoration: InputDecoration(
-                      hintText: localizations.type_message,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(25),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 10,
-                      ),
-                    ),
-                    onChanged: (text) {
-                      if (text.isNotEmpty) {
-                        _startTyping();
-                      } else {
-                        _stopTyping();
-                      }
-                    },
-                    onSubmitted: (_) => _sendMessage(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: _sendMessage,
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _isConnected
-                          ? ColorConstants.primaryColor
-                          : Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
-                    child: isSendingMedia
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation(Colors.white),
-                            ),
-                          )
-                        : const Icon(
-                            Icons.send,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -786,6 +749,10 @@ class _MessagingScreenState extends State<MessagingScreen>
   }
 
   Widget _buildMessageBubble(ChatMessage message) {
+    if (message.messageType == "text") {
+      return const SizedBox();
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: Row(
@@ -804,69 +771,61 @@ class _MessagingScreenState extends State<MessagingScreen>
                   );
                 }
               },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: message.isSent
-                      ? ColorConstants.primaryColor
-                      : Colors.grey[200],
-                  borderRadius: BorderRadius.only(
-                    topLeft: const Radius.circular(12),
-                    topRight: const Radius.circular(12),
-                    bottomLeft: Radius.circular(message.isSent ? 12 : 0),
-                    bottomRight: Radius.circular(message.isSent ? 0 : 12),
+              child:
+                  Column(crossAxisAlignment:message.isSent? CrossAxisAlignment.end:CrossAxisAlignment.start, children: [
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(colors: [
+                      message.isSent ? gradientFirst : Color(0xFFF1F1F1),
+                      message.isSent ? gradientSecond : Color(0xFFF1F1F1)
+                    ]),
+                    borderRadius: const BorderRadius.all(Radius.circular(12)),
+                  ),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: MediaQuery.of(context).size.width * 0.75,
+                      minWidth: MediaQuery.of(context).size.width * 0.17,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          bottom: 8, right: 5, left: 5, top: 8),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (message.messageType == 'TEXT')
+                            _buildTextMessageContent(message),
+                          if (message.messageType == 'IMAGE')
+                            _buildImageMessageContent(message),
+                          if (message.messageType == 'VIDEO')
+                            _buildVideoMessageContent(message),
+                          if (message.messageType == 'DOCUMENT')
+                            _buildDocumentMessageContent(message),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.75,
-                    minWidth: MediaQuery.of(context).size.width * 0.2,
-                  ),
-                  child: Stack(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: 20, right: 10, left: 10, top: 8),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (message.messageType == 'TEXT')
-                              _buildTextMessageContent(message),
-                            if (message.messageType == 'IMAGE')
-                              _buildImageMessageContent(message),
-                            if (message.messageType == 'VIDEO')
-                              _buildVideoMessageContent(message),
-                            if (message.messageType == 'DOCUMENT')
-                              _buildDocumentMessageContent(message),
-                          ],
-                        ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: message.isSent
+                      ? MainAxisAlignment.end
+                      : MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      _formatTime(message.timestamp),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
                       ),
-
-                      // Time & Status (bottom right)
-                      Positioned(
-                        bottom: 4,
-                        right: 8,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              _formatTime(message.timestamp),
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                              ),
-                            ),
-                            if (message.isSent) ...[
-                              const SizedBox(width: 4),
-                              _buildMessageStatus(message),
-                            ],
-                          ],
-                        ),
-                      ),
+                    ),
+                    if (message.isSent) ...[
+                      const SizedBox(width: 4),
+                      _buildMessageStatus(message),
                     ],
-                  ),
-                ),
-              ),
+                  ],
+                )
+              ]),
             ),
           ),
         ],
@@ -877,10 +836,11 @@ class _MessagingScreenState extends State<MessagingScreen>
   Widget _buildTextMessageContent(ChatMessage message) {
     return Text(
       message.message,
-      textAlign: TextAlign.start,
+      textAlign: TextAlign.center,
       style: TextStyle(
+        fontFamily: AppConstants.ptSansFont,
         color: message.isSent ? Colors.white : Colors.black87,
-        fontSize: 16,
+        fontSize: 14,
       ),
     );
   }
@@ -993,7 +953,7 @@ class _MessagingScreenState extends State<MessagingScreen>
   }
 
   String _formatTime(DateTime dateTime) {
-    DateTime localTime=dateTime.toLocal();
+    DateTime localTime = dateTime;
     int hour = localTime.hour;
     int minute = localTime.minute;
     String period = hour >= 12 ? 'PM' : 'AM';
@@ -1017,6 +977,267 @@ class _MessagingScreenState extends State<MessagingScreen>
         color: Colors.grey[600],
         shape: BoxShape.circle,
       ),
+    );
+  }
+
+  Widget Header() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 0),
+      child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              child: CupertinoNavigationBarBackButton(
+                color: ColorConstants.white,
+              ),
+            ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox(
+                  width: 20,
+                ),
+                _buildAvatar(),
+                const SizedBox(width: 12),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      widget.name,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: ColorConstants.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    _otherUserTyping
+                        ? const Text(
+                            "Typing...",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.green,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          )
+                        : _isConnected
+                            ? Row(
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    color: Colors.green,
+                                    size: 12,
+                                  ),
+                                  SizedBox(
+                                    width: 5,
+                                  ),
+                                  Text(
+                                    "Online",
+                                    style: CommonUtils.commonTitleStyle(
+                                        fontSize: 12,
+                                        weight: FontWeight.w400,
+                                        color: Colors.white),
+                                  )
+                                ],
+                              )
+                            : Text(
+                                _getLastSeenText(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: ColorConstants.white,
+                                ),
+                              ),
+                  ],
+                ),
+                Spacer(),
+                /*  GestureDetector(
+                  key: _menuKey,
+                  onTap: () {
+                    _showChatMenu(context, _menuKey);
+                  },
+                  child: Icon(
+                    Icons.more_vert,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),*/
+                _moreMenu(context),
+                const SizedBox(width: 12),
+              ],
+            ),
+          ]),
+    );
+  }
+
+  Widget _buildAvatar() {
+    return Container(
+      width: 48,
+      height: 48,
+      clipBehavior: Clip.hardEdge,
+      decoration: const BoxDecoration(
+          shape: BoxShape.rectangle,
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      child: widget.image.isNotEmpty
+          ? Image.network(
+              widget.image,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildDefaultAvatar(widget.name);
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) {
+                  return child;
+                }
+                return Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Colors.blue[300]!, Colors.blue[600]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: const Center(
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                );
+              },
+            )
+          : _buildDefaultAvatar(widget.name),
+    );
+  }
+
+  Widget _buildDefaultAvatar(String name) {
+    final displayChar = name
+        .split(" ")
+        .map(
+          (e) => e.split('')[0],
+        )
+        .join('');
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.all(Radius.circular(12)),
+        gradient: LinearGradient(
+          colors: [gradientFirst, gradientSecond],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          displayChar,
+          style: TextStyle(
+            fontFamily: AppConstants.ptSansFont,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  final GlobalKey _menuKey = GlobalKey();
+
+  Widget _moreMenu(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: Offset(200, 18),
+      onSelected: (val) async {
+        /* if (val == 'view') {
+        } else if (val == 'cancel') {
+        } else if (val == 'edit') {
+        } else if (val == 'delete') {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('Deleted (mock)')));
+        }*/
+      },
+      color: Colors.transparent,
+      clipBehavior: Clip.hardEdge,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      surfaceTintColor: Colors.transparent,
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          padding: EdgeInsets.zero,
+          enabled: false,
+          child: _ChatPopupMenu(
+            onPin: () {
+              Navigator.pop(context);
+              debugPrint("Pin Chat");
+            },
+            onUnpin: () {
+              Navigator.pop(context);
+              debugPrint("Unpin Chat");
+            },
+            onDelete: () {
+              Navigator.pop(context);
+              debugPrint("Delete Chat");
+            },
+          ),
+        ),
+      ],
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 0, vertical: 10),
+        child: Icon(
+          Icons.more_vert,
+          color: Colors.white,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  void _showChatMenu(BuildContext context, GlobalKey key) {
+    _moreMenu(context);
+    return;
+    final RenderBox button =
+        key.currentContext!.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+
+    final Offset position =
+        button.localToGlobal(Offset(340, -10), ancestor: overlay);
+
+    showMenu(
+      context: context,
+      color: Colors.transparent,
+      elevation: 0,
+      position: RelativeRect.fromLTRB(
+        position.dx, // LEFT aligned to button
+        position.dy + button.size.height, // BELOW button
+        overlay.size.width - position.dx,
+        0,
+      ),
+      items: [
+        PopupMenuItem(
+          padding: EdgeInsets.zero,
+          enabled: false,
+          child: _ChatPopupMenu(
+            onPin: () {
+              Navigator.pop(context);
+              debugPrint("Pin Chat");
+            },
+            onUnpin: () {
+              Navigator.pop(context);
+              debugPrint("Unpin Chat");
+            },
+            onDelete: () {
+              Navigator.pop(context);
+              debugPrint("Delete Chat");
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -1112,7 +1333,7 @@ class _MessagingScreenState extends State<MessagingScreen>
 class ChatMessage {
   final String messageId;
   final String message;
-  final bool isSent;
+  bool isSent;
   final String messageType;
   final DateTime timestamp;
   final String? senderId;
@@ -1620,5 +1841,89 @@ class _MediaViewScreenState extends State<MediaViewScreen>
         );
       }
     }
+  }
+}
+
+class _ChatPopupMenu extends StatelessWidget {
+  final VoidCallback onPin;
+  final VoidCallback onUnpin;
+  final VoidCallback onDelete;
+
+  const _ChatPopupMenu({
+    required this.onPin,
+    required this.onUnpin,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        width: 180,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _menuItem("Pin Chat", onPin),
+            _divider(),
+            _menuItem("Unpin Chat", onUnpin),
+            _divider(),
+            _menuItem(
+              "Delete",
+              onDelete,
+              textColor: Colors.red,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _menuItem(
+    String title,
+    VoidCallback onTap, {
+    Color textColor = Colors.black,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _divider() {
+    return const Divider(
+      height: 1,
+      thickness: 0.6,
+      indent: 12,
+      endIndent: 12,
+    );
   }
 }

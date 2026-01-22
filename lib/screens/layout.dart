@@ -237,10 +237,12 @@ class _LayoutState extends State<Layout> {
         BottomNavigationBarItem(
           icon: SvgPicture.asset(
             "assets/svg/message_new.svg",
+            width: 20,height: 20,
           ),
           label: localizations.message,
           activeIcon: SvgPicture.asset(
             "assets/svg/message_new_selected.svg",
+            width: 20,height: 20,
           ),
         ),
         /* BottomNavigationBarItem(
