@@ -19,7 +19,7 @@ class ChatApiService {
       final token = await TokenManager.getToken();
       developer.log('Retrieved token: ${token ?? 'null'}...',
           name: 'ChatApiService');
-print("token $token");
+      print("token $token");
       final url = '$baseUrl/user/chat/conversations';
       developer.log('Request URL: $url', name: 'ChatApiService');
 

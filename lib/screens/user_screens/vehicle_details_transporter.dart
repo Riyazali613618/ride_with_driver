@@ -16,6 +16,7 @@ import '../../constants/api_constants.dart';
 import '../../constants/assets_constant.dart';
 import '../../constants/token_manager.dart';
 import '../../l10n/app_localizations.dart';
+import '../../utils/common_utils.dart';
 import '../block/provider/profile_provider.dart';
 
 class VehicleDetailScreenTransPorter extends StatefulWidget {
@@ -70,8 +71,7 @@ class _VehicleDetailScreenTransPorterState
 
     _controller = VideoPlayerController.network(
       'https://example.com/your-video.mp4',
-    )
-      ..initialize().then((_) {
+    )..initialize().then((_) {
         setState(() {});
       });
 
@@ -81,8 +81,8 @@ class _VehicleDetailScreenTransPorterState
   Future<void> _verifyReview(String reviewDone, bool status) async {
     try {
       final profileProvider =
-      Provider.of<ProfileProvider>(context, listen: false);
-      final userId = profileProvider.profileData?.userId?.id??"";
+          Provider.of<ProfileProvider>(context, listen: false);
+      final userId = profileProvider.profileData?.userId?.id ?? "";
       final token = await TokenManager.getToken();
 
       final submitResponse = await http.post(
@@ -132,12 +132,11 @@ class _VehicleDetailScreenTransPorterState
   void _showFullScreenMedia(int index) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) =>
-            _FullScreenMediaViewer(
-              mediaList: _allMedia,
-              initialIndex: index,
-              isVideo: (url) => widget.vehicle.videos.contains(url),
-            ),
+        builder: (context) => _FullScreenMediaViewer(
+          mediaList: _allMedia,
+          initialIndex: index,
+          isVideo: (url) => widget.vehicle.videos.contains(url),
+        ),
       ),
     );
   }
@@ -227,10 +226,7 @@ class _VehicleDetailScreenTransPorterState
   Widget _buildMediaSection() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      width: MediaQuery
-          .of(context)
-          .size
-          .width,
+      width: MediaQuery.of(context).size.width,
       height: 180,
       decoration: BoxDecoration(boxShadow: [
         BoxShadow(
@@ -266,47 +262,47 @@ class _VehicleDetailScreenTransPorterState
                   child: mediaUrl == 'placeholder'
                       ? _buildPlaceholderImage()
                       : Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8.0),
-                        child: Image.network(
-                          mediaUrl,
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildPlaceholderImage(),
-                          loadingBuilder:
-                              (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 3,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  ColorConstants.primaryColor,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                mediaUrl,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    _buildPlaceholderImage(),
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 3,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        ColorConstants.primaryColor,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            if (isVideo)
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(50),
+                                  ),
+                                  child: const Icon(
+                                    Icons.play_arrow,
+                                    color: Colors.white,
+                                    size: 40,
+                                  ),
                                 ),
                               ),
-                            );
-                          },
+                          ],
                         ),
-                      ),
-                      if (isVideo)
-                        Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.black54,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                              size: 40,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
                 ),
               );
             },
@@ -408,6 +404,79 @@ class _VehicleDetailScreenTransPorterState
         children: [
           // Vehicle Type and Contact Icons
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              CustomActivity(
+                baseUrl: ApiConstants.baseUrl,
+                userId: widget.owner.userId,
+                icon: AssetsConstant.chatSVG,
+                type: 'CHAT',
+                phone: widget.owner.businessMobileNumber,
+                userName: ("${widget.owner.firstName} ${widget.owner.lastName}").trim(),
+                activityType: ActivityType.CHAT,
+                userType: getMyType(widget.owner.vehicles.length > 1
+                    ? "Transporter"
+                    : widget.owner.vehicles.elementAt(0).vehicleType),
+                onBeforeTap: () => _verifyReview('CHAT', true),
+              ),
+              const SizedBox(width: 12),
+              CustomActivity(
+                baseUrl: ApiConstants.baseUrl,
+                userId: widget.owner.userId,
+                icon: AssetsConstant.whatsAppSVG,
+                type: 'WHATSAPP',
+                phone: widget.owner.businessMobileNumber,
+                activityType: ActivityType.WHATSAPP,
+                userType: getMyType(widget.owner.vehicles.length > 1
+                    ? "Transporter"
+                    : widget.owner.vehicles.elementAt(0).vehicleType),
+                onBeforeTap: () => _verifyReview('WHATSAPP', true),
+              ),
+              const SizedBox(width: 12),
+              CustomActivity(
+                baseUrl: ApiConstants.baseUrl,
+                userId: widget.owner.userId,
+                icon: AssetsConstant.callPhoneSVG,
+                type: 'PHONE',
+                userName: ("${widget.owner.firstName} ${widget.owner.lastName}").trim(),
+                phone: widget.owner.businessMobileNumber,
+                activityType: ActivityType.PHONE,
+                userType: getMyType(widget.owner.vehicles.length > 1
+                    ? "Transporter"
+                    : widget.owner.vehicles.elementAt(0).vehicleType),
+                onBeforeTap: () => _verifyReview('PHONE', true),
+              ),
+              Spacer(),
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: InkWell(
+                  onTap: () {
+                    // _navigateToVehicleDetail(owner);
+                  },
+                  child: Container(
+                    alignment: Alignment.bottomRight,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: gradientSecond,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "👉 Send Request",
+                      style: CommonUtils.commonTitleStyle(
+                          fontSize: 10,
+                          weight: FontWeight.w400,
+                          color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+
+            ],
+          ),
+          const SizedBox(height: 10,),
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
@@ -438,57 +507,6 @@ class _VehicleDetailScreenTransPorterState
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Spacer(),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          CustomActivity(
-                            baseUrl: ApiConstants.baseUrl,
-                            userId: widget.owner.userId,
-                            icon: AssetsConstant.chatSVG,
-                            type: 'CHAT',
-                            phone: widget.owner.businessMobileNumber,
-                            activityType: ActivityType.CHAT,
-                            userType: getMyType(widget.owner.vehicles.length > 1
-                                ? "Transporter"
-                                : widget.owner.vehicles
-                                .elementAt(0)
-                                .vehicleType),
-                            onBeforeTap: () => _verifyReview('CHAT', true),
-                          ),
-                          const SizedBox(width: 12),
-                          CustomActivity(
-                            baseUrl: ApiConstants.baseUrl,
-                            userId: widget.owner.userId,
-                            icon: AssetsConstant.whatsAppSVG,
-                            type: 'WHATSAPP',
-                            phone: widget.owner.businessMobileNumber,
-                            activityType: ActivityType.WHATSAPP,
-                            userType: getMyType(widget.owner.vehicles.length > 1
-                                ? "Transporter"
-                                : widget.owner.vehicles
-                                .elementAt(0)
-                                .vehicleType),
-                            onBeforeTap: () => _verifyReview('WHATSAPP', true),
-                          ),
-                          const SizedBox(width: 12),
-                          CustomActivity(
-                            baseUrl: ApiConstants.baseUrl,
-                            userId: widget.owner.userId,
-                            icon: AssetsConstant.callPhoneSVG,
-                            type: 'PHONE',
-                            phone: widget.owner.businessMobileNumber,
-                            activityType: ActivityType.PHONE,
-                            userType: getMyType(widget.owner.vehicles.length > 1
-                                ? "Transporter"
-                                : widget.owner.vehicles
-                                .elementAt(0)
-                                .vehicleType),
-                            onBeforeTap: () => _verifyReview('PHONE', true),
-                          ),
-                        ],
-                      )
                     ],
                   ))
             ],
@@ -614,7 +632,7 @@ class _VehicleDetailScreenTransPorterState
                       Spacer(),
                       Container(
                         padding:
-                        EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: gradientSecond,
                           borderRadius: BorderRadius.circular(20),
@@ -625,7 +643,7 @@ class _VehicleDetailScreenTransPorterState
                         ),
                         child: Text(
                           (widget.vehicle.isPriceNegotiable == true ||
-                              widget.owner.negotiable)
+                                  widget.owner.negotiable)
                               ? localizations.negotiable
                               : localizations.fixedPrice,
                           maxLines: 1,
@@ -721,8 +739,7 @@ class _VehicleDetailScreenTransPorterState
                           children: [
                             Flexible(
                               child: Text(
-                                "${widget.owner.firstName} ${widget.owner
-                                    .lastName},\n${widget.owner.companyName}",
+                                "${widget.owner.firstName} ${widget.owner.lastName},\n${widget.owner.companyName}",
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
@@ -738,7 +755,6 @@ class _VehicleDetailScreenTransPorterState
                                 size: 16,
                                 color: Colors.green,
                               ),
-
                             ],
                             const SizedBox(width: 6),
                             Text(
@@ -746,8 +762,7 @@ class _VehicleDetailScreenTransPorterState
                               style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.grey[600],
-                                  fontWeight: FontWeight.w400
-                              ),
+                                  fontWeight: FontWeight.w400),
                             ),
                             const SizedBox(width: 6),
                             Container(
@@ -756,8 +771,8 @@ class _VehicleDetailScreenTransPorterState
                                 vertical: 0,
                               ),
                               decoration: BoxDecoration(
-                                color: ColorConstants.primaryColor.withOpacity(
-                                    0.1),
+                                color: ColorConstants.primaryColor
+                                    .withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
                                   width: 0.5,
@@ -1024,12 +1039,11 @@ class _FullScreenMediaViewerState extends State<_FullScreenMediaViewer> {
                 child: Image.network(
                   mediaUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) =>
-                      Icon(
-                        Icons.broken_image,
-                        size: 100,
-                        color: Colors.grey[600],
-                      ),
+                  errorBuilder: (context, error, stackTrace) => Icon(
+                    Icons.broken_image,
+                    size: 100,
+                    color: Colors.grey[600],
+                  ),
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Center(

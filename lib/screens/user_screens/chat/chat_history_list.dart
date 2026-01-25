@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/utils/common_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/api_model/chat/chat_model.dart';
 import '../../../api/api_service/chat/chat_history_service.dart';
@@ -29,7 +29,7 @@ class ChatListController {
 class ChatListScreen extends StatefulWidget {
   final ChatListController? controller;
 
-  const ChatListScreen({Key? key, this.controller}) : super(key: key);
+  const ChatListScreen({super.key, this.controller});
 
   @override
   State<ChatListScreen> createState() => _ChatListScreenState();
@@ -49,18 +49,17 @@ class _ChatListScreenState extends State<ChatListScreen>
   TextEditingController searchController = TextEditingController();
   Timer? _searchDebounceTimer;
 
+  bool _selectionMode = false;
+  Set<String> _selectedChatIds = {};
+  Set<String> _pinnedChatIds = {};
+
   @override
   void initState() {
     super.initState();
-    developer.log('ChatListScreen initialized', name: 'ChatListScreen');
-
     WidgetsBinding.instance.addObserver(this);
-
-    // Set up the refresh callback for external access
+    _loadPinnedChats();
     widget.controller?._setRefreshCallback(() {
       if (mounted && !_isDisposed) {
-        developer.log('External refresh triggered via controller',
-            name: 'ChatListScreen');
         _loadChatList();
       }
     });
@@ -73,7 +72,6 @@ class _ChatListScreenState extends State<ChatListScreen>
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
 
-    // Load chat list after the first frame is built
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_isDisposed) {
         _loadChatList();
@@ -81,13 +79,15 @@ class _ChatListScreenState extends State<ChatListScreen>
     });
   }
 
+  Future<void> _loadPinnedChats() async {
+    final prefs = await SharedPreferences.getInstance();
+    _pinnedChatIds = prefs.getStringList('pinned_chats')?.toSet() ?? {};
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Only reload if we haven't loaded once and the widget is not disposed
     if (!_hasLoadedOnce && !_isDisposed) {
-      developer.log('Loading chat list from didChangeDependencies',
-          name: 'ChatListScreen');
       _loadChatList();
     }
   }
@@ -95,36 +95,24 @@ class _ChatListScreenState extends State<ChatListScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    developer.log('App lifecycle state changed to: $state',
-        name: 'ChatListScreen');
-
     if (state == AppLifecycleState.resumed && !_isDisposed) {
-      developer.log('App resumed, reloading chat list', name: 'ChatListScreen');
       _loadChatList();
     }
   }
 
   @override
   void dispose() {
-    developer.log('ChatListScreen disposing', name: 'ChatListScreen');
     _isDisposed = true;
     _searchDebounceTimer?.cancel();
-
-    // Remove the lifecycle observer
     WidgetsBinding.instance.removeObserver(this);
-
     _animationController.dispose();
     super.dispose();
   }
 
   Future<void> _loadChatList() async {
     if (_isDisposed) {
-      developer.log('Widget disposed, skipping chat list load',
-          name: 'ChatListScreen');
       return;
     }
-
-    developer.log('Loading chat list...', name: 'ChatListScreen');
 
     try {
       if (mounted) {
@@ -137,21 +125,10 @@ class _ChatListScreenState extends State<ChatListScreen>
       final response = await ChatApiService.getChatList();
 
       if (_isDisposed || !mounted) {
-        developer.log('Widget disposed during API call, skipping setState',
-            name: 'ChatListScreen');
         return;
       }
 
-      developer.log(
-          'Received response: status=${response.status}, message=${response.message}, data count=${response.data.length}',
-          name: 'ChatListScreen');
-
       if (response.status) {
-        developer.log(
-            'Chat list loaded successfully with ${response.data.length} items',
-            name: 'ChatListScreen');
-
-        // Debug each chat item
         for (int i = 0; i < response.data.length; i++) {
           final chat = response.data[i];
           developer.log('Chat $i: $chat', name: 'ChatListScreen');
@@ -161,6 +138,7 @@ class _ChatListScreenState extends State<ChatListScreen>
           setState(() {
             chatListDisplay = List<ChatItem>.from(response.data);
             chatList = List<ChatItem>.from(response.data);
+            _sortChatList();
             isLoading = false;
             _hasLoadedOnce = true;
           });
@@ -170,8 +148,6 @@ class _ChatListScreenState extends State<ChatListScreen>
         final error = response.message.isNotEmpty
             ? response.message
             : 'Failed to load chat list';
-        developer.log('Chat list loading failed: $error',
-            name: 'ChatListScreen');
 
         if (mounted) {
           setState(() {
@@ -183,15 +159,10 @@ class _ChatListScreenState extends State<ChatListScreen>
       }
     } catch (e) {
       if (_isDisposed || !mounted) {
-        developer.log(
-            'Widget disposed during error handling, skipping setState',
-            name: 'ChatListScreen');
         return;
       }
 
       final error = e.toString().replaceAll('Exception: ', '');
-      developer.log('Exception occurred while loading chat list: $error',
-          name: 'ChatListScreen');
 
       if (mounted) {
         setState(() {
@@ -205,10 +176,6 @@ class _ChatListScreenState extends State<ChatListScreen>
 
   Future<void> _deleteChat(ChatItem chat) async {
     if (_isDisposed || !mounted) return;
-
-    developer.log('Starting chat deletion for: ${chat.chatId}',
-        name: 'ChatListScreen');
-
     setState(() {
       _deletingChatId = chat.chatId;
     });
@@ -217,14 +184,8 @@ class _ChatListScreenState extends State<ChatListScreen>
       final response = await ChatApiService.deleteChat(chat.chatId);
 
       if (_isDisposed || !mounted) {
-        developer.log('Widget disposed during delete operation',
-            name: 'ChatListScreen');
         return;
       }
-
-      developer.log(
-          'Delete response: status=${response.status}, message=${response.message}',
-          name: 'ChatListScreen');
 
       if (response.status) {
         // Remove the chat from the list
@@ -242,9 +203,6 @@ class _ChatListScreenState extends State<ChatListScreen>
               : 'Chat deleted successfully',
           isSuccess: true,
         );
-
-        developer.log('Chat deleted successfully: ${chat.chatId}',
-            name: 'ChatListScreen');
       } else {
         if (mounted) {
           setState(() {
@@ -258,9 +216,6 @@ class _ChatListScreenState extends State<ChatListScreen>
               : 'Failed to delete chat',
           isSuccess: false,
         );
-
-        developer.log('Chat deletion failed: ${response.message}',
-            name: 'ChatListScreen');
       }
     } catch (e) {
       if (_isDisposed || !mounted) return;
@@ -272,8 +227,6 @@ class _ChatListScreenState extends State<ChatListScreen>
       }
 
       final errorMessage = e.toString().replaceAll('Exception: ', '');
-      developer.log('Exception during chat deletion: $errorMessage',
-          name: 'ChatListScreen');
 
       _showSnackBar(
         message: 'Failed to delete chat: $errorMessage',
@@ -282,7 +235,7 @@ class _ChatListScreenState extends State<ChatListScreen>
     }
   }
 
-  void _showDeleteConfirmationDialog(ChatItem chat) {
+  void _showDeleteConfirmationDialog() {
     final localizations = AppLocalizations.of(context)!;
 
     if (!mounted) return;
@@ -317,8 +270,7 @@ class _ChatListScreenState extends State<ChatListScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                localizations.confirm_delete_chat("${chat.name.isNotEmpty}"),
-                // 'Are you sure you want to delete this chat with ${chat.name.isNotEmpty ? chat.name : 'Unknown User'}?',
+                 'Are you sure you want to delete the selected chats?',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -351,8 +303,8 @@ class _ChatListScreenState extends State<ChatListScreen>
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _deleteChat(chat);
-              },
+                _deleteSelectedChats();
+                },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[600],
                 foregroundColor: Colors.white,
@@ -377,7 +329,6 @@ class _ChatListScreenState extends State<ChatListScreen>
 
   void _showSnackBar({required String message, required bool isSuccess}) {
     if (!mounted) return;
-    final localizations = AppLocalizations.of(context)!;
 
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
@@ -434,27 +385,8 @@ class _ChatListScreenState extends State<ChatListScreen>
     }
   }
 
-  Color _getCauseColor(String cause) {
-    final normalizedCause = cause.toUpperCase();
-    developer.log('Getting color for cause: $normalizedCause',
-        name: 'ChatListScreen');
-
-    switch (normalizedCause) {
-      case 'DRIVER':
-        return Colors.blue;
-      case 'PASSENGER':
-        return Colors.green;
-      case 'ADMIN':
-        return Colors.orange;
-      default:
-        return Colors.grey;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
-
     return Scaffold(
       body: CommonParentContainer(
         showLargeGradient: false,
@@ -466,10 +398,22 @@ class _ChatListScreenState extends State<ChatListScreen>
                 padding: EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Text(
-                      "Chat History",
-                      style: CommonUtils.commonTitleStyle(color: Colors.white),
-                    ),
+                    if (_selectionMode)
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () {
+                          setState(() {
+                            _selectionMode = false;
+                            _selectedChatIds.clear();
+                          });
+                        },
+                      )
+                    else
+                      Text(
+                        "Chat History",
+                        style:
+                            CommonUtils.commonTitleStyle(color: Colors.white),
+                      ),
                     SizedBox(
                       width: 10,
                     ),
@@ -487,11 +431,23 @@ class _ChatListScreenState extends State<ChatListScreen>
                           color: Colors.white, fontSize: 12),
                     ),
                     Spacer(),
-                    Icon(
-                      Icons.more_vert,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                    if (_selectionMode) ...[
+                      IconButton(
+                        icon: const Icon(Icons.push_pin),
+                        onPressed: _pinSelectedChats,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          _showDeleteConfirmationDialog();
+                        },
+                      ),
+                    ] else
+                      Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                   ],
                 ),
               ),
@@ -560,11 +516,42 @@ class _ChatListScreenState extends State<ChatListScreen>
     );
   }
 
-  Widget _buildBody() {
-    developer.log(
-        'Building body - isLoading: $isLoading, errorMessage: $errorMessage, chatListDisplay length: ${chatListDisplay.length}',
-        name: 'ChatListScreen');
+  Future<void> _deleteSelectedChats() async {
+    for (final chatId in _selectedChatIds) {
+      await ChatApiService.deleteChat(chatId);
+    }
 
+    setState(() {
+      chatListDisplay.removeWhere((e) => _selectedChatIds.contains(e.chatId));
+      _selectedChatIds.clear();
+      _selectionMode = false;
+    });
+  }
+
+  Future<void> _pinSelectedChats() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      for (final id in _selectedChatIds) {
+        if (_pinnedChatIds.contains(id)) {
+          _pinnedChatIds.remove(id);
+        } else {
+          _pinnedChatIds.add(id);
+        }
+      }
+      _selectionMode = false;
+      _selectedChatIds.clear();
+    });
+
+    await prefs.setStringList(
+      'pinned_chats',
+      _pinnedChatIds.toList(),
+    );
+
+    _loadChatList();
+  }
+
+  Widget _buildBody() {
     if (isLoading) {
       return _buildLoadingWidget();
     } else if (errorMessage != null) {
@@ -636,7 +623,6 @@ class _ChatListScreenState extends State<ChatListScreen>
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                developer.log('Retry button pressed', name: 'ChatListScreen');
                 _loadChatList();
               },
               icon: const Icon(Icons.refresh),
@@ -664,7 +650,7 @@ class _ChatListScreenState extends State<ChatListScreen>
 
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      child: Container(
+      child: SizedBox(
         height: MediaQuery.of(context).size.height -
             (AppBar().preferredSize.height +
                 MediaQuery.of(context).padding.top),
@@ -702,9 +688,6 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildChatList() {
-    developer.log('Building chat list with ${chatListDisplay.length} items',
-        name: 'ChatListScreen');
-
     return FadeTransition(
       opacity: _fadeAnimation,
       child: ListView.builder(
@@ -721,9 +704,6 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   Widget _buildChatItem(ChatItem chat, int index) {
-    developer.log('Building chat item: name=${chat.name}, image=${chat.image}',
-        name: 'ChatListScreen');
-
     final isDeleting = _deletingChatId == chat.chatId;
     final localizations = AppLocalizations.of(context)!;
 
@@ -736,25 +716,53 @@ class _ChatListScreenState extends State<ChatListScreen>
           child: Opacity(
             opacity: value,
             child: Container(
-              margin: const EdgeInsets.only(bottom: 12),
+              margin: const EdgeInsets.only(bottom: 0),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
+                  onTap: () {
+                    if (_selectionMode) {
+                      _toggleSelection(chat.chatId);
+                    } else {
+                      _onChatTap(chat);
+                    }
+                  },onLongPress: () {
+                  setState(() {
+                    _selectionMode = true;
+                    _selectedChatIds.add(chat.chatId);
+                  });
+                },
                   borderRadius: BorderRadius.circular(16),
-                  onTap: isDeleting ? null : () => _onChatTap(chat),
+                  /*   onTap: isDeleting ? null : () => _onChatTap(chat),
                   onLongPress: isDeleting
                       ? null
-                      : () => _showDeleteConfirmationDialog(chat),
-                  child: Padding(
-                    padding: const EdgeInsets.all(0),
+                      : () => _showDeleteConfirmationDialog(chat),*/
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _selectedChatIds.contains(chat.chatId)
+                          ? Colors.blue.withOpacity(0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        if (_selectionMode)
+                          Checkbox(
+                            value: _selectedChatIds.contains(chat.chatId),
+                            onChanged: (_) => _toggleSelection(chat.chatId),
+                          ),
                         _buildAvatar(chat, isDeleting),
                         const SizedBox(width: 16),
                         Expanded(
                           child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const SizedBox(
+                                height: 14,
+                              ),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -777,23 +785,17 @@ class _ChatListScreenState extends State<ChatListScreen>
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 4),
-/*
                               Text(
-                                chat.name.isNotEmpty
-                                    ? chat.name
-                                    : 'Unknown User',
+                                chat.lastMessage,
+                                maxLines: 1,
                                 style: TextStyle(
                                   fontFamily: AppConstants.ptSansFont,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDeleting
-                                      ? Colors.grey[400]
-                                      : Colors.black87,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
-*/
                               if (isDeleting)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 8),
@@ -827,21 +829,15 @@ class _ChatListScreenState extends State<ChatListScreen>
                             ],
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        /*if (!isDeleting)
-                          Icon(
-                            Icons.arrow_forward_ios,
-                            size: 16,
-                            color: Colors.grey[400],
-                          ),*/
-
                         Text(
                           formatChatTime(chat.lastMessageDateTime ?? ""),
                           style: CommonUtils.commonTitleStyle(
-                              fontSize: 14,
-                              weight: FontWeight.w600,
+                              fontSize: 12,
+                              weight: FontWeight.w400,
                               color: Color(0x66000000)),
-                        )
+                        ),
+                        if (_pinnedChatIds.contains(chat.chatId))
+                          const Icon(Icons.push_pin, size: 16),
                       ],
                     ),
                   ),
@@ -852,6 +848,19 @@ class _ChatListScreenState extends State<ChatListScreen>
         );
       },
     );
+  }
+
+  void _toggleSelection(String chatId) {
+    setState(() {
+      if (_selectedChatIds.contains(chatId)) {
+        _selectedChatIds.remove(chatId);
+        if (_selectedChatIds.isEmpty) {
+          _selectionMode = false;
+        }
+      } else {
+        _selectedChatIds.add(chatId);
+      }
+    });
   }
 
   Widget _buildAvatar(ChatItem chat, bool isDeleting) {
@@ -910,7 +919,6 @@ class _ChatListScreenState extends State<ChatListScreen>
       final uri = Uri.parse(url);
       return uri.hasScheme && (uri.scheme == 'http' || uri.scheme == 'https');
     } catch (e) {
-      developer.log('Invalid image URL: $url', name: 'ChatListScreen');
       return false;
     }
   }
@@ -952,9 +960,6 @@ class _ChatListScreenState extends State<ChatListScreen>
   }
 
   void _onChatTap(ChatItem chat) {
-    developer.log('Chat tapped: ${chat.name} (${chat.chatId})',
-        name: 'ChatListScreen');
-
     if (!mounted) return;
 
     // // TODO: Navigate to chat detail screen
@@ -964,8 +969,6 @@ class _ChatListScreenState extends State<ChatListScreen>
         builder: (context) => MessagingScreen(
           name: chat.name,
           image: chat.image,
-          // userId: chat.userId,
-          // cause: chat.cause,
           conversationId: chat.chatId,
           otherPersonUserId: chat.chatId,
           chatId: chat.chatId,
@@ -996,14 +999,25 @@ class _ChatListScreenState extends State<ChatListScreen>
       setState(() {});
     }
   }
+
+  void _sortChatList() {
+    chatListDisplay.sort((a, b) {
+      final aPinned = _pinnedChatIds.contains(a.chatId);
+      final bPinned = _pinnedChatIds.contains(b.chatId);
+
+      if (aPinned && !bPinned) return -1;
+      if (!aPinned && bPinned) return 1;
+      return 0;
+    });
+  }
 }
 
 String formatChatTime(String isoTime) {
   final DateTime msgTime = DateTime.parse(isoTime);
   final formattedDateTimeChat =
-      DateFormat("dd-MM-yyyy hh:mm:ss").format(msgTime);
+      DateFormat("dd-MM-yyyy HH:mm:ss").format(msgTime);
   final formattedDateTimeNow =
-      DateFormat("dd-MM-yyyy hh:mm:ss").format(DateTime.now());
+      DateFormat("dd-MM-yyyy HH:mm:ss").format(DateTime.now());
   final format = DateFormat('dd-MM-yyyy HH:mm:ss');
 
   DateTime start = format.parse(formattedDateTimeChat);

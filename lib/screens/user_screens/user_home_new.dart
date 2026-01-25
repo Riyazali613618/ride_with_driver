@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math' show Random;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -528,350 +529,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     return hslColor.toColor();
   }
 
-  void _showLanguageSelectionDialog() {
-    if (!_languageInitialized) return;
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Consumer<LanguageProvider>(
-          builder: (context, languageProvider, child) {
-            final localizations = AppLocalizations.of(context)!;
-
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              elevation: 0,
-              backgroundColor: Colors.transparent,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFF471396),
-                      Color(0xFFE74C3C),
-                    ],
-                    stops: [0.0, 1.0],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Container(
-                  margin: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(17),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Header
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: const BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF471396),
-                              Color(0xFFE74C3C),
-                            ],
-                          ),
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(17),
-                            topRight: Radius.circular(17),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.language,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              localizations.language,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            GestureDetector(
-                              onTap: () => Navigator.pop(context),
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(15),
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Loading indicator
-                      if (languageProvider.isLoading)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child:
-                                    CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(localizations.change_language("")),
-                            ],
-                          ),
-                        ),
-
-                      // Language List
-                      if (!languageProvider.isLoading)
-                        Container(
-                          constraints: const BoxConstraints(maxHeight: 400),
-                          child: SingleChildScrollView(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                children:
-                                    languageProvider.languages.map((language) {
-                                  return _buildLanguageItem(
-                                      language, languageProvider);
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                      // Footer
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          localizations.language_spoken,
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 12,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildLanguageItem(
-      Language language, LanguageProvider languageProvider) {
-    bool isSelected = _selectedLanguage?.code == language.code;
-
-    return GestureDetector(
-      onTap: languageProvider.isLoading
-          ? null
-          : () async {
-              setState(() {
-                _selectedLanguage = language;
-              });
-
-              if (language.code != languageProvider.currentLanguage?.code) {
-                Navigator.pop(context);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: Colors.white),
-                        ),
-                        const SizedBox(width: 12),
-                        Text('Changing language to ${language.name}...'),
-                      ],
-                    ),
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: const Color(0xFF471396),
-                  ),
-                );
-
-                await languageProvider.changeLanguage(language);
-
-                if (languageProvider.error == null && mounted) {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Language changed to ${language.name}'),
-                      duration: const Duration(seconds: 2),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } else if (languageProvider.error != null && mounted) {
-                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: ${languageProvider.error}'),
-                      duration: const Duration(seconds: 3),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              } else {
-                Navigator.pop(context);
-              }
-            },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: isSelected
-              ? const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF471396),
-                    Color(0xFFE74C3C),
-                  ],
-                )
-              : null,
-          color: isSelected ? null : Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? Colors.transparent : Colors.grey.shade300,
-            width: 1,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: const Color(0xFF471396).withOpacity(0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white.withOpacity(0.2)
-                    : const Color(0xFF471396).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(
-                Icons.translate,
-                color: isSelected ? Colors.white : const Color(0xFF471396),
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    language.name,
-                    style: TextStyle(
-                      color: isSelected ? Colors.white : Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    language.nativeName,
-                    style: TextStyle(
-                      color: isSelected
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.grey.shade600,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? Colors.white.withOpacity(0.2)
-                    : Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                language.code,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : Colors.grey.shade700,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            if (isSelected)
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.check,
-                  color: Color(0xFF471396),
-                  size: 16,
-                ),
-              )
-            else
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade400, width: 2),
-                  shape: BoxShape.circle,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
   void navigateBasedOnSelection() {
     // Get current category based on selection
     String currentCategory = _getSelectedCategory();
@@ -1032,7 +689,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                   onTap: () {
                     // Handle banner tap - navigate to link if available
                     if (banner['link'] != null && banner['link'].isNotEmpty) {
-
                       // You can implement navigation to the link here
                       // Example: launch(banner['link']) if using url_launcher package
                     }
@@ -1292,7 +948,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                       'En',
                                                   style: GoogleFonts.lexendDeca(
                                                     color: Colors.white,
-                                                    fontSize: 17,
+                                                    fontSize: 14,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                 ),
@@ -1940,12 +1596,42 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
               itemCount: tutorialData.length,
               itemBuilder: (context, index) {
                 final videoUrl = tutorialData[index]['videoUrl'] ?? '';
+                final thumbnailUrl = tutorialData[index]['thumbnailUrl'] ?? '';
 
                 return Container(
                   width: MediaQuery.of(context).size.width * .428,
                   margin: const EdgeInsets.only(right: 12),
-                  child: VideoThumbnailView(
-                    videoUrl: videoUrl,
+                  child: GestureDetector(
+                    child: Stack(
+                      alignment: Alignment.center,
+                        children: [
+                      Container(
+                        height:200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.black12,
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: CachedNetworkImage(
+                            imageUrl: thumbnailUrl,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ]),
                     onTap: () {
                       Navigator.push(
                         context,
@@ -2294,8 +1980,10 @@ class _VideoThumbnailViewState extends State<VideoThumbnailView> {
 class FullScreenVideoPlayer extends StatefulWidget {
   final String videoUrl;
 
-  const FullScreenVideoPlayer({Key? key, required this.videoUrl})
-      : super(key: key);
+  const FullScreenVideoPlayer({
+    Key? key,
+    required this.videoUrl,
+  }) : super(key: key);
 
   @override
   State<FullScreenVideoPlayer> createState() => _FullScreenVideoPlayerState();
@@ -2303,6 +1991,7 @@ class FullScreenVideoPlayer extends StatefulWidget {
 
 class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
   late VideoPlayerController _controller;
+  bool _showControls = true;
 
   @override
   void initState() {
@@ -2310,9 +1999,13 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
     _controller = VideoPlayerController.networkUrl(
       Uri.parse(widget.videoUrl),
     )..initialize().then((_) {
-        setState(() {});
-        _controller.play();
-      });
+      setState(() {});
+      _controller.play();
+    });
+
+    _controller.addListener(() {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -2321,32 +2014,116 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
     super.dispose();
   }
 
+  String _formatDuration(Duration duration) {
+    final minutes = duration.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = duration.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$minutes:$seconds';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: _controller.value.isInitialized
-                  ? AspectRatio(
-                      aspectRatio: _controller.value.aspectRatio,
-                      child: VideoPlayer(_controller),
-                    )
-                  : const CircularProgressIndicator(),
-            ),
-
-            // Close button
-            Positioned(
-              top: 16,
-              left: 16,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
+        child: GestureDetector(
+          onTap: () => setState(() => _showControls = !_showControls),
+          child: Stack(
+            children: [
+              /// VIDEO
+              Center(
+                child: _controller.value.isInitialized
+                    ? AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
+                    : const CircularProgressIndicator(color: Colors.white),
               ),
-            ),
-          ],
+
+              /// CLOSE BUTTON
+              if (_showControls)
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+
+              /// PLAY / PAUSE BUTTON
+              if (_showControls)
+                Center(
+                  child: IconButton(
+                    iconSize: 64,
+                    icon: Icon(
+                      _controller.value.isPlaying
+                          ? Icons.pause_circle_filled
+                          : Icons.play_circle_filled,
+                      color: Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _controller.value.isPlaying
+                            ? _controller.pause()
+                            : _controller.play();
+                      });
+                    },
+                  ),
+                ),
+
+              /// SEEK BAR
+              if (_showControls)
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 24,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Slider(
+                        activeColor: Colors.white,
+                        inactiveColor: Colors.white54,
+                        min: 0,
+                        max: _controller.value.duration.inMilliseconds
+                            .toDouble(),
+                        value: _controller.value.position.inMilliseconds
+                            .clamp(
+                          0,
+                          _controller.value.duration.inMilliseconds,
+                        )
+                            .toDouble(),
+                        onChanged: (value) {
+                          _controller.seekTo(
+                            Duration(milliseconds: value.toInt()),
+                          );
+                        },
+                      ),
+
+                      /// TIME TEXT
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _formatDuration(_controller.value.position),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                          Text(
+                            _formatDuration(_controller.value.duration),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

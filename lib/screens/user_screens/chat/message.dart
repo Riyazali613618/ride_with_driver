@@ -16,6 +16,7 @@ import 'package:video_player/video_player.dart';
 import 'package:web_socket_channel/status.dart' as status;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import '../../../api/api_service/chat/chat_conversation_service.dart';
 import '../../../components/media_uploader_widget.dart';
 import '../../../constants/api_constants.dart';
 import '../../../l10n/app_localizations.dart';
@@ -187,6 +188,17 @@ class _MessagingScreenState extends State<MessagingScreen>
             });
           }
           break;
+        case 'translate_message':
+          String msgId=data['data']['messageId'];
+          String translatedText=data['data']['translatedText'];
+          for(final msg in _messages){
+            if(msg.messageId==msgId){
+              msg.translatedText=translatedText;
+            }
+          }
+          setState(() {
+          });
+          break;
         case 'user_typing_stop':
           if (data['data']['userId'] == widget.otherPersonUserId) {
             setState(() {
@@ -225,6 +237,7 @@ class _MessagingScreenState extends State<MessagingScreen>
 
   void _handleNewMessage(Map<String, dynamic> data) {
     final message = ChatMessage(
+      translatedText: "translatedText",
       messageId: data['messageId'],
       message: data['message'],
       isSent: data['isSent'] ?? false,
@@ -270,6 +283,7 @@ class _MessagingScreenState extends State<MessagingScreen>
           setState(() {
             _messages.clear();
             _messages.addAll(messages.map((msg) => ChatMessage(
+                  translatedText: "",
                   messageId: msg['_id'],
                   message: msg['message'],
                   isSent: msg['deliveryStatus'] == "sent",
@@ -313,6 +327,7 @@ class _MessagingScreenState extends State<MessagingScreen>
       // Add message to UI optimistically
       final tempMessage = ChatMessage(
         messageId: DateTime.now().millisecondsSinceEpoch.toString(),
+        translatedText: "",
         message: messageText,
         isSent: true,
         messageType: 'TEXT',
@@ -349,6 +364,7 @@ class _MessagingScreenState extends State<MessagingScreen>
     // Add message to UI optimistically
     final tempMessage = ChatMessage(
       messageId: DateTime.now().millisecondsSinceEpoch.toString(),
+      translatedText: "",
       message: mediaUrl,
       isSent: true,
       messageType: messageType,
@@ -549,8 +565,11 @@ class _MessagingScreenState extends State<MessagingScreen>
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
                     final message = _messages[index];
+                 /*   if (index == 0 || index == 1) {
+                      message.isSent = false;
+                    }
                     if (index == _messages.length - 1) message.isSent = false;
-                    return _buildMessageBubble(message);
+                   */ return _buildMessageBubble(message);
                   },
                 ),
               ),
@@ -771,61 +790,111 @@ class _MessagingScreenState extends State<MessagingScreen>
                   );
                 }
               },
-              child:
-                  Column(crossAxisAlignment:message.isSent? CrossAxisAlignment.end:CrossAxisAlignment.start, children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(colors: [
-                      message.isSent ? gradientFirst : Color(0xFFF1F1F1),
-                      message.isSent ? gradientSecond : Color(0xFFF1F1F1)
-                    ]),
-                    borderRadius: const BorderRadius.all(Radius.circular(12)),
-                  ),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75,
-                      minWidth: MediaQuery.of(context).size.width * 0.17,
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                          bottom: 8, right: 5, left: 5, top: 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (message.messageType == 'TEXT')
-                            _buildTextMessageContent(message),
-                          if (message.messageType == 'IMAGE')
-                            _buildImageMessageContent(message),
-                          if (message.messageType == 'VIDEO')
-                            _buildVideoMessageContent(message),
-                          if (message.messageType == 'DOCUMENT')
-                            _buildDocumentMessageContent(message),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: message.isSent
-                      ? MainAxisAlignment.end
-                      : MainAxisAlignment.start,
+              child: Column(
+                  crossAxisAlignment: message.isSent
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      _formatTime(message.timestamp),
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey,
-                      ),
+                    Row(
+                      mainAxisAlignment: message.isSent
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(colors: [
+                              message.isSent
+                                  ? gradientFirst
+                                  : Color(0xFFF1F1F1),
+                              message.isSent
+                                  ? gradientSecond
+                                  : Color(0xFFF1F1F1)
+                            ]),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(12)),
+                          ),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth:
+                                  MediaQuery.of(context).size.width * 0.75,
+                              minWidth:
+                                  MediaQuery.of(context).size.width * 0.17,
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: 8, right: 5, left: 5, top: 8),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (message.messageType == 'TEXT')
+                                    _buildTextMessageContent(message),
+                                  if (message.messageType == 'IMAGE')
+                                    _buildImageMessageContent(message),
+                                  if (message.messageType == 'VIDEO')
+                                    _buildVideoMessageContent(message),
+                                  if (message.messageType == 'DOCUMENT')
+                                    _buildDocumentMessageContent(message),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (!message.isSent) ...[
+                          const SizedBox(
+                            width: 5,
+                          ),
+                          (message.isTranslating ?? false)
+                              ? SizedBox(
+                                  width: 10,
+                                  height: 10,
+                                  child: CircularProgressIndicator(
+                                    color: ColorConstants.primaryColor,
+                                    strokeWidth: 1,
+                                  ),
+                                )
+                              : GestureDetector(
+                                  onTap: () async {
+                                    message.isTranslating = true;
+                                    updateState();
+                                    String msg =
+                                        await getTranslatedMsg(message);
+                                   /* message.isTranslating = false;
+                                    message.translatedText = msg;*/
+                                    updateState();
+                                  },
+                                  child: Text(
+                                    "Translate",
+                                    style: CommonUtils.commonTitleStyle(
+                                        fontSize: 11,
+                                        weight: FontWeight.w400,
+                                        color: ColorConstants.primaryColor),
+                                  ),
+                                )
+                        ]
+                      ],
                     ),
-                    if (message.isSent) ...[
-                      const SizedBox(width: 4),
-                      _buildMessageStatus(message),
-                    ],
-                  ],
-                )
-              ]),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: message.isSent
+                          ? MainAxisAlignment.end
+                          : MainAxisAlignment.start,
+                      children: [
+                        Text(
+                          _formatTime(message.timestamp),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        if (message.isSent) ...[
+                          const SizedBox(width: 4),
+                          _buildMessageStatus(message),
+                        ],
+                      ],
+                    )
+                  ]),
             ),
           ),
         ],
@@ -834,14 +903,33 @@ class _MessagingScreenState extends State<MessagingScreen>
   }
 
   Widget _buildTextMessageContent(ChatMessage message) {
-    return Text(
-      message.message,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontFamily: AppConstants.ptSansFont,
-        color: message.isSent ? Colors.white : Colors.black87,
-        fontSize: 14,
-      ),
+    return Column(
+      children: [
+        Text(
+          message.message,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: AppConstants.ptSansFont,
+            color: message.isSent ? Colors.white : Colors.black87,
+            fontSize: 14,
+          ),
+        ),
+        if (message.translatedText.isNotEmpty) ...[
+          Container(
+            height: 1,
+            color: Colors.black,
+          ),
+          Text(
+            message.message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: AppConstants.ptSansFont,
+              color: message.isSent ? Colors.white : Colors.black87,
+              fontSize: 14,
+            ),
+          ),
+        ]
+      ],
     );
   }
 
@@ -853,8 +941,8 @@ class _MessagingScreenState extends State<MessagingScreen>
       ),
       child: CachedNetworkImage(
         imageUrl: message.message,
-        height: 200,
-        width: double.infinity,
+        height: 150,
+        width: 200,
         fit: BoxFit.cover,
         placeholder: (context, url) => Container(
           height: 200,
@@ -1023,7 +1111,7 @@ class _MessagingScreenState extends State<MessagingScreen>
                               fontStyle: FontStyle.italic,
                             ),
                           )
-                        : _isConnected
+                        : _otherUserOnline
                             ? Row(
                                 children: [
                                   Icon(
@@ -1114,7 +1202,9 @@ class _MessagingScreenState extends State<MessagingScreen>
   }
 
   Widget _buildDefaultAvatar(String name) {
-    final displayChar = name
+    String displayChar ="Name";
+    if(name.isNotEmpty)
+    displayChar= name
         .split(" ")
         .map(
           (e) => e.split('')[0],
@@ -1197,156 +1287,53 @@ class _MessagingScreenState extends State<MessagingScreen>
     );
   }
 
-  void _showChatMenu(BuildContext context, GlobalKey key) {
-    _moreMenu(context);
-    return;
-    final RenderBox button =
-        key.currentContext!.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-
-    final Offset position =
-        button.localToGlobal(Offset(340, -10), ancestor: overlay);
-
-    showMenu(
-      context: context,
-      color: Colors.transparent,
-      elevation: 0,
-      position: RelativeRect.fromLTRB(
-        position.dx, // LEFT aligned to button
-        position.dy + button.size.height, // BELOW button
-        overlay.size.width - position.dx,
-        0,
-      ),
-      items: [
-        PopupMenuItem(
-          padding: EdgeInsets.zero,
-          enabled: false,
-          child: _ChatPopupMenu(
-            onPin: () {
-              Navigator.pop(context);
-              debugPrint("Pin Chat");
-            },
-            onUnpin: () {
-              Navigator.pop(context);
-              debugPrint("Unpin Chat");
-            },
-            onDelete: () {
-              Navigator.pop(context);
-              debugPrint("Delete Chat");
-            },
-          ),
-        ),
-      ],
-    );
+  Future<String> getTranslatedMsg(ChatMessage message) async {
+    _channel?.sink.add(json.encode({
+      "type": "translate_message",
+      "chatId":widget.chatId,
+      "messageId": message.messageId,
+      "targetLanguage": "en"
+    }));
+    setState(() {
+      message.isTranslating = false;
+    });
+   /* final translated = await ChatService.translate(
+        chatId: widget.chatId,qs
+        targetLang: 'es',
+        messageId: message.messageId // example: Hindi
+        );
+*/
+    return "translated";
   }
 
-// Widget _buildMessageBubble(ChatMessage message) {
-//   return Container(
-//     margin: const EdgeInsets.only(bottom: 12),
-//     child: Row(
-//       mainAxisAlignment:
-//           message.isSent ? MainAxisAlignment.end : MainAxisAlignment.start,
-//       crossAxisAlignment: CrossAxisAlignment.end,
-//       children: [
-//         if (!message.isSent)
-//           CircleAvatar(
-//             radius: 12,
-//             backgroundImage:
-//                 widget.image.isNotEmpty ? NetworkImage(widget.image) : null,
-//             child: widget.image.isEmpty
-//                 ? Text(
-//                     widget.name.isNotEmpty
-//                         ? widget.name[0].toUpperCase()
-//                         : '?',
-//                     style: const TextStyle(fontSize: 10))
-//                 : null,
-//           ),
-//         if (!message.isSent) const SizedBox(width: 8),
-//         Flexible(
-//           child: Container(
-//             constraints: BoxConstraints(
-//               maxWidth: MediaQuery.of(context).size.width *
-//                   0.75, // 75% of screen width
-//             ),
-//             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-//             decoration: BoxDecoration(
-//               color: message.isSent
-//                   ? ColorConstants.primaryColor
-//                   : Colors.grey[200],
-//               borderRadius: BorderRadius.only(
-//                 topLeft: const Radius.circular(18),
-//                 topRight: const Radius.circular(18),
-//                 bottomLeft: Radius.circular(message.isSent ? 18 : 4),
-//                 bottomRight: Radius.circular(message.isSent ? 4 : 18),
-//               ),
-//             ),
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 Text(
-//                   message.message,
-//                   style: TextStyle(
-//                     color: message.isSent ? Colors.white : Colors.black87,
-//                     fontSize: 16,
-//                   ),
-//                 ),
-//                 const SizedBox(height: 4),
-//                 Row(
-//                   mainAxisSize: MainAxisSize.min,
-//                   children: [
-//                     Text(
-//                       _formatTime(message.timestamp),
-//                       style: TextStyle(
-//                         color: message.isSent
-//                             ? Colors.white70
-//                             : Colors.grey[600],
-//                         fontSize: 12,
-//                       ),
-//                     ),
-//
-//                     // Text(
-//                     //   '${message.timestamp.hour.toString().padLeft(2, '0')}:${message.timestamp.minute.toString().padLeft(2, '0')}',
-//                     //   style: TextStyle(
-//                     //     color: message.isSent
-//                     //         ? Colors.white70
-//                     //         : Colors.grey[600],
-//                     //     fontSize: 12,
-//                     //   ),
-//                     // ),
-//                     if (message.isSent) ...[
-//                       const SizedBox(width: 4),
-//                       _buildMessageStatus(message),
-//                     ],
-//                   ],
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ],
-//     ),
-//   );
-// }
+  void updateState() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
 }
 
 class ChatMessage {
   final String messageId;
   final String message;
   bool isSent;
+  String translatedText;
   final String messageType;
   final DateTime timestamp;
   final String? senderId;
 
   final String? deliveryStatus;
   final bool? isRead;
+  bool? isTranslating;
 
   ChatMessage({
+    this.translatedText = "",
     required this.messageId,
     required this.message,
     required this.isSent,
     required this.messageType,
     required this.timestamp,
+    this.isTranslating = false,
     this.senderId,
     this.deliveryStatus,
     this.isRead,

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/token_manager.dart';
+import 'package:r_w_r/screens/user_screens/transporter_details_screen.dart';
+import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../api/api_model/rating_reviews_model.dart';
 import '../../constants/color_constants.dart';
@@ -45,20 +47,20 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
     });
 
     // try {
-      final reviews = await fetchReviews();
-      final userId = await TokenManager.getToken();
+    final reviews = await fetchReviews();
+    final userId = await TokenManager.getToken();
 
-      final hasReviewed =
-          userId != null && reviews.any((review) => review.userId == userId);
+    final hasReviewed =
+        userId != null && reviews.any((review) => review.userId == userId);
 
-      if (widget.onReviewStatusChanged != null) {
-        widget.onReviewStatusChanged!(hasReviewed);
-      }
+    if (widget.onReviewStatusChanged != null) {
+      widget.onReviewStatusChanged!(hasReviewed);
+    }
 
-      setState(() {
-        _hasReviewed = hasReviewed;
-        _isLoading = false;
-      });
+    setState(() {
+      _hasReviewed = hasReviewed;
+      _isLoading = false;
+    });
     // } catch (e) {
     //   setState(() {
     //     _isLoading = false;
@@ -69,34 +71,33 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
 
   Future<List<Review>> fetchReviews() async {
     final token = await TokenManager.getToken();
-    final url = Uri.parse(
-        '$baseUrl/user/reviews');
+    final url = Uri.parse('$baseUrl/user/reviews');
 
     debugPrint('Fetching reviews from: $url');
     // try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-      );
+    final response = await http.get(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
 
-      debugPrint(
-          'Reviews API response: ${response.statusCode}\n${response.body}');
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> jsonResponse = json.decode(response.body);
-        if (jsonResponse['success'] == true && jsonResponse['data']['reviews'] is List) {
-          return (jsonResponse['data']['reviews'] as List)
-              .map((e) => Review.fromJson(e as Map<String, dynamic>))
-              .toList();
-        } else {
-          throw Exception(jsonResponse['message'] ?? 'Unknown API error');
-        }
+    debugPrint(
+        'Reviews API response: ${response.statusCode}\n${response.body}');
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> jsonResponse = json.decode(response.body);
+      if (jsonResponse['success'] == true &&
+          jsonResponse['data']['reviews'] is List) {
+        return (jsonResponse['data']['reviews'] as List)
+            .map((e) => Review.fromJson(e as Map<String, dynamic>))
+            .toList();
       } else {
-        throw Exception(
-            'Failed to fetch reviews. Code: ${response.statusCode}');
+        throw Exception(jsonResponse['message'] ?? 'Unknown API error');
       }
+    } else {
+      throw Exception('Failed to fetch reviews. Code: ${response.statusCode}');
+    }
     // } catch (e, stack) {
     //   debugPrint('Error fetching reviews: $e\n$stack');
     //   rethrow;
@@ -253,240 +254,27 @@ class _ReviewsWidgetState extends State<ReviewsWidget> {
         final reviews = snapshot.data ?? [];
         final localizations = AppLocalizations.of(context)!;
 
+        if (reviews.isEmpty) {
+          return Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.all(20),
+            child: Text(
+              "No review yet.",
+              style: CommonUtils.commonTitleStyle(),
+            ),
+          );
+        }
+
         // Show total reviews header even when no reviews exist
-        return Column(
-          children: [
-            _buildTotalReviewsHeader(reviews.length),
-            if (reviews.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(24),
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    const Icon(
-                      Icons.rate_review_outlined,
-                      size: 48,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      localizations.no_reviews_yet,
-                      // 'No reviews yet',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      localizations.be_first_to_review,
-                      // 'Be the first to share your experience!',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                    // if (!_hasReviewed) ...[
-                    //   //this is the button of be a first reviewer
-                    //   ElevatedButton(
-                    //       onPressed: () {
-                    //         Navigator.push(
-                    //           context,
-                    //           MaterialPageRoute(
-                    //             builder: (context) => RatingsReviewScreen(
-                    //               serviceId: widget.driverId,
-                    //               serviceType: widget.usertype,
-                    //             ),
-                    //           ),
-                    //         ).then((_) {
-                    //           _loadReviews();
-                    //         });
-                    //       },
-                    //       child: Text(localizations.rate_now)),
-                    // ],
-                  ],
-                ),
-              )
-            else
-              Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withAlpha(10),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                  border: Border.all(
-                    color: Colors.transparent,
-                    width: 2,
-                  ),
-                ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: reviews.length,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
-                  itemBuilder: (context, index) {
-                    final review = reviews[index];
-                    return Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Avatar
-                              CircleAvatar(
-                                backgroundImage: NetworkImage(review.userPhoto),
-                                onBackgroundImageError: (_, __) {},
-                                radius: 24,
-                                child: review.userPhoto.isEmpty
-                                    ? const Icon(Icons.person)
-                                    : null,
-                              ),
-                              const SizedBox(width: 12),
-
-                              // Username, rating, stars
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const SizedBox(height: 4),
-                                    GestureDetector(
-                                      child: Row(
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              review.userName,
-                                              maxLines: 2,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Row(
-                                      children: [
-                                        Text(
-                                          "${review.rating}.0",
-                                          style: TextStyle(
-                                            color: ColorConstants.primaryColor,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                        _RatingStars(rating: review.rating),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (review.isReviewedByMe)
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      GestureDetector(
-                                          onTap: () =>
-                                              _showEditReviewDialog(review),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                color: ColorConstants
-                                                    .primaryColorLight
-                                                    .withAlpha(60),
-                                                borderRadius:
-                                                    BorderRadius.circular(5)),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: Icon(
-                                                Icons.edit_note,
-                                                size: 18,
-                                                color:
-                                                    ColorConstants.primaryColor,
-                                              ),
-                                            ),
-                                          )),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      GestureDetector(
-                                          onTap: () => _showDeleteConfirmation(
-                                              review.id),
-                                          child: Container(
-                                            decoration: BoxDecoration(
-                                                color: ColorConstants
-                                                    .primaryColorLight
-                                                    .withAlpha(60),
-                                                borderRadius:
-                                                    BorderRadius.circular(5)),
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(5.0),
-                                              child: Icon(
-                                                Icons.delete_sweep_outlined,
-                                                color: ColorConstants.red,
-                                                size: 18,
-                                              ),
-                                            ),
-                                          )),
-                                    ],
-                                  ),
-                                ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // Review content
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  review.review,
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ),
-                              // Date (right aligned)
-                              Text(
-                                _formatDate(review.createdAt),
-                                style: const TextStyle(
-                                    fontSize: 12, color: Colors.grey),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-              ),
-          ],
+        return ListView.separated(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: reviews.length,
+          separatorBuilder: (_, __) => const Divider(height: 1),
+          itemBuilder: (context, index) {
+            final review = reviews[index];
+            return ReviewCard(review: review);
+          },
         );
       },
     );

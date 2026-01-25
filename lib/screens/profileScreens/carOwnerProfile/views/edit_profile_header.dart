@@ -5,6 +5,8 @@ import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
 import 'package:r_w_r/utils/common_utils.dart';
 
 import '../../../../api/api_service/media_service.dart';
+import '../../../../components/app_loader.dart';
+import '../../../../constants/api_constants.dart';
 import '../../../../constants/color_constants.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../block/provider/profile_provider.dart';
@@ -14,11 +16,10 @@ class EditProfileHeader extends StatefulWidget {
   final void Function(String) coverImage;
   final void Function(String) profileImage;
 
-  const EditProfileHeader(
-      {super.key,
-      required this.profile,
-      required this.coverImage,
-      required this.profileImage});
+  const EditProfileHeader({super.key,
+    required this.profile,
+    required this.coverImage,
+    required this.profileImage});
 
   @override
   State<EditProfileHeader> createState() => _EditProfileHeaderState();
@@ -30,20 +31,29 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
 
   @override
   Widget build(BuildContext context) {
+    if (_coverImageUrl == null || _coverImageUrl!.isEmpty) {
+      _coverImageUrl = widget.profile.data?.coverImage ?? "";
+    }
     return SizedBox(
       height: 190, // cover(140) + avatar overflow
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Image.network(
-            _coverImageUrl != null && _coverImageUrl!.isNotEmpty
-                ? _coverImageUrl!
-                : (widget.profile.data?.coverImage ?? ""),
-            height: 140,
-            width: double.infinity,
-            fit: BoxFit.cover,
-          ),
-
+          if (_coverImageUrl != null && _coverImageUrl!.isNotEmpty)
+            Image.network(
+              _coverImageUrl!,
+              height: 140,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            )
+          else
+            Container(
+              alignment: Alignment.center,
+              width: double.infinity,
+              height: 140,
+              color: Colors.grey.shade300,
+              child: Icon(Icons.perm_media_outlined),
+            ),
           Positioned(
             left: 20,
             bottom: 0, // ✅ no negative offset
@@ -68,7 +78,6 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
                     ),
                   ),
                 ),
-
                 Positioned(
                   bottom: 4,
                   right: 4,
@@ -87,10 +96,35 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
               ],
             ),
           ),
+          Positioned(
+            right: 0,
+            bottom: 60, // ✅ no negative offset
+            child: GestureDetector(
+              onTap: () {
+                _showPhotoEditingOptions("cover");
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                margin: EdgeInsets.symmetric(horizontal: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  "Change Cover Picture",
+                  style: TextStyle(
+                    fontFamily: AppConstants.ptSansFont,
+                    fontSize: 11,
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
-
   }
 
   bool _submitting = false;
@@ -117,7 +151,7 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
     }
     try {
       final success =
-          await context.read<ProfileProvider>().updateProfile(profileData);
+      await context.read<ProfileProvider>().updateProfile(profileData);
 
       if (mounted) {
         if (success) {
@@ -221,72 +255,76 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => Container(
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Handle bar
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Text(
-                      'Edit $type Photo',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
+      builder: (context) =>
+          Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery
+                  .of(context)
+                  .viewInsets
+                  .bottom,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: SafeArea(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Handle bar
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
                     ),
-                    const SizedBox(height: 24),
+                  ),
 
-                    // Camera option
-                    _buildPhotoOption(
-                      icon: Icons.camera_alt,
-                      title: 'Camera',
-                      subtitle: 'Take a new photo with editing',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _editProfilePhoto(type: type, useCamera: true);
-                      },
-                    ),
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Edit $type Photo',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
 
-                    const SizedBox(height: 12),
+                        // Camera option
+                        _buildPhotoOption(
+                          icon: Icons.camera_alt,
+                          title: 'Camera',
+                          subtitle: 'Take a new photo with editing',
+                          onTap: () {
+                            Navigator.pop(context);
+                            _editProfilePhoto(type: type, useCamera: true);
+                          },
+                        ),
 
-                    // Gallery option
-                    _buildPhotoOption(
-                      icon: Icons.photo_library,
-                      title: localizations.gallery ?? 'Gallery',
-                      subtitle: 'Choose from existing photos',
-                      onTap: () {
-                        Navigator.pop(context);
-                        _editProfilePhoto(type: type, useCamera: false);
-                      },
-                    ),
+                        const SizedBox(height: 12),
 
-                    if (_profileImageUrl != null &&
-                        _profileImageUrl!.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                        // Gallery option
+                        _buildPhotoOption(
+                          icon: Icons.photo_library,
+                          title: localizations.gallery ?? 'Gallery',
+                          subtitle: 'Choose from existing photos',
+                          onTap: () {
+                            Navigator.pop(context);
+                            _editProfilePhoto(type: type, useCamera: false);
+                          },
+                        ),
 
-                      /*  // Remove photo option
+                        if (_profileImageUrl != null &&
+                            _profileImageUrl!.isNotEmpty) ...[
+                          const SizedBox(height: 12),
+
+                          /*  // Remove photo option
                       _buildPhotoOption(
                         icon: Icons.delete_outline,
                         title: 'Remove Photo',
@@ -297,16 +335,16 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
                         },
                         isDestructive: true,
                       ),*/
-                    ],
+                        ],
 
-                    const SizedBox(height: 12),
-                  ],
-                ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
     );
   }
 

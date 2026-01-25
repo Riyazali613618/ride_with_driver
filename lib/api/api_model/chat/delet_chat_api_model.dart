@@ -13,7 +13,7 @@ class DeleteChatApiResponse {
 
   factory DeleteChatApiResponse.fromJson(Map<String, dynamic> json) {
     return DeleteChatApiResponse(
-      status: json['status'] ?? false,
+      status: json['success'] ?? false,
       message: json['message'] ?? '',
       data: (json['data'] as List<dynamic>?)
               ?.map((item) => ChatItem.fromJson(item as Map<String, dynamic>))

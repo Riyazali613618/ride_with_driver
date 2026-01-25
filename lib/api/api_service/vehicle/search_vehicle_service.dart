@@ -24,7 +24,7 @@ class VehicleService {
 
     filters.remove('vehicleType');
 
-print("$token");
+    print("$token");
     try {
       final response = await http.post(
         url,
@@ -43,14 +43,14 @@ print("$token");
         }),
       );
       print("searchVehicles:${jsonEncode({
-        'pincode': pincode,
-        'lat': lat,
-        'lng': lng,
-        'searchType': searchType,
-        'page': page,
-        'limit': limit,
-        'filters': filters,
-      })}");
+            'pincode': pincode,
+            'lat': lat,
+            'lng': lng,
+            'searchType': searchType,
+            'page': page,
+            'limit': limit,
+            'filters': filters,
+          })}");
 
       developer.log('Response Status: ${response.statusCode}');
       developer.log('Response Headers: ${response.headers}');
@@ -58,21 +58,9 @@ print("$token");
 
       if (response.statusCode == 200) {
         final jsonResponse = jsonDecode(response.body);
-        developer.log('Parsed JSON: $jsonResponse');
-
         final vehicleResponse = VehicleSearchResponse.fromJson(jsonResponse);
-        developer.log(
-            'Vehicle Response Data Length: ${vehicleResponse.data.results.length}');
-
-        for (int i = 0; i < vehicleResponse.data.results.length; i++) {
-          final owner = vehicleResponse.data.results[i];
-          developer.log(
-              'Owner $i: ${owner.firstName}, Vehicles: ${owner.vehicles.length}');
-        }
-
         return vehicleResponse;
-      }
-      else {
+      } else {
         developer.log('HTTP Error: ${response.statusCode}');
         developer.log('Error Body: ${response.body}');
         throw Exception(
@@ -84,43 +72,41 @@ print("$token");
     }
   }
 
-  Future<void> addToFavourites(String partnerId,String vehicleId) async {
+  Future<void> addToFavourites(String partnerId, String vehicleId) async {
     final baseUrl = ApiConstants.baseUrl;
     final token = await TokenManager.getToken();
     final url = Uri.parse('$baseUrl/user/favorites');
 
     print("partnerId:${partnerId}:${vehicleId}");
     print("${token}");
-try {
-  final response = await http.post(
-    url,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $token',
-    },
-    body: jsonEncode({
-      'partnerId': partnerId,
-      'vehicleId':vehicleId,
-    }),
-  );
-  developer.log('Response Status: ${response.statusCode}');
-  developer.log('Response Headers: ${response.headers}');
-  developer.log('Response Body: ${response.body}');
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    developer.log('Added to favourites:${response.body}');
-    return;
-  }
-  else {
-    developer.log('HTTP Error: ${response.statusCode}');
-    developer.log('Error Body: ${response.body}');
-    throw Exception(
-        'Failed to add favourites: ${response.statusCode} - ${response.body}');
-  }
-}catch(e){
-  developer.log('Exception in searchVehicles: $e');
-  throw Exception('Failed to load vehicles: $e');
-}
-
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'partnerId': partnerId,
+          'vehicleId': vehicleId,
+        }),
+      );
+      developer.log('Response Status: ${response.statusCode}');
+      developer.log('Response Headers: ${response.headers}');
+      developer.log('Response Body: ${response.body}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        developer.log('Added to favourites:${response.body}');
+        return;
+      } else {
+        developer.log('HTTP Error: ${response.statusCode}');
+        developer.log('Error Body: ${response.body}');
+        throw Exception(
+            'Failed to add favourites: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      developer.log('Exception in searchVehicles: $e');
+      throw Exception('Failed to load vehicles: $e');
+    }
   }
 
   Future<List<Data>> getFavourites() async {
@@ -172,17 +158,15 @@ try {
       if (response.statusCode == 200) {
         developer.log('deleted favourites:${response.body}');
         return;
-      }
-      else {
+      } else {
         developer.log('HTTP Error: ${response.statusCode}');
         developer.log('Error Body: ${response.body}');
         throw Exception(
             'Failed to delete favourites: ${response.statusCode} - ${response.body}');
       }
-    }catch(e){
+    } catch (e) {
       developer.log('Exception in delete favourites: $e');
       throw Exception('Failed to delete favourites: $e');
     }
-
   }
 }

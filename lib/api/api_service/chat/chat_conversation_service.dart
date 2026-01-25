@@ -64,4 +64,30 @@ class ChatService {
       return false;
     }
   }
+
+  static Future<String> translate({
+    required String targetLang,
+    required String chatId,
+    required String messageId,
+  }) async {
+    final token = await TokenManager.getToken();
+    final response = await http.post(
+      Uri.parse('$baseUrl${ApiConstants.translateMsg}'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'chatId': chatId,
+        'targetLanguage': targetLang,
+        'messageId': messageId,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body)['translatedText'];
+    } else {
+      return "";
+    }
+  }
 }

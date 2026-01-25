@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:r_w_r/api/api_model/VehicleType.dart';
@@ -7,16 +8,15 @@ import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/constants/assets_constant.dart';
 import 'package:r_w_r/l10n/app_localizations.dart';
-import 'package:r_w_r/screens/user_screens/owner_details.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:r_w_r/utils/common_utils.dart';
+
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_service/location_service/location_service.dart';
 import '../../constants/GoogleLocationSearchService.dart';
 import '../../constants/color_constants.dart';
 import 'more/filterScreen.dart';
 import 'vehicles.dart';
-import 'owners.dart';
 
 class LocationSearchScreen extends StatefulWidget {
   final String selectedCategory;
@@ -48,7 +48,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     'SUV',
     'MINIVAN', // Changed from 'miniVan' to match homescreen
     'BUS',
-    'DRIVER' // Changed from 'driver' to match homescreen
+    'DRIVER', // Changed from 'driver' to match homescreen
+    'LUXURY' // Changed from 'driver' to match homescreen
   ];
   final FilterController _filterController = FilterController();
 
@@ -93,6 +94,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       name: 'Driver',
       assetImagePath: AssetsConstant.driverBus,
       color: const Color(0xFF81D4FA),
+      color1: const Color(0xFFE1F5FE),
+    ),
+    VehicleType(
+      name: 'Luxury',
+      assetImagePath: AssetsConstant.suv,
+      color: const Color(0xFFFFAB91),
       color1: const Color(0xFFE1F5FE),
     ),
   ];
@@ -422,6 +429,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         return 'Bus';
       case 'DRIVER': // Updated
         return localizations.hire_driver;
+      case 'LUXURY': // Updated
+        return "Luxury";
       default:
         return 'All Vehicles';
     }
@@ -788,7 +797,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       selectedLocation: selectedLocationData,
       filterData: filterData,
       selectedCategory:
-          (_selectedCategory == 'ALL') ? 'ALLVEHICLES' : _selectedCategory,
+          (_selectedCategory == 'ALL') ? 'ALL_VEHICLES' : _selectedCategory,
       appliedFilters: filters,
     );
   }

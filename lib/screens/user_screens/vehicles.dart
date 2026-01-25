@@ -133,6 +133,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         return loc.eRickshaw;
       case 'driver':
         return loc.driver;
+      case 'luxury':
+        return "Luxury";
       default:
         return key;
     }
@@ -510,6 +512,10 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     });
 
     try {
+      if(_selectedVehicleType=="ALLVEHICLES"){
+        _selectedVehicleType="ALL_VEHICLES";
+      }
+      print("_selectedVehicleType===$_selectedVehicleType");
       final nextPage = _currentPage + 1;
       final response = await _vehicleService.searchVehicles(
         pincode: widget.selectedLocation?.pinCode ?? '',
@@ -525,10 +531,10 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         if (response.data.results.isNotEmpty) {
           _vehicles.addAll(response.data.results);
           _currentPage = nextPage;
-        } else {
-          _hasMoreItems = false;
         }
         _isLoadingMore = false;
+        _hasMoreItems = response.data.pagination.hasNext;
+
       });
     } catch (e) {
       setState(() {
@@ -629,6 +635,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     try {
       developer.log(
           'Making API call... ${convertVehicleType(_selectedVehicleType)}');
+      print("_selectedVehicleType===$_selectedVehicleType");
       final response = await _vehicleService.searchVehicles(
         pincode: widget.selectedLocation?.pinCode ?? '',
         lat: widget.selectedLocation?.latitude ?? 0.0,

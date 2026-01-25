@@ -22,6 +22,7 @@ class ApiConstants {
   static const vehicles = '/user/vehicles';
 
   static const String communication="/user/communications";
+  static const String translateMsg="/user/chat/translate-message";
 }
 
 class AppConstants {

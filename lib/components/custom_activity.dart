@@ -410,6 +410,7 @@ String convertVehicleType(String vehicleType) {
       return 'E_RICKSHAW';
     case 'ALL VEHICLES':
     case 'ALLVEHICLES':
+    case 'ALL_VEHICLES':
       return 'ALL_VEHICLES';
     case 'OTHER':
       return vehicleType == 'OTHER' ? 'OTHER' : 'Other';

@@ -5,6 +5,7 @@ class ChatItem {
   final String chatId;
   final String name;
   final String image;
+  final String lastMessage;
   // final String userId;
   final String id;
   final String? lastMessageDateTime;
@@ -12,6 +13,7 @@ class ChatItem {
   // final String cause;
 
   const ChatItem({
+    required this.lastMessage,
     required this.chatId,
     required this.name,
     required this.image,
@@ -28,6 +30,7 @@ class ChatItem {
       developer.log('ChatItem.fromJson: $json', name: 'ChatItem');
 
       // Extract and validate required fields
+      final lastMessage = _extractStringField(json, 'lastMessage', 'ChatItem');
       final chatId = _extractStringField(json, 'chatId', 'ChatItem');
       final name = _extractStringField(json, 'name', 'ChatItem', defaultValue: 'Unknown User');
       final image = _extractStringField(json, 'image', 'ChatItem', allowEmpty: true);
@@ -52,6 +55,7 @@ class ChatItem {
       }
 
       final chatItem = ChatItem(
+        lastMessage: lastMessage??"",
         chatId: chatId,
         name: name,
         image: image,
@@ -107,6 +111,7 @@ class ChatItem {
   /// Converts the ChatItem to JSON
   Map<String, dynamic> toJson() {
     return {
+      'lastMessage': lastMessage,
       'chatId': chatId,
       'name': name,
       'image': image,
@@ -120,6 +125,7 @@ class ChatItem {
 
   /// Creates a copy of this ChatItem with optional field updates
   ChatItem copyWith({
+    String? lastMessage,
     String? chatId,
     String? name,
     String? image,
@@ -130,6 +136,7 @@ class ChatItem {
     String? cause,
   }) {
     return ChatItem(
+      lastMessage: lastMessage ?? this.lastMessage,
       chatId: chatId ?? this.chatId,
       name: name ?? this.name,
       image: image ?? this.image,
@@ -145,6 +152,7 @@ class ChatItem {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ChatItem &&
+        other.lastMessage == lastMessage &&
         other.chatId == chatId &&
         other.name == name &&
         other.image == image &&
@@ -157,12 +165,13 @@ class ChatItem {
 
   @override
   int get hashCode {
-    return Object.hash(chatId, name, image, id, timestamp,lastMessageDateTime);
+    return Object.hash(chatId,lastMessage, name, image, id, timestamp,lastMessageDateTime);
   }
 
   @override
   String toString() {
     return 'ChatItem{'
+        'lastMessage: $lastMessage, '
         'chatId: $chatId, '
         'name: $name, '
         'image: $image, '
