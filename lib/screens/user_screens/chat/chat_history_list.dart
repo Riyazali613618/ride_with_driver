@@ -442,12 +442,12 @@ class _ChatListScreenState extends State<ChatListScreen>
                           _showDeleteConfirmationDialog();
                         },
                       ),
-                    ] else
-                      Icon(
+                    ]
+                     /* Icon(
                         Icons.more_vert,
                         color: Colors.white,
                         size: 24,
-                      ),
+                      ),*/
                   ],
                 ),
               ),

@@ -249,6 +249,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
           setState(() {
             bannerData = List<Map<String, dynamic>>.from(responseData['data']);
             isLoadingBanners = false;
+            restartAutoScroll();
           });
         } else {
           // Handle API error response
@@ -346,6 +347,8 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
         return 'BUS';
       case 'DRIVER':
         return 'DRIVER';
+      case 'LUXURY':
+        return 'LUXURY';
       default:
         return 'ALLVEHICLES';
     }
@@ -373,7 +376,9 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       case 5:
         return 'BUS';
       case 6:
-        return 'DRIVE';
+        return 'DRIVER';
+      case 7:
+        return 'LUXURY';
       default:
         return 'ALLVEHICLES';
     }
@@ -671,10 +676,10 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       child: Stack(
         children: [
           GestureDetector(
-            onTapDown: (_) => stopAutoScroll(),
+          /*  onTapDown: (_) => stopAutoScroll(),
             onTapUp: (_) => restartAutoScroll(),
             onPanStart: (_) => stopAutoScroll(),
-            onPanEnd: (_) => restartAutoScroll(),
+            onPanEnd: (_) => restartAutoScroll(),*/
             child: PageView.builder(
               controller: pageController,
               onPageChanged: (index) {

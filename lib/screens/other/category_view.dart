@@ -280,51 +280,49 @@ class _GridViewExampleState extends State<GridViewExample> {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-
         body: CommonParentContainer(
-          showLargeGradient: false,
-          child: SafeArea(
-            child: Column(
-              children: [
-                // ✅ Header
-                Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.arrow_back_ios,
-                          color: ColorConstants.white,
-                        ),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                      Expanded(
-                        child: Text(
-                          localizations.category,
-                          style: TextStyle(
-                            color: ColorConstants.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+      showLargeGradient: false,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // ✅ Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.arrow_back_ios,
+                      color: ColorConstants.white,
+                    ),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
-                ),
-
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: !showSearchSuggestions
-                        ? _buildGridView(screenWidth)
-                        : _buildSearchSection(),
+                  Expanded(
+                    child: Text(
+                      localizations.category,
+                      style: TextStyle(
+                        color: ColorConstants.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ));
+
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: !showSearchSuggestions
+                    ? _buildGridView(screenWidth)
+                    : _buildSearchSection(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ));
   }
 
   Widget _buildGridView(double screenWidth) {
@@ -356,7 +354,7 @@ class _GridViewExampleState extends State<GridViewExample> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => LocationSearchScreen(
-                        selectedCategory: suggestion.name,
+                        selectedCategory: getCategoryName(index),
                         isRentVehicle: false,
                       ),
                     ),
@@ -662,6 +660,29 @@ class _GridViewExampleState extends State<GridViewExample> {
         ],
       ),
     );
+  }
+
+  getCategoryName(int index) {
+    switch (selectedVehicleIndex) {
+      case 0:
+        return 'CAR';
+      case 1:
+        return 'RICKSHAW';
+      case 2:
+        return 'E_RICKSHAW';
+      case 3:
+        return 'SUV';
+      case 4:
+        return 'MINIVAN';
+      case 5:
+        return 'BUS';
+      case 6:
+        return 'DRIVER';
+      case 7:
+        return 'LUXURY';
+      default:
+        return 'ALLVEHICLES';
+    }
   }
 }
 

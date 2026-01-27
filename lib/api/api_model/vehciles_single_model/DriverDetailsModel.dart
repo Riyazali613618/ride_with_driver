@@ -61,6 +61,7 @@ class DriverProvider {
   final String? dob;
   final String? gender;
   final int? totalRating;
+  final int? reviewsTotal;
   final int? totalRatingSum;
   final FleetSize? independentCarOwnerFleetSize;
   final List<Vehicle>? vehicles;
@@ -101,6 +102,7 @@ class DriverProvider {
     this.negotiable,
     this.dob,
     this.gender,
+    this.reviewsTotal,
     this.totalRating,
     this.totalRatingSum,
     this.independentCarOwnerFleetSize,
@@ -148,6 +150,7 @@ class DriverProvider {
       negotiable: json['negotiable'],
       dob: json['dob'],
       gender: json['gender'],
+      reviewsTotal: json['reviewsTotal'],
       totalRating: json['totalRating'],
       totalRatingSum: json['totalRatingSum'],
       independentCarOwnerFleetSize: json['independentCarOwnerFleetSize'] != null

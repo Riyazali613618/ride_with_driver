@@ -1152,7 +1152,9 @@ class _MessagingScreenState extends State<MessagingScreen>
                     size: 24,
                   ),
                 ),*/
+/*
                 _moreMenu(context),
+*/
                 const SizedBox(width: 12),
               ],
             ),

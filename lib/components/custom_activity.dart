@@ -150,6 +150,7 @@ class CustomActivity extends StatelessWidget {
   final ActivityType activityType;
   final UserType userType;
   final VoidCallback? onBeforeTap;
+  final bool isDriver;
 
   const CustomActivity({
     super.key,
@@ -160,6 +161,7 @@ class CustomActivity extends StatelessWidget {
     required this.phone,
     required this.activityType,
     required this.userType,
+    this.isDriver=false,
     this.onBeforeTap,
     this.userName="",
     this.userImage="",
@@ -251,11 +253,11 @@ class CustomActivity extends StatelessWidget {
         }
       },
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 10,horizontal: 8),
+        padding: isDriver?EdgeInsets.only(right: 10,top: 10):EdgeInsets.symmetric(vertical: 10,horizontal: 8),
         child: SvgPicture.asset(
           icon,
-          height: 25,
-          width: 25,
+          height: isDriver?20:25,
+          width:  isDriver?20:25,
         ),
       ),
     );
@@ -408,6 +410,8 @@ String convertVehicleType(String vehicleType) {
       return 'RICKSHAW';
     case 'E-RICKSHAW':
       return 'E_RICKSHAW';
+    case 'LUXURY':
+      return 'LUXURY';
     case 'ALL VEHICLES':
     case 'ALLVEHICLES':
     case 'ALL_VEHICLES':
@@ -416,7 +420,7 @@ String convertVehicleType(String vehicleType) {
       return vehicleType == 'OTHER' ? 'OTHER' : 'Other';
     default:
       if (vehicleType == 'Other') return 'Other';
-      return 'CAR';
+      return 'ALL_VEHICLES';
   }
 }
 

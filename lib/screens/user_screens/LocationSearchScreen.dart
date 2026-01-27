@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:r_w_r/api/api_model/VehicleType.dart';
@@ -116,6 +117,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   void initState() {
     super.initState();
     _selectedCategory = widget.selectedCategory.toUpperCase();
+    print("_selectedCategory==========${_selectedCategory}");
     _searchController.text = widget.initialSearchText ?? '';
     // Load recent locations and current location first
     _loadRecentLocations().then((_) {
@@ -145,20 +147,23 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
   }
 
   Future<void> _getCurrentLocation() async {
-    print("🔍 Starting to get current location...");
+    if (kDebugMode) {
+      print("🔍 Starting to get current location...");
+    }
     setState(() => _isLoadingCurrentLocation = true);
     try {
       final locationData =
           await GoogleLocationSearchService.getCurrentLocationWithDetails();
-      print("🔍 Location data received: $locationData");
+      if (kDebugMode) print("🔍 Location data received: $locationData");
 
       if (locationData != null && mounted) {
         final coordinates = locationData['coordinates'] as LatLng;
         final locationName = locationData['name'] as String;
 
-        print("🔍 Setting current location: $locationName");
-        if(_searchController.text.toString().isEmpty)
-        _searchController.text = locationName;
+        if (kDebugMode) print("🔍 Setting current location: $locationName");
+        if (_searchController.text.toString().isEmpty) {
+          _searchController.text = locationName;
+        }
         setState(() {
           currentLocationCoordinates = coordinates;
           currentLocation = LocationData(
@@ -171,12 +176,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
         // Update suggestions after state is set
         if (mounted) {
-          print("🔍 Updating suggestions with current location");
+          if (kDebugMode) {
+            print("🔍 Updating suggestions with current location");
+          }
           _initializeSearchSuggestions();
         }
       }
     } catch (e) {
-      print('🔍 Error getting location: $e');
+      if (kDebugMode) print('🔍 Error getting location: $e');
       if (mounted) {
         setState(() => _isLoadingCurrentLocation = false);
       }
@@ -192,14 +199,14 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         });
       }
     } catch (e) {
-      print("Error loading recent locations: $e");
+      if (kDebugMode) print("Error loading recent locations: $e");
     }
   }
 
   bool searchedSelected = false;
 
   Future<void> _searchLocationsWithService(String query) async {
-    print("_searchLocationsWithService:${query}");
+    if (kDebugMode) print("_searchLocationsWithService:$query");
     if (!_availableCategories.contains(query.toUpperCase())) {
       selectedLocationData = null;
     }
@@ -228,7 +235,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
         }
       });
     }
-    print("queryy:${query} ${filteredLocations}");
+    if (kDebugMode) print("query:  $query $filteredLocations");
   }
 
   void _initializeSearchSuggestions() {
@@ -277,10 +284,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
             latitude: currentLocationCoordinates?.latitude ?? 0.0,
             longitude: currentLocationCoordinates?.longitude ?? 0.0,
             pinCode: currentLocation!.pincode ?? 'Not found',
-            // city: currentLocation!.displayName.split(',').first,
-            // state: currentLocation!.displayName.contains(',')
-            //     ? currentLocation!.displayName.split(',').last.trim()
-            //     : '',
           );
         }
       } else {
@@ -309,31 +312,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   void _navigateBasedOnSelection() {
     if (selectedLocationData == null) return;
-    print("selectedLocationData:${selectedLocationData} ${_selectedCategory}");
+    if (kDebugMode) {
+      print("selectedLocationData:$selectedLocationData $_selectedCategory");
+    }
     setState(() {
       searchedSelected = false;
     });
-    // if (_selectedCategory.toUpperCase() == "DRIVER") {
-    //   // Updated comparison
-    //   // Navigator.pushReplacement(
-    //   //   context,
-    //   //   MaterialPageRoute(
-    //        Owners(
-    //         selectedLocation: selectedLocationData,
-    //       );
-    //     // ),
-    //   // );
-    // } else {
-    //   // Navigator.pushReplacement(
-    //   //   context,
-    //   //   MaterialPageRoute(
-    //        VehicleSearchScreen(
-    //         selectedLocation: selectedLocationData,
-    //         selectedCategory: _selectedCategory, // Already in correct format
-    //       );
-    //     // ),
-    //   // );
-    // }
   }
 
   Widget _buildSearchSuggestion(GooglePlacesSuggestion suggestion, int index) {
@@ -452,6 +436,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
           String category = _availableCategories[index];
           if (_selectedCategory == "ALLVEHICLES") {
             _selectedCategory = 'ALL';
+            print("_selectedCategory==========${_selectedCategory}");
           }
           bool isSelected =
               _selectedCategory.toUpperCase() == category.toUpperCase();
@@ -469,7 +454,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                         category = 'ALLVEHICLES';
                       }
                     });
-                    print("category:${category}");
+                    if (kDebugMode) print("category:$category");
                     _searchLocationsWithService(category);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -630,35 +615,27 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                           ),
                           builder: (context) =>
                               FilterBottomSheet(listener: (filter) {
-                            final filterList =
-                            filter;
-                            print("Applied Filter List: ${filterList}");
+                            final filterList = filter;
+                            if (kDebugMode) {
+                              print("Applied Filter List: $filterList");
+                            }
                             _selectedCategory =
                                 filterList['vehicleType'] ?? "Car";
-                            filterData=filterList;
+                            print("_selectedCategory==========${_selectedCategory}");
+                            filterData = filterList;
                             searchedSelected = true;
-                           /* setState(() {
-                              searchedSelected = true;
-                              filterData=filter;
-
-                          // filters=filterData;awwwwwwq
-                             // _filterController.refresh?.call(); // 🔥 REFRESH API
-
-                            });
-                            _searchLocationsWithService(
-                                _selectedCategory.toString().toUpperCase());*/
                           }),
                         );
                         if (result != null) {
-                          print("Filtersssssssssss");
-                          print("$filters");
+                          if (kDebugMode) print("Filtersssssssssss");
+                          if (kDebugMode) print("$filters");
                           setState(() {
                             searchedSelected = true;
                             filters = result;
                             _filterController.refresh?.call();
                           });
                           _filterController.refresh?.call();
-                               _searchLocationsWithService(
+                          _searchLocationsWithService(
                               result['vehicleType'].toString().toUpperCase());
                           Future.delayed(Duration(milliseconds: 500)).then((_) {
                             setState(() {
@@ -667,10 +644,12 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                                   .toString()
                                   .toUpperCase();
                               ;
+
+                              print("_selectedCategory==========${_selectedCategory}");
                             });
                           });
-                          print('Applied Filters: $result');
-                         // Use the filters in your API call or filtering logic
+                          if (kDebugMode) print('Applied Filters: $result');
+                          // Use the filters in your API call or filtering logic
                         }
                         // Navigator.push(context, MaterialPageRoute<void>(
                         //   builder: (BuildContext context) => (),
@@ -772,11 +751,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                                     ),
                         ),
                       ] else ...[
-                        Expanded(
-                          child: (_selectedCategory.toUpperCase() != "DRIVER")
-                              ? _buildVehicleSearchContent()
-                              : Container(),
-                        ),
+                        Expanded(child: _buildVehicleSearchContent()),
                       ],
                     ],
                   ),
@@ -789,7 +764,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     );
   }
 
-  Map<String,String> filterData={};
+  Map<String, String> filterData = {};
+
   Widget _buildVehicleSearchContent() {
     return VehicleSearchScreen(
       // Make this a widget, not a screen
@@ -801,9 +777,6 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
       appliedFilters: filters,
     );
   }
-// Widget _buildOwnerSearchContent(){
-//   return Owners(selectedLocation: selectedLocationData,);
-// }
 }
 
 class FilterController {
