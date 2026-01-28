@@ -111,7 +111,8 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
         }
 
         // Save authentication data
-        await TokenManager.saveToken(response.data!.accessToken!);
+        /*await TokenManager.saveToken(response.data!.accessToken!);
+        */
         await TokenManager.saveRefreshToken(response.data!.refreshToken!);
         await TokenManager.savePhoneNumber(widget.phoneNumber);
         final userDataMap = {
@@ -126,7 +127,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           'usertype': response.data!.usertype,
           'isFirstTimeUser': response.data!.isFirstTimeUser,
         };
-        await TokenManager.saveUserType(response.data?.usertype??"USER");
+        await TokenManager.saveUserType(response.data?.usertype ?? "USER");
         await TokenManager.saveUserData(userDataMap);
         // Handle first-time user flow
         if (response != null &&
@@ -143,7 +144,9 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
           final profileCompleted = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
-                builder: (context) => const FirstTimeUserScreen()),
+                builder: (context) => FirstTimeUserScreen(
+                      token: response.data!.accessToken ?? "",
+                    )),
           );
           if (profileCompleted == true) {
             await _handleLanguageSelection();

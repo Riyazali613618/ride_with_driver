@@ -27,7 +27,8 @@ import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
 import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
 
 class FirstTimeUserScreen extends StatefulWidget {
-  const FirstTimeUserScreen({super.key});
+  final String token;
+  const FirstTimeUserScreen({this.token="",super.key});
 
   @override
   State<FirstTimeUserScreen> createState() => _FirstTimeUserScreenState();
@@ -352,7 +353,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
           Uri.parse('$baseUrl/user/profile'),
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
+            'Authorization': 'Bearer ${widget.token}',
           },
           body: json.encode(requestBody),
         )
@@ -424,6 +425,8 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
               userData['name'] =
                   '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}';
               await TokenManager.saveUserData(userData);
+              await TokenManager.saveToken(widget.token);
+
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(
