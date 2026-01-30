@@ -72,12 +72,13 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
       _loadProfileData();
     }
   }
-
+String userType="";
   Future<void> _loadProfileData() async {
     await context.read<ProfileProvider>().loadProfile(context);
     try{
       final data = await UserProfileService().getUserProfile();
       _visiblePlan = data.subscriptions != null && data.subscriptions.isNotEmpty;
+      userType=data.usertype??"USER";
       if (mounted) setState(() {});
     }catch(e){
 
@@ -268,6 +269,7 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
                 ],
               ),
             ),
+            if(userType!="USER")
             GestureDetector(
               onTap: () {},
               child: SvgPicture.asset(

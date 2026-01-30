@@ -154,7 +154,7 @@ class MyProfileData {
   final bool? preferencesChat;
   final bool? preferencesPhone;
   final bool? preferencesWhatsapp;
-  final String? profilePhoto;
+   String? profilePhoto;
   final int? rating;
   final ServiceLocation? serviceLocation;
   final MyState? state;
@@ -501,6 +501,7 @@ class Subscription {
   Subscription({
     required this.id,
     required this.plan,
+    required this.pdfUrl,
     required this.planName,
     required this.maxVehicles,
     required this.category,
@@ -522,6 +523,7 @@ class Subscription {
 
   final List<String>? benefits;
   final String? id;
+  final String? pdfUrl;
   final String? planName;
   final String? plan;
   final int? maxVehicles;
@@ -543,6 +545,7 @@ class Subscription {
   Subscription copyWith({
     String? id,
     String? plan,
+    String? pdfUrl,
     String? planName,
     int? maxVehicles,
     String? category,
@@ -563,6 +566,7 @@ class Subscription {
   }) {
     return Subscription(
       id: id ?? this.id,
+      pdfUrl: pdfUrl ?? this.pdfUrl,
       planName: planName ?? this.planName,
       plan: plan ?? this.plan,
       maxVehicles: maxVehicles ?? this.maxVehicles,
@@ -588,6 +592,7 @@ class Subscription {
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
       id: json["_id"],
+      pdfUrl: json["pdfUrl"] ?? "",
       planName: json["planName"] ?? "",
       plan: json["plan"],
       maxVehicles: json["max_vehicles"],
@@ -614,6 +619,7 @@ class Subscription {
   Map<String, dynamic> toJson() => {
         "_id": id,
         "benefits": benefits,
+        "pdfUrl": pdfUrl,
         "planName": planName,
         "plan": plan,
         "max_vehicles": maxVehicles,

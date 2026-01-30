@@ -171,6 +171,7 @@ class CustomActivity extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
+        print(type);
         if (onBeforeTap != null) {
           onBeforeTap!();
         }

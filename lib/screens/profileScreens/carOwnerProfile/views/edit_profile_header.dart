@@ -445,6 +445,7 @@ class _EditProfileHeaderState extends State<EditProfileHeader> {
           _hasChanges = true;
           widget.profileImage(_profileImageUrl ?? "");
           widget.coverImage(_coverImageUrl ?? "");
+          widget.profile.data?.profilePhoto=_profileImageUrl;
           _updateProfile(type);
         });
       }

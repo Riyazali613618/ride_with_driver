@@ -1,5 +1,8 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:r_w_r/screens/user_screens/vehicle_details_transporter.dart';
+import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
 
 import '../api/api_service/vehicle/search_vehicle_service.dart';
 import '../components/app_loader.dart';
@@ -138,24 +141,95 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   final ScrollController _scrollController = ScrollController();
 
   Widget _buildVehiclesList() {
-    return GridView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.only(bottom: 10, top: 10, left: 5, right: 5),
+    return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 1,
-        childAspectRatio: 0.86, // Adjusted for new card height
-        crossAxisSpacing: 0.5,
-        mainAxisSpacing: 0.5,
+      child: RefreshIndicator(
+        onRefresh: _refreshVehicles,
+        color: ColorConstants.primaryColor,
+        backgroundColor: Colors.white,
+        child: ListView.builder(
+          shrinkWrap: true,
+          controller: _scrollController,
+          padding: const EdgeInsets.only(bottom: 10, top: 10, left: 5, right: 5),
+          physics: const NeverScrollableScrollPhysics(), // ✅ KEY
+          itemCount: favData.length ,
+          itemBuilder: (context, index) {
+          /*  if (index >= favData.length) {
+              return Container(
+                margin: EdgeInsets.all(12),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: _isLoadingMore
+                    ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants.primaryColor,
+                        ),
+                        strokeWidth: 2,
+                      ),
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Loading more...',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                )
+                    : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      color: Colors.green,
+                      size: 28,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'All loaded',
+                      style: TextStyle(
+                        color: Colors.black54,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }*/
+            return _buildVehicleCard(favData[index]);
+          },
+        ),
       ),
-      itemCount: favData.length,
-      itemBuilder: (context, index) {
-        return _buildVehicleCard(favData[index]);
-      },
     );
   }
-
-  Widget _buildVehicleImage(fm.Vehicle? vehicle) {
+  Future<void> _refreshVehicles() async {
+    try {
+      await getFavourites();
+      developer.log('=== REFRESH COMPLETED ===');
+    } catch (e) {
+      developer.log('=== REFRESH FAILED: $e ===');
+    }
+  }
+  Widget _buildVehicleImage(Vehicle? vehicle) {
     if (vehicle == null || (vehicle.images ?? []).isEmpty) {
       return Icon(
         Icons.directions_car,
@@ -165,8 +239,63 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Image.network(
+      borderRadius: BorderRadius.only(topRight: Radius.circular(16),topLeft: Radius.circular(16)),
+      child:
+      PageView.builder(
+        /*controller: pageController,
+        onPageChanged: (index) {
+          setState(() {
+            currentSlideIndex = index;
+          });
+        },*/
+        itemCount: vehicle.images.length,
+        itemBuilder: (context, index) {
+          final banner = vehicle.images[index];
+          return GestureDetector(
+            onTap: () {
+
+            },
+            child: Image.network(
+              banner,
+              fit: BoxFit.cover,
+              width: double.infinity,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: const Icon(
+                    Icons.directions_car,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                );
+              },
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      value: loadingProgress.expectedTotalBytes !=
+                          null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      )
+      /*Image.network(
         vehicle.images?.first ?? "",
         fit: BoxFit.cover,
         errorBuilder: (context, error, stackTrace) {
@@ -187,7 +316,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
             ),
           );
         },
-      ),
+      )*/,
     );
   }
 
@@ -196,320 +325,316 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
   Widget _buildVehicleCard(fm.Data vehicle) {
     final localizations = AppLocalizations.of(context)!;
     // final currentIndex = _currentVehicleIndex[vehicle.vehicle!.userId] ?? 0;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: gradientFirst.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Image Section with Navigation
-          Container(
-            height: 190,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-              color: Colors.grey[100],
+    return InkWell(
+      onTap: () {
+        _navigateToVehicleDetail(vehicle);
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: gradientFirst.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image Section with Navigation
+            Container(
+              height: 160 ,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                color: Colors.grey[100],
               ),
-              child: _buildVehicleImage(vehicle.vehicle),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+                child: _buildVehicleImage(vehicle.vehicle),
+              ),
             ),
-          ),
-          // Content Section
-          Expanded(
-            child: Column(
+            // Content Section
+            Column(
               children: [
-                Expanded(
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.only(left: 12, right: 12, top: 12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Vehicle Name and Rating
-                        Row(
-                          children: [
-                            Flexible(
-                              child: Text(
-                                vehicle.vehicle?.vehicleName ??
-                                    localizations.no_vehicles_found,
-                                style: TextStyle(
-                                  fontSize: (vehicle != null &&
-                                          (vehicle.vehicle?.vehicleName ?? "")
-                                              .isNotEmpty)
-                                      ? 16
-                                      : 12,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              vehicle.vehicle?.vehicleType ?? '',
+                Padding(
+                  padding:
+                      const EdgeInsets.only(left: 12, right: 12, top: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              vehicle.vehicle?.vehicleName ??
+                                  localizations.no_vehicles_found,
                               style: TextStyle(
-                                fontSize: 12,
-                                color: ColorConstants.black2,
-                                fontWeight: FontWeight.w400,
+                                fontSize: (vehicle != null &&
+                                        (vehicle.vehicle?.vehicleName ?? "")
+                                            .isNotEmpty)
+                                    ? 16
+                                    : 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (vehicle != null &&
-                                (vehicle.vehicle?.vehicleName ?? "").isNotEmpty)
-                              Spacer()
-                            else
-                              const SizedBox(width: 20),
-                            // Rating Badge
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 4, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.amber[50],
-                                border: BoxBorder.all(color: Color(0xFFF9E9AD)),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    size: 14,
-                                    color: Colors.amber,
-                                  ),
-                                  const SizedBox(width: 2),
-                                  Text(
-                                    (vehicle.profile?.rating ?? 0) > 0
-                                        ? (vehicle.profile?.rating ?? 0)
-                                            .toStringAsFixed(1)
-                                        : '4.3',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ),
+                          Text(
+                            vehicle.vehicle?.vehicleType ?? '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: ColorConstants.black2,
+                              fontWeight: FontWeight.w400,
                             ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Features Row
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Spacer(),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 4, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.amber[50],
+                              border: BoxBorder.all(color: Color(0xFFF9E9AD)),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.max,
                               children: [
-                                Image.asset("assets/img/seats.png",
-                                    width: 14, height: 14),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '${vehicle.vehicle?.seatingCapacity ?? 'N/A'} Seats',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey[700],
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                                const Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: Colors.amber,
                                 ),
-                              ],
-                            ),
-                            const SizedBox(width: 8),
-                            if (vehicle.vehicle?.airConditioning != null &&
-                                (vehicle.vehicle?.airConditioning ?? "")
-                                    .isNotEmpty)
-                              _buildFeatureTag(
-                                icon: "",
-                                text: vehicle.vehicle?.airConditioning ?? "",
-                              ),
-                            Spacer(),
-                            GestureDetector(
-                              onTap: () async {
-                                deleteFavourires(vehicle.favoriteId ?? "");
-                                favData.remove(vehicle);
-                                setState(() {});
-                              },
-                              child: /*(favAdded || deletFav)
-                                  ? Center(
-                                child: CircularProgressIndicator(),
-                              )
-                                  : */
-                                  Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                                size: 22,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 10),
-                        // Price and Negotiable Badge
-                        Row(
-                          children: [
-                            Row(
-                              children: [
+                                const SizedBox(width: 2),
                                 Text(
-                                  'Minimum Charge',
-                                  style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w400),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  '₹ ${vehicle.vehicle?.minimumChargePerHour ?? (vehicle.vehicle?.minimumChargePerHour ?? 0)}',
+                                  (vehicle.profile?.rating ?? 0) > 0
+                                      ? (vehicle.profile?.rating ?? 0)
+                                          .toStringAsFixed(1)
+                                      : '4.3',
                                   style: const TextStyle(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.bold,
                                     color: Colors.black,
+                                    fontWeight: FontWeight.w400,
                                   ),
                                 ),
-                                const SizedBox(width: 10),
                               ],
                             ),
-                            // Negotiable Badge
-                            Flexible(
-                                child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              /* decoration: BoxDecoration(
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Features Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Image.asset("assets/img/seats.png",
+                                  width: 14, height: 14),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${vehicle.vehicle?.seatingCapacity ?? 'N/A'} Seats',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 8),
+                          if (vehicle.vehicle?.airConditioning != null &&
+                              (vehicle.vehicle?.airConditioning ?? "")
+                                  .isNotEmpty)
+                            _buildFeatureTag(
+                              icon: "",
+                              text: vehicle.vehicle?.airConditioning ?? "",
+                            ),
+                          Spacer(),
+                          GestureDetector(
+                            onTap: () async {
+                              deleteFavourires(vehicle.favoriteId ?? "");
+                              favData.remove(vehicle);
+                              setState(() {});
+                            },
+                            child: /*(favAdded || deletFav)
+                                ? Center(
+                              child: CircularProgressIndicator(),
+                            )
+                                : */
+                                Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                              size: 22,
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 10),
+                      // Price and Negotiable Badge
+                      Row(
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Minimum Charge',
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black,
+                                    fontWeight: FontWeight.w400),
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                '₹ ${vehicle.vehicle?.minimumChargePerHour ?? (vehicle.vehicle?.minimumChargePerHour ?? 0)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                            ],
+                          ),
+                          // Negotiable Badge
+                          Flexible(
+                              child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            /* decoration: BoxDecoration(
+                                color: gradientSecond,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: AppColors.blue,
+                                  width: 0.5,
+                                ),
+                              ),*/
+                            child: Text(
+                              (vehicle.vehicle?.isPriceNegotiable ?? false)
+                                  ? localizations.negotiable
+                                  : localizations.fixedPrice,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: gradientSecond,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          )),
+                          const SizedBox(width: 10),
+                        ],
+                      ),
+                      // Action Buttons and Favorite Icon Row
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              CustomActivity(
+                                baseUrl: ApiConstants.baseUrl,
+                                userId: (vehicle.vehicle?.userId ?? ""),
+                                icon: AssetsConstant.chatSVG,
+                                userName: vehicle.profile?.firstName??"",
+                                type: 'CHAT',
+                                phone:
+                                    vehicle.profile?.businessMobileNumber ??
+                                        "",
+                                activityType: ActivityType.WHATSAPP,
+                                userType:
+                                    getMyType(vehicle.partnerType ?? ""),
+                              ),
+                              const SizedBox(width: 20),
+                              CustomActivity(
+                                baseUrl: ApiConstants.baseUrl,
+                                userId: (vehicle.vehicle?.userId ?? ""),
+                                icon: AssetsConstant.whatsAppSVG,
+                                type: 'WHATSAPP',
+                                phone:
+                                    vehicle.profile?.businessMobileNumber ??
+                                        "",
+                                activityType: ActivityType.WHATSAPP,
+                                userType:
+                                    getMyType(vehicle.partnerType ?? ""),
+                              ),
+                              const SizedBox(width: 20),
+                              CustomActivity(
+                                baseUrl: ApiConstants.baseUrl,
+                                userId: (vehicle.vehicle?.userId ?? ""),
+                                icon: AssetsConstant.callPhoneSVG,
+                                type: 'PHONE',
+                                phone:
+                                    vehicle.profile?.businessMobileNumber ??
+                                        "",
+                                activityType: ActivityType.PHONE,
+                                userType:
+                                    getMyType(vehicle.partnerType ?? ''),
+                              ),
+                            ],
+                          ),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: InkWell(
+                              onTap: () {
+                                // _navigateToVehicleDetail(owner);
+                              },
+                              child: Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 4, vertical: 2),
+                                decoration: BoxDecoration(
                                   color: gradientSecond,
-                                  borderRadius: BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(2),
                                   border: Border.all(
                                     color: AppColors.blue,
                                     width: 0.5,
                                   ),
-                                ),*/
-                              child: Text(
-                                (vehicle.vehicle?.isPriceNegotiable ?? false)
-                                    ? localizations.negotiable
-                                    : localizations.fixedPrice,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: gradientSecond,
-                                  fontWeight: FontWeight.w400,
                                 ),
-                              ),
-                            )),
-                            const SizedBox(width: 10),
-                          ],
-                        ),
-                        // Action Buttons and Favorite Icon Row
-                        SizedBox(
-                          height: 20,
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                CustomActivity(
-                                  baseUrl: ApiConstants.baseUrl,
-                                  userId: (vehicle.vehicle?.userId ?? ""),
-                                  icon: AssetsConstant.chatSVG,
-                                  type: 'MESSAGE',
-                                  phone:
-                                      vehicle.profile?.businessMobileNumber ??
-                                          "",
-                                  activityType: ActivityType.WHATSAPP,
-                                  userType:
-                                      getMyType(vehicle.partnerType ?? ""),
-                                ),
-                                const SizedBox(width: 20),
-                                CustomActivity(
-                                  baseUrl: ApiConstants.baseUrl,
-                                  userId: (vehicle.vehicle?.userId ?? ""),
-                                  icon: AssetsConstant.whatsAppSVG,
-                                  type: 'WHATSAPP',
-                                  phone:
-                                      vehicle.profile?.businessMobileNumber ??
-                                          "",
-                                  activityType: ActivityType.WHATSAPP,
-                                  userType:
-                                      getMyType(vehicle.partnerType ?? ""),
-                                ),
-                                const SizedBox(width: 20),
-                                CustomActivity(
-                                  baseUrl: ApiConstants.baseUrl,
-                                  userId: (vehicle.vehicle?.userId ?? ""),
-                                  icon: AssetsConstant.callPhoneSVG,
-                                  type: 'PHONE',
-                                  phone:
-                                      vehicle.profile?.businessMobileNumber ??
-                                          "",
-                                  activityType: ActivityType.PHONE,
-                                  userType:
-                                      getMyType(vehicle.partnerType ?? ''),
-                                ),
-                              ],
-                            ),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: InkWell(
-                                onTap: () {
-                                  // _navigateToVehicleDetail(owner);
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 4, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: gradientSecond,
-                                    borderRadius: BorderRadius.circular(2),
-                                    border: Border.all(
-                                      color: AppColors.blue,
-                                      width: 0.5,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Send Request",
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.send,
-                                        size: 12,
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      "Send Request",
+                                      style: const TextStyle(
+                                        fontSize: 10,
                                         color: Colors.white,
+                                        fontWeight: FontWeight.w400,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      Icons.send,
+                                      size: 12,
+                                      color: Colors.white,
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 // Owner Info Section (Moved Below View More)
@@ -569,7 +694,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-/*
+            /*
                                 if (vehicle.profile?.isVerifiedByAdmin) ...[
                                   const SizedBox(width: 4),
                                   const Icon(
@@ -578,7 +703,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                                     color: Colors.green,
                                   ),
                                 ],
-*/
+            */
                               ],
                             ),
                           ],
@@ -601,7 +726,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                           SizedBox(
                             width: 10,
                           ),
-/*
+            /*
                           Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 2),
@@ -622,7 +747,7 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                               ),
                             ),
                           ),
-*/
+            */
                         ],
                       ),
                     ],
@@ -630,8 +755,8 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
                 )
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -698,17 +823,18 @@ class _FavoriteScreenState extends State<FavoriteScreen> {
         ? owner.vehicle!.serviceLocation
         : null;
     if (owner.vehicle != null) {
-      // Navigator.push(
-      //   context,
-      //   MaterialPageRoute(
-      //     builder: (context) => VehicleDetailScreenTransPorter(
-      //         owner: owner,
-      //         vehicle: owner!.vehicle!,
-      //         type: widget.selectedCategory,
-      //         serviceLocation:serviceLocation!
-      //     ),
-      //   ),
-      // );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => VehicleDetailScreenTransPorter(
+              partnerId: owner.partnerId??"",
+              owner: owner.profile!,
+              vehicle: owner.vehicle!,
+              type: owner.vehicle!.vehicleType,
+              serviceLocation:serviceLocation!
+          ),
+        ),
+      );
     }
   }
 }

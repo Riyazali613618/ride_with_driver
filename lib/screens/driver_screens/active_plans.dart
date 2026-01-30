@@ -12,6 +12,7 @@ import 'package:r_w_r/constants/api_constants.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
 import 'package:r_w_r/utils/common_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../plan/presentation/screens/plan_selection_screen.dart' as planNew;
 
 import '../../api/api_model/subscription/active_plan_model.dart';
 import '../../api/api_service/countryStateProviderService.dart';
@@ -19,6 +20,7 @@ import '../../api/api_service/payment_service/payment_service.dart';
 import '../../api/api_service/subscription/active_plan.dart';
 import '../../bloc/payment/payment_bloc.dart';
 import '../../components/app_invoice_viewer.dart';
+import '../../components/custom_activity.dart' hide ApiException;
 import '../../constants/color_constants.dart';
 import '../../features/vehicles/presentation/addOns/add_on_vehicles_bottom_sheet.dart';
 import '../../l10n/app_localizations.dart';
@@ -27,6 +29,7 @@ import '../../plan/data/repositories/plan_repository.dart';
 import '../../plan/data/services/plan_service.dart' show PlanService;
 import '../../plan/presentation/bloc/plan_bloc.dart';
 import '../autoRikshawDriverRegistration.dart';
+import '../block/provider/profile_provider.dart';
 import '../driverRegistrationScreen.dart';
 import '../eRickshawRegistration.dart';
 import '../independentCarOwnerRegistration.dart';
@@ -492,7 +495,8 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
         );
       },
       child: Container(
-        width: MediaQuery.of(context).size.width*0.60, // ✅ FIXED WIDTH (REQUIRED)
+        width: MediaQuery.of(context).size.width * 0.60,
+        // ✅ FIXED WIDTH (REQUIRED)
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
           color: const Color(0x57D9D9D9),
@@ -555,8 +559,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
             /// VALIDITY CHIP (WRAP WIDTH)
             Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
                 color: const Color(0xFFF2F2F2),
                 border: Border.all(color: const Color(0xFFD9D9D9)),
@@ -564,7 +567,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
               child: Text(
                 "Validity: ${getDuration(transaction)} months | "
-                    "Expires On: ${DateFormat('dd MMM yyyy').format(transaction.endDate!)}",
+                "Expires On: ${DateFormat('dd MMM yyyy').format(transaction.endDate!)}",
                 style: const TextStyle(
                   fontSize: 8,
                   fontWeight: FontWeight.w500,
@@ -585,24 +588,32 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
-            child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SvgPicture.asset(
-              "assets/svg/download.svg",
-              width: 20,
-              height: 20,
-            ),
-            SizedBox(
-              width: 10,
-            ),
-            Text(
-              "Invoice",
-              style: CommonUtils.commonTitleStyle(
-                  fontSize: 12, color: AppColors.blue),
-            )
-          ],
+            child: GestureDetector(
+          onTap: () {
+            if (activeSubscriptions.isNotEmpty &&
+                activeSubscriptions[0].pdfUrl != null &&
+                activeSubscriptions[0].pdfUrl!.isNotEmpty)
+              viewOrDownloadInvoice(activeSubscriptions[0].pdfUrl!);
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SvgPicture.asset(
+                "assets/svg/download.svg",
+                width: 20,
+                height: 20,
+              ),
+              SizedBox(
+                width: 10,
+              ),
+              Text(
+                "Invoice",
+                style: CommonUtils.commonTitleStyle(
+                    fontSize: 12, color: AppColors.blue),
+              )
+            ],
+          ),
         )),
         Expanded(
             child: Container(
@@ -615,11 +626,64 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               borderRadius: BorderRadius.all(Radius.circular(10))),
           child: GestureDetector(
             onTap: () async {
+             /* final profile = await UserProfileService().getUserProfile();
+              String title = profile.usertype == UserType.TRANSPORTER.name
+                  ? "Renew Transporter Plan"
+                  : profile.usertype == UserType.DRIVER.name
+                      ? "Renew Independent Taxi Driver Plan"
+                      : profile.usertype == UserType.RICKSHAW.name
+                          ? "Renew Rickshaw Driver Plan"
+                          : profile.usertype == UserType.E_RICKSHAW.name
+                              ? "Renew E-Rickshaw Driver Plan"
+                              : profile.usertype ==
+                                      UserType.INDEPENDENT_CAR_OWNER.name
+                                  ? "Renew Stand Alone Driver Plan"
+                                  : "";
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider(
+                    create: (_) => PaymentBloc(
+                        profileProvider: context.read<ProfileProvider>()),
+                    child: planNew.PlanSelectionScreen(
+                      category: profile.usertype ?? "",
+                      title: title,
+                      count: 1,
+                      currentCategory: "",
+                    ),
+                  ),
+                ),
+              );*/
+            },
+            child: Text(
+              "Renew Plan",
+              style: TextStyle(
+                fontFamily: AppConstants.ptSansFont,
+                fontSize: 12,
+                color: ColorConstants.white,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        )),
+        SizedBox(
+          width: 20,
+        ),
+        Expanded(
+            child: Container(
+          width: double.infinity,
+          height: 35,
+          alignment: Alignment.center,
+          margin: const EdgeInsets.only(bottom: 0),
+          decoration: BoxDecoration(
+              color: Color(0xFF0064E0),
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          child: GestureDetector(
+            onTap: () async {
               final eligibleData = await UserProfileService().getEligibility();
-              if(eligibleData.data?.paymentPhase=="PRE_REGISTRATION"){
-                _navigateToApplication(eligibleData.data?.category??"");
-              }else
-              if (activeSubscriptions[0].category == "TRANSPORTER") {
+              if (eligibleData.data?.paymentPhase == "PRE_REGISTRATION") {
+                _navigateToApplication(eligibleData.data?.category ?? "");
+              } else if (activeSubscriptions[0].category == "TRANSPORTER") {
                 getPlanData(activeSubscriptions[0].category);
               } else {
                 Navigator.push(
@@ -636,7 +700,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               }
             },
             child: Text(
-              "Renew Plan/Upgrade",
+              "Upgrade Plan",
               style: TextStyle(
                 fontFamily: AppConstants.ptSansFont,
                 fontSize: 12,
@@ -645,10 +709,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
             ),
           ),
-        ))
+        )),
       ],
     );
   }
+
   Future<void> _navigateToApplication(String type) async {
     Widget? destination;
 
@@ -669,8 +734,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => destination!),
-      ).then((_) {
-      });
+      ).then((_) {});
     }
   }
 

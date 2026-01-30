@@ -67,13 +67,13 @@ Future<void> _firebaseBackgroundMessage(RemoteMessage message) async {
   }
 }
 
-class MyHttpOverrides extends HttpOverrides {
+/*class MyHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
     return super.createHttpClient(context)
       ..badCertificateCallback = (cert, host, port) => true;
   }
-}
+}*/
 
 Future<void> main() async {
   try {
@@ -81,7 +81,7 @@ Future<void> main() async {
 
     WidgetsFlutterBinding.ensureInitialized();
     print("Flutter binding initialized");
-    HttpOverrides.global = MyHttpOverrides();
+    // HttpOverrides.global = MyHttpOverrides();
 
     await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,

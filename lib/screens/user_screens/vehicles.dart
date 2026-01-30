@@ -763,7 +763,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   updateFavState(Vehicle? vehicle) {
     print("favouritesData:${favouritesData}");
     for (var fav in favouritesData) {
-      if (fav.vehicle?.sId == vehicle?.id) {
+      if (fav.vehicle?.id == vehicle?.id) {
         favoriteStates[vehicle!.id] = true;
       }
     }
@@ -809,18 +809,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                   Container(
                     width: double.infinity,
                     height: 160,
-                    decoration: BoxDecoration(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
-                      color: Colors.grey[100],
-                    ),
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        topRight: Radius.circular(16),
-                      ),
+                      borderRadius: BorderRadius.only(topRight: Radius.circular(16),topLeft: Radius.circular(16)),
+
                       child: _buildVehicleImage(vehicle),
                     ),
                   ),
@@ -1663,7 +1654,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.only(topRight: Radius.circular(16),topLeft: Radius.circular(16)),
       child: Image.network(
         vehicle.images.first,
         fit: BoxFit.cover,

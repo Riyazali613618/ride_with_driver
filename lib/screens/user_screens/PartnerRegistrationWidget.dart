@@ -285,7 +285,7 @@ class _PartnerRegistrationWidgetState extends State<PartnerRegistrationWidget> {
                   TextSpan(
                       text: " • Direct contact",
                       style: TextStyle(
-                          fontSize: 4,
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           fontFamily: AppConstants.ptSansFont,
                           color: Color(0xFF595959))),

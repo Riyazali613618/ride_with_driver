@@ -407,7 +407,9 @@ class _VehicleRegistrationFormState extends State<AddNewVehicleScreen> {
 
       bool success = await provider.submitVehicleRegistration(
         userType: widget.userType,
-        vehicleType: _selectedVehicleType?.code ?? "",
+        vehicleType: (_selectedVehicleType?.code ?? "").isNotEmpty?_selectedVehicleType?.code!:_shouldShowVehicleName
+            ? _vehicleNameController.text.trim()
+            : widget.userType,
         vehicleName: _shouldShowVehicleName
             ? _vehicleNameController.text.trim()
             : widget.userType,

@@ -2,14 +2,14 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
 import 'package:r_w_r/constants/color_constants.dart';
 import 'package:r_w_r/screens/user_screens/transporter_details_screen.dart';
-import 'package:r_w_r/screens/widgets/gradient_button.dart';
 import 'package:r_w_r/utils/color.dart';
 import 'package:video_player/video_player.dart';
-import 'package:http/http.dart' as http;
+
 import '../../components/app_loader.dart';
 import '../../components/custom_activity.dart';
 import '../../constants/api_constants.dart';
@@ -20,6 +20,7 @@ import '../../utils/common_utils.dart';
 import '../block/provider/profile_provider.dart';
 
 class VehicleDetailScreenTransPorter extends StatefulWidget {
+  final String partnerId;
   final String type;
   final VehicleOwner owner;
   final Vehicle vehicle;
@@ -27,6 +28,7 @@ class VehicleDetailScreenTransPorter extends StatefulWidget {
 
   const VehicleDetailScreenTransPorter({
     super.key,
+    this.partnerId="",
     required this.owner,
     required this.vehicle,
     required this.type,
@@ -417,7 +419,7 @@ class _VehicleDetailScreenTransPorterState
                 activityType: ActivityType.CHAT,
                 userType: getMyType(widget.owner.vehicles.length > 1
                     ? "Transporter"
-                    : widget.owner.vehicles.elementAt(0).vehicleType),
+                    : widget.vehicle.vehicleType),
                 onBeforeTap: () => _verifyReview('CHAT', true),
               ),
               const SizedBox(width: 12),
@@ -430,7 +432,7 @@ class _VehicleDetailScreenTransPorterState
                 activityType: ActivityType.WHATSAPP,
                 userType: getMyType(widget.owner.vehicles.length > 1
                     ? "Transporter"
-                    : widget.owner.vehicles.elementAt(0).vehicleType),
+                    : widget.vehicle.vehicleType),
                 onBeforeTap: () => _verifyReview('WHATSAPP', true),
               ),
               const SizedBox(width: 12),
@@ -444,7 +446,7 @@ class _VehicleDetailScreenTransPorterState
                 activityType: ActivityType.PHONE,
                 userType: getMyType(widget.owner.vehicles.length > 1
                     ? "Transporter"
-                    : widget.owner.vehicles.elementAt(0).vehicleType),
+                    : widget.vehicle.vehicleType),
                 onBeforeTap: () => _verifyReview('PHONE', true),
               ),
               Spacer(),
@@ -821,7 +823,7 @@ class _VehicleDetailScreenTransPorterState
                           context,
                           CupertinoPageRoute(
                             builder: (context) => TransporterDetailsScreen(
-                              transporterId: widget.owner.userId,
+                              transporterId: widget.partnerId.isNotEmpty?widget.partnerId:widget.owner.userId,
                             ),
                           ),
                         );

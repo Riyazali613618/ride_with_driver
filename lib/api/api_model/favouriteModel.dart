@@ -1,3 +1,4 @@
+import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
 class FavouriteModel {
   bool? success;
   String? message;
@@ -11,7 +12,7 @@ class FavouriteModel {
     if (json['data'] != null) {
       data = <Data>[];
       json['data'].forEach((v) {
-        data!.add(new Data.fromJson(v));
+        data!.add(Data.fromJson(v));
       });
     }
   }
@@ -24,7 +25,7 @@ class Data {
   String? vehicleId;
   String? partnerType;
   Vehicle? vehicle;
-  Profile? profile;
+  VehicleOwner? profile;
   String? addedAt;
   bool? isBlocked;
   String? mobileNumber;
@@ -46,9 +47,9 @@ class Data {
     vehicleId = json['vehicleId'];
     partnerType = json['partnerType'];
     vehicle =
-    json['vehicle'] != null ? new Vehicle.fromJson(json['vehicle']) : null;
+    json['vehicle'] != null ? Vehicle.fromJson(json['vehicle']) : null;
     profile =
-    json['profile'] != null ? new Profile.fromJson(json['profile']) : null;
+    json['profile'] != null ? VehicleOwner.fromJson(json['profile']) : null;
     addedAt = json['addedAt'];
     isBlocked = json['isBlocked'];
     mobileNumber = json['mobileNumber'];
@@ -56,6 +57,7 @@ class Data {
 
 }
 
+/*
 class Vehicle {
   String? sId;
   String? userId;
@@ -160,6 +162,7 @@ class Vehicle {
     return data;
   }
 }
+*/
 
 class ServiceLocation {
   double? lat;
@@ -173,13 +176,14 @@ class ServiceLocation {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['lat'] = this.lat;
     data['lng'] = this.lng;
     return data;
   }
 }
 
+/*
 class Profile {
   String? firstName;
   String? lastName;
@@ -235,7 +239,7 @@ class Profile {
     lastName = json['lastName'];
     profilePhoto = json['profilePhoto'];
     email = json['email'];
-    rating = json['rating'];
+    rating = json['rating']!=null&&(json['rating'].toString()).isNotEmpty?double.parse(json['rating'].toString()):0.0;
     totalRating = json['totalRating'];
     experience = json['experience'];
     minimumCharges = json['minimumCharges'];
@@ -250,19 +254,19 @@ class Profile {
 
     }
     serviceLocation = json['serviceLocation'] != null
-        ? new ServiceLocation.fromJson(json['serviceLocation'])
+        ? ServiceLocation.fromJson(json['serviceLocation'])
         : null;
-    city = json['city'] != null ? new City.fromJson(json['city']) : null;
-    state = json['state'] != null ? new City.fromJson(json['state']) : null;
+    city = json['city'] != null ? City.fromJson(json['city']) : null;
+    state = json['state'] != null ? City.fromJson(json['state']) : null;
     country =
-    json['country'] != null ? new Country.fromJson(json['country']) : null;
+    json['country'] != null ? Country.fromJson(json['country']) : null;
     businessMobileNumber = json['businessMobileNumber'];
     companyName = json['companyName'];
     fleetSize = json['fleetSize'];
     counts =
-    json['counts'] != null ? new Counts.fromJson(json['counts']) : null;
+    json['counts'] != null ? Counts.fromJson(json['counts']) : null;
     independentCarOwnerFleetSize = json['independentCarOwnerFleetSize'] != null
-        ? new IndependentCarOwnerFleetSize.fromJson(
+        ? IndependentCarOwnerFleetSize.fromJson(
         json['independentCarOwnerFleetSize'])
         : null;
     preferencesWhatsapp = json['preferencesWhatsapp'];
@@ -271,6 +275,7 @@ class Profile {
   }
 
 }
+*/
 
 
 class City {
@@ -285,7 +290,7 @@ class City {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['id'] = this.id;
     data['name'] = this.name;
     return data;
@@ -308,7 +313,7 @@ class Country {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['id'] = this.id;
     data['name'] = this.name;
     data['country_flag'] = this.countryFlag;
@@ -331,7 +336,7 @@ class Counts {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['car'] = this.car;
     data['bus'] = this.bus;
     data['minivan'] = this.minivan;
@@ -351,7 +356,7 @@ class IndependentCarOwnerFleetSize {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
+    final Map<String, dynamic> data = Map<String, dynamic>();
     data['cars'] = this.cars;
     data['minivans'] = this.minivans;
     return data;

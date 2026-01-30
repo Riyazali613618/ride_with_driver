@@ -11,6 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:r_w_r/components/app_loader.dart';
+import 'package:r_w_r/components/common_parent_container.dart';
 import 'package:r_w_r/screens/Eligibility/bloc/eligibility_event.dart';
 import 'package:r_w_r/screens/driver_screens/plans.dart';
 import 'package:r_w_r/screens/layout.dart';
@@ -248,6 +249,11 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
         if (responseData['success'] == true && responseData['data'] != null) {
           setState(() {
             bannerData = List<Map<String, dynamic>>.from(responseData['data']);
+            bannerData = bannerData
+                .where(
+                  (element) => element["platform"] == "mobileapp",
+                )
+                .toList();
             isLoadingBanners = false;
             restartAutoScroll();
           });
@@ -676,7 +682,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       child: Stack(
         children: [
           GestureDetector(
-          /*  onTapDown: (_) => stopAutoScroll(),
+            /*  onTapDown: (_) => stopAutoScroll(),
             onTapUp: (_) => restartAutoScroll(),
             onPanStart: (_) => stopAutoScroll(),
             onPanEnd: (_) => restartAutoScroll(),*/
@@ -810,185 +816,22 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     double width = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Colors.white,
-      body: RefreshIndicator(
-        onRefresh: onRefreshPage,
-        child: SingleChildScrollView(
-          controller: _scrollController,
-          child: Column(
-            children: [
-              Stack(
-                children: [
-                  Container(
-                    height: height * .4,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          gradientFirst,
-                          gradientSecond,
-                          gradientThird,
-                          Colors.white
-                        ],
-                        // stops: [
-                        //   0.0,
-                        //   0.20,
-                        //   0.80,
-                        // ],
-                      ),
-                    ),
-                  ),
-                  SafeArea(
+      body: CommonParentContainer(
+          showLargeGradient: false,
+          child: SafeArea(
+            child: Column(
+              children: [
+                _loadHeader(),
+                Expanded(
+                    child: RefreshIndicator(
+                  onRefresh: onRefreshPage,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    physics: const AlwaysScrollableScrollPhysics(),
                     child: Column(
                       children: [
-                        Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: GestureDetector(
-                              onTap: () async {
-                                final profile = await TokenManager.getProfile();
-                                final showPlan =
-                                    profile?.subscriptions != null &&
-                                        profile!.subscriptions.isNotEmpty;
-
-                                Navigator.push(
-                                  context,
-                                  CupertinoPageRoute(
-                                    builder: (context) => MoreScreen(
-                                      showPlan: showPlan,
-                                      showDriverSubscription:
-                                          widget.showDriverSubscription ??
-                                              false,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: Row(
-                                children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: ClipOval(
-                                      child: Image.network(
-                                        profileProvider.profilePhoto.toString(),
-                                        width: 40,
-                                        height: 40,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                          return const Icon(
-                                            Icons.account_circle_sharp,
-                                            color: Colors.grey,
-                                            size: 35,
-                                          );
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Hi, ${profileProvider.fullName ?? "Getting Name"}',
-                                          style: const TextStyle(
-                                            fontFamily: AppConstants.ptSansFont,
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                        ),
-                                        Text(
-                                          currentLocationName,
-                                          style: GoogleFonts.inter(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w400,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Consumer<LanguageProvider>(
-                                    builder:
-                                        (context, languageProvider, child) {
-                                      return GestureDetector(
-                                        onTap: null,
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 8, vertical: 6),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Image.asset(
-                                                'assets/img/flagIcon.png',
-                                                height: 22,
-                                                width: 22,
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              GestureDetector(
-                                                onTap: () async {
-                                                  final lang = await Navigator
-                                                      .push<bool>(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            const LanguageSelectionScreen()),
-                                                  );
-                                                },
-                                                child: Text(
-                                                  languageProvider
-                                                          .currentLanguage
-                                                          ?.name ??
-                                                      'En',
-                                                  style: GoogleFonts.lexendDeca(
-                                                    color: Colors.white,
-                                                    fontSize: 14,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(width: 6),
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              NotificationListScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: const Icon(
-                                      CupertinoIcons.bell_solid,
-                                      color: Colors.white,
-                                      size: 22,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )),
-
                         _buildImageSlider(),
-
                         const SizedBox(height: 22),
-
                         Container(
                           margin:
                               EdgeInsets.only(left: 12, right: 12, bottom: 16),
@@ -1273,9 +1116,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 15),
-
                         SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Padding(
@@ -1374,7 +1215,6 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             ),
                           ),
                         ),
-
                         SizedBox(
                           height: 10,
                         ),
@@ -1461,121 +1301,15 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             return const SizedBox.shrink();
                           },
                         ),
-                        /*
-                        FutureBuilder<ApplicationStatus>(
-                          future: _loadWhoRegAndStatus(),
-                          builder: (context, snapshot) {
-                            if (snapshot.hasData) {
-                              final status = snapshot.data!;
-                              if (status != ApplicationStatus.notStarted &&
-                                  status != ApplicationStatus.submitted &&
-                                  status != ApplicationStatus.approved &&
-                                  status !=
-                                      ApplicationStatus.fareAndCitiesComplete &&
-                                  status != ApplicationStatus.rejected) {
-                                return AutoRickshawProgressCard();
-                              } else if (isRegistrationIncomplete &&
-                                  whoReg?.toLowerCase() != "user") {
-                                return _buildActionButton();
-                              }
-                              return const SizedBox.shrink();
-                            }
-
-                            return const Center(
-                                child: CircularProgressIndicator());
-                          },
-                        ),
-          */
                         _buildMediaSection(),
-                        // Padding(
-                        //   padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        //   child: Container(
-                        //     decoration: BoxDecoration(
-                        //       color: Colors.white,
-                        //       borderRadius: BorderRadius.circular(10),
-                        //       boxShadow: [
-                        //         BoxShadow(
-                        //           color: Colors.grey.withOpacity(0.3),
-                        //           blurRadius: 10,
-                        //           offset: const Offset(0, 5),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //     child: Column(
-                        //       children: [
-                        //         // Around You Header
-                        //         Padding(
-                        //           padding: const EdgeInsets.all(16.0),
-                        //           child: Align(
-                        //             alignment: Alignment.centerLeft,
-                        //             child: Text(
-                        //               localizations.around_you,
-                        //               style: TextStyle(
-                        //                 fontSize: 16,
-                        //                 fontWeight: FontWeight.w600,
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         ),
-
-                        //         // Map Section
-                        //         Padding(
-                        //           padding: const EdgeInsets.only(
-                        //               left: 8.0, right: 8.0, bottom: 10.0),
-                        //           child: Container(
-                        //             height: 300,
-                        //             decoration: BoxDecoration(
-                        //               borderRadius: BorderRadius.circular(15),
-                        //               boxShadow: [
-                        //                 BoxShadow(
-                        //                   color: Colors.grey.withOpacity(0.2),
-                        //                   blurRadius: 8,
-                        //                   offset: const Offset(0, 3),
-                        //                 ),
-                        //               ],
-                        //             ),
-                        //             child: ClipRRect(
-                        //               borderRadius: BorderRadius.circular(15),
-                        //               child: GoogleMap(
-                        //                 onMapCreated: (GoogleMapController controller) {
-                        //                   mapController = controller;
-                        //                 },
-                        //                 initialCameraPosition: CameraPosition(
-                        //                   target: _currentLocation,
-                        //                   zoom: 14.0,
-                        //                 ),
-                        //                 markers: _markers,
-                        //                 myLocationEnabled: true,
-                        //                 myLocationButtonEnabled: true,
-                        //                 zoomControlsEnabled: false,
-                        //                 mapToolbarEnabled: false,
-                        //                 compassEnabled: true,
-                        //                 rotateGesturesEnabled: true,
-                        //                 scrollGesturesEnabled: true,
-                        //                 tiltGesturesEnabled: true,
-                        //                 zoomGesturesEnabled: true,
-                        //                 mapType: MapType.normal,
-                        //                 onCameraMove: (CameraPosition position) {},
-                        //                 onTap: (LatLng position) {},
-                        //               ),
-                        //             ),
-                        //           ),
-                        //         ),
-                        //       ],
-                        //     ),
-                        //   ),
-                        // ),
-                        // _buildMediaSection(),
                         const SizedBox(height: 20),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+                ))
+              ],
+            ),
+          )),
     );
   }
 
@@ -1607,11 +1341,9 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                   width: MediaQuery.of(context).size.width * .428,
                   margin: const EdgeInsets.only(right: 12),
                   child: GestureDetector(
-                    child: Stack(
-                      alignment: Alignment.center,
-                        children: [
+                    child: Stack(alignment: Alignment.center, children: [
                       Container(
-                        height:200,
+                        height: 200,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
                           color: Colors.black12,
@@ -1845,6 +1577,142 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
       debugPrintStack(stackTrace: stackTrace);
     }
   }
+
+  _loadHeader() {
+    return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: GestureDetector(
+          onTap: () async {
+            final profile = await TokenManager.getProfile();
+            final showPlan = profile?.subscriptions != null &&
+                profile!.subscriptions.isNotEmpty;
+
+            Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => MoreScreen(
+                  showPlan: showPlan,
+                  showDriverSubscription:
+                      widget.showDriverSubscription ?? false,
+                ),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                ),
+                child: ClipOval(
+                  child: Image.network(
+                    profileProvider.profilePhoto.toString(),
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.account_circle_sharp,
+                        color: Colors.grey,
+                        size: 35,
+                      );
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hi, ${profileProvider.fullName ?? "Getting Name"}',
+                      style: const TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                    Text(
+                      currentLocationName,
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Consumer<LanguageProvider>(
+                builder: (context, languageProvider, child) {
+                  return GestureDetector(
+                    onTap: null,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 6),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/img/flagIcon.png',
+                            height: 22,
+                            width: 22,
+                          ),
+                          SizedBox(
+                            width: 5,
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final lang = await Navigator.push<bool>(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        const LanguageSelectionScreen()),
+                              );
+                            },
+                            child: Text(
+                              languageProvider.currentLanguage?.name ?? 'En',
+                              style: GoogleFonts.lexendDeca(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationListScreen(),
+                    ),
+                  );
+                },
+                child: const Icon(
+                  CupertinoIcons.bell_solid,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ],
+          ),
+        ));
+  }
 }
 
 List<Map<String, dynamic>> getLocalizedSuggestions(BuildContext context) {
@@ -2004,9 +1872,9 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
     _controller = VideoPlayerController.networkUrl(
       Uri.parse(widget.videoUrl),
     )..initialize().then((_) {
-      setState(() {});
-      _controller.play();
-    });
+        setState(() {});
+        _controller.play();
+      });
 
     _controller.addListener(() {
       if (mounted) setState(() {});
@@ -2038,9 +1906,9 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
               Center(
                 child: _controller.value.isInitialized
                     ? AspectRatio(
-                  aspectRatio: _controller.value.aspectRatio,
-                  child: VideoPlayer(_controller),
-                )
+                        aspectRatio: _controller.value.aspectRatio,
+                        child: VideoPlayer(_controller),
+                      )
                     : const CircularProgressIndicator(color: Colors.white),
               ),
 
@@ -2093,9 +1961,9 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
                             .toDouble(),
                         value: _controller.value.position.inMilliseconds
                             .clamp(
-                          0,
-                          _controller.value.duration.inMilliseconds,
-                        )
+                              0,
+                              _controller.value.duration.inMilliseconds,
+                            )
                             .toDouble(),
                         onChanged: (value) {
                           _controller.seekTo(

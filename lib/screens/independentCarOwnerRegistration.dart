@@ -30,6 +30,7 @@ import '../constants/token_manager.dart';
 import '../utils/color.dart';
 import 'block/provider/profile_provider.dart';
 import 'multi_step_progress_bar.dart';
+import 'other/terms_and_coditions_bottom_sheet.dart';
 
 class IndependentTaxiOwnerFlow extends StatefulWidget {
   @override
@@ -709,7 +710,21 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
     _showRegistrationAgreementBottomSheet();
   }
 
-  void _showRegistrationAgreementBottomSheet() {
+  Future<void> _showRegistrationAgreementBottomSheet() async {
+    final accepted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => TermsConditionsBottomSheet(
+        type: 'INDEPENDENT_CAR_OWNER_AGREEMENT',
+      ),
+    );
+
+    if (accepted != true) {
+      return;
+    }else{
+      _proceedToFinalStep();
+      return;
+    }
     bool isAgreed = false;
     bool isScrolledToBottom = false;
     bool showScrollText = false;
@@ -907,7 +922,6 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
   int totalVehicles = 0;
 
   Future<void> _proceedToFinalStep() async {
-    Navigator.pop(context); // Close bottom sheet
     setState(() {
       submittingForm = true;
     });
@@ -2150,12 +2164,17 @@ class _IndependentTaxiOwnerFlowState extends State<IndependentTaxiOwnerFlow> {
                             color: ColorConstants.inputFieldBorderColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: TextField(
+                      child: TextField( style: CommonUtils.commonTitleStyle(
+                          fontSize: 12,
+                          weight: FontWeight.w400,
+                          color: Colors.black),
                         controller: _aboutController,
                         maxLines: null,
                         decoration: InputDecoration.collapsed(
-                          hintStyle: CommonUtils.commonHintTextStyle(),
-                          hintText:
+                          hintStyle: CommonUtils.commonTitleStyle(
+                              fontSize: 12,
+                              weight: FontWeight.w400,
+                              color: Colors.grey),                          hintText:
                               'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                         ),
                       ),

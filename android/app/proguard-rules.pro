@@ -23,7 +23,7 @@
 
 # Messaging background service
 -keep class com.google.firebase.messaging.FirebaseMessagingService { *; }
--keep class com.google.firebase.iid.FirebaseInstanceIdService { *; }
+#-keep class com.google.firebase.iid.FirebaseInstanceIdService { *; }
 
 # ======================= GOOGLE PLAY CORE ===================
 -keep class com.google.android.play.** { *; }

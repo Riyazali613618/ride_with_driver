@@ -26,6 +26,7 @@ import '../utils/color.dart';
 import '../utils/common_utils.dart';
 import 'block/language/language_provider.dart';
 import 'multi_step_progress_bar.dart';
+import 'other/terms_and_coditions_bottom_sheet.dart';
 
 class AutoRickshawDriverFlow extends StatefulWidget {
   @override
@@ -1158,7 +1159,6 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
               ),
               SizedBox(height: 8),
               Container(
-                height: 120,
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey[300]!),
@@ -1167,7 +1167,15 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                 child: TextField(
                   controller: _aboutController,
                   maxLines: null,
+                  style: CommonUtils.commonTitleStyle(
+                      fontSize: 12,
+                      weight: FontWeight.w400,
+                      color: Colors.black),
                   decoration: InputDecoration.collapsed(
+                    hintStyle: CommonUtils.commonTitleStyle(
+                        fontSize: 12,
+                        weight: FontWeight.w400,
+                        color: Colors.grey),
                     hintText:
                         'Briefly describe your transport business. Mention the type of vehicles you operate, service areas, years of experience, and what makes your service reliable (on-time service, clean vehicles, professional drivers, etc.).',
                   ),
@@ -1181,7 +1189,6 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
       ]),
     );
   }
-
 
   bool _isDropdownOpen = false;
 
@@ -1415,9 +1422,7 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  _aboutController.text.isEmpty
-                      ? 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n\nDonec ut ipsum vulputate, amet massa. Vestibulum a nibh in'
-                      : _aboutController.text,
+                   _aboutController.text,
                   style: CommonUtils.commonTitleStyle(
                       fontSize: 13, weight: FontWeight.w400),
                 ),
@@ -1448,7 +1453,21 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
     _showRegistrationAgreementBottomSheet();
   }
 
-  void _showRegistrationAgreementBottomSheet() {
+  Future<void> _showRegistrationAgreementBottomSheet() async {
+    final accepted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => TermsConditionsBottomSheet(
+        type: 'RICKSHAW_AGREEMENT',
+      ),
+    );
+
+    if (accepted != true) {
+      return;
+    }else{
+      _proceedToFinalStep();
+      return;
+    }
     bool isAgreed = false;
     bool isScrolledToBottom = false;
     final ScrollController _scrollController = ScrollController();
@@ -1621,7 +1640,6 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
   bool isSubmitting = false;
 
   Future<void> _proceedToFinalStep() async {
-    Navigator.of(context).pop();
     isSubmitting = true;
     updateState();
     try {

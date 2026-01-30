@@ -38,138 +38,132 @@ class FilterDemo extends StatelessWidget {
 
 class FilterBottomSheet extends StatefulWidget {
   final void Function(Map<String, String>) listener;
-
-  const FilterBottomSheet({required this.listener, super.key});
+  final Map<String, String>? appliedFilters;
+  const FilterBottomSheet({this.appliedFilters,required this.listener, super.key});
 
   @override
   State<FilterBottomSheet> createState() => _FilterBottomSheetState();
 }
 
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
-  Map<String, FilterData> filters = {
+  /// Stores applied filters
+   Map<String, String> appliedFilter = {};
+
+  /// All available filters (NO DEFAULT VALUE, NO ACTIVE FILTER)
+  final Map<String, FilterData> filters = {
     'price': FilterData(
       label: 'Price',
-      value: 'High',
       options: ['High', 'Low'],
-      isActive: true,
     ),
     'vehicleType': FilterData(
       label: 'Vehicle Type',
-      value: 'SUV',
       options: ['SUV', 'Mini Van', 'Car', 'Bus', 'Rickshaw', 'E-Rickshaw'],
-      isActive: true,
     ),
     'airCondition': FilterData(
       label: 'Air Condition',
-      value: 'AC',
       options: ['AC', 'Non-AC'],
-      isActive: true,
     ),
     'seatingCapacity': FilterData(
       label: 'Seating Capacity',
-      value: '5',
       options: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10+'],
-      isActive: true,
     ),
   };
+
+   @override
+   void initState() {
+     super.initState();
+
+     if (widget.appliedFilters != null &&
+         widget.appliedFilters!.isNotEmpty) {
+       appliedFilter = Map.from(widget.appliedFilters!);
+
+       widget.appliedFilters!.forEach((key, value) {
+         if (filters.containsKey(key)) {
+           filters[key]!
+             ..isActive = true
+             ..value = value;
+         }
+       });
+     }
+   }
+
+
+   void addFilter(String key) {
+    setState(() {
+      filters[key]?.isActive = true;
+      filters[key]?.value = null;
+    });
+  }
 
   void removeFilter(String key) {
     setState(() {
       filters[key]?.isActive = false;
-      if(appliedFilter.containsKey(key))
+      filters[key]?.value = null;
       appliedFilter.remove(key);
     });
   }
 
-  void addFilter(String key) {
-    setState(() {
-      filters[key]?.isActive = true;
-    });
-  }
-
   void updateFilterValue(String key, String value) {
-    print(value);
-    print(key);
-
     setState(() {
       filters[key]?.value = value;
+      filters[key]?.isActive = true;
+      appliedFilter[key] = value;
     });
-    final activeFilters =
-    filters.entries.where((e) => e.value.isActive).toList();
-    activeFilters.forEach(
-          (element) {
-        appliedFilter[element.key] = element.value.value;
-      },
-    );
+
     widget.listener(appliedFilter);
   }
 
   void clearAll() {
     setState(() {
-      filters.forEach((key, value) {
-        value.isActive = false;
+      filters.forEach((_, filter) {
+        filter.isActive = false;
+        filter.value = null;
       });
+      appliedFilter.clear();
     });
   }
 
-  Map<String, dynamic> getActiveFilters() {
-    Map<String, dynamic> activeFilters = {};
-    appliedFilter.forEach((key, value) {
-      activeFilters[key] = value;
-    });
-
-    return activeFilters;
-  }
-
-  void applyFilters() {
-    appliedFilter.clear();
-    widget.listener(appliedFilter);
-    Navigator.pop(context, getActiveFilters());
-  }
-
-  Map<String, String> appliedFilter = {};
+  Map<String, String> getActiveFilters() => Map.from(appliedFilter);
 
   @override
   Widget build(BuildContext context) {
     final inactiveFilters =
-        filters.entries.where((e) => !e.value.isActive).toList();
+    filters.entries.where((e) => !e.value.isActive).toList();
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10),
-      decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20), topRight: Radius.circular(20))),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
+          /// Close Icon
           Align(
             alignment: Alignment.centerRight,
             child: IconButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
               icon: const Icon(Icons.cancel_outlined),
             ),
           ),
-          const SizedBox(height: 10),
 
-          // Active Filter Chips
+          /// Active Filters
           ...filters.entries.map((entry) {
             if (!entry.value.isActive) return const SizedBox.shrink();
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: FilterChip(
+              child: FilterChipWidget(
                 filterKey: entry.key,
                 filterData: entry.value,
                 onRemove: () => removeFilter(entry.key),
-                onValueChanged: (value) => updateFilterValue(entry.key, value),
+                onValueChanged: (value) =>
+                    updateFilterValue(entry.key, value),
               ),
             );
           }).toList(),
 
-          // Add Filter Buttons
+          /// Add Filter Buttons
           if (inactiveFilters.isNotEmpty) ...[
             const SizedBox(height: 10),
             Wrap(
@@ -186,57 +180,65 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
           const SizedBox(height: 20),
 
-          // Clear All Button
+          /// Footer Buttons
           Row(
             children: [
-              SizedBox(width: 20,),
-              Expanded(child: GestureDetector(
-                onTap: clearAll,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                  decoration: BoxDecoration(
+              const SizedBox(width: 20),
+              Expanded(
+                child: GestureDetector(
+                  onTap: clearAll,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 6),
+                    decoration: BoxDecoration(
                       border: Border.all(color: AppColors.blue),
-                      borderRadius: BorderRadius.all(Radius.circular(14))),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Clear All',
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'Clear All',
                           style: CommonUtils.commonTitleStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                              weight: FontWeight.w400)),
-                      SizedBox(width: 8),
-                      Icon(Icons.close, size: 18),
-                    ],
+                            fontSize: 14,
+                            color: Colors.black,
+                            weight: FontWeight.w400,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Icon(Icons.close, size: 18),
+                      ],
+                    ),
                   ),
                 ),
-              )),
-              SizedBox(width: 20,),
-              Expanded(child: GestureDetector(
-                onTap: () {
-                  widget.listener(appliedFilter);
-                  Navigator.pop(context,getActiveFilters());                },
-                child: Container(
-                  alignment: Alignment.center,
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                  decoration: BoxDecoration(
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    widget.listener(appliedFilter);
+                    Navigator.pop(context, getActiveFilters());
+                  },
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 6),
+                    decoration: BoxDecoration(
                       color: ColorConstants.primaryColor,
-                      border: Border.all(color: AppColors.blue),
-                      borderRadius: BorderRadius.all(Radius.circular(14))),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Apply',
-                          style: CommonUtils.commonTitleStyle(
-                              fontSize: 14,
-                              color: Colors.white,
-                              weight: FontWeight.w400)),
-                      SizedBox(width: 8),
-                    ],
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      'Apply',
+                      style: CommonUtils.commonTitleStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                        weight: FontWeight.w400,
+                      ),
+                    ),
                   ),
                 ),
-              )),
-              SizedBox(width: 20,),
+              ),
+              const SizedBox(width: 20),
             ],
           ),
           const SizedBox(height: 20),
@@ -246,66 +248,66 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   }
 }
 
-class FilterChip extends StatelessWidget {
+class FilterChipWidget extends StatelessWidget {
   final String filterKey;
   final FilterData filterData;
   final VoidCallback onRemove;
   final ValueChanged<String> onValueChanged;
 
-  const FilterChip({
-    Key? key,
+  const FilterChipWidget({
+    super.key,
     required this.filterKey,
     required this.filterData,
     required this.onRemove,
     required this.onValueChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20),
+      margin: const EdgeInsets.symmetric(horizontal: 20),
       decoration: BoxDecoration(
-        color: Color(0x1F641BB4),
+        color: const Color(0x1F641BB4),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
           Container(
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.all(Radius.circular(12)),
+              borderRadius: BorderRadius.circular(12),
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.topRight,
-                colors: [
-                  gradientFirst,
-                  gradientSecond,
-                ],
+                colors: [gradientFirst, gradientSecond],
               ),
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-              child: Text(
-                filterData.label,
-                style: CommonUtils.commonTitleStyle(
-                    fontSize: 18, weight: FontWeight.w400, color: Colors.white),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+            child: Text(
+              filterData.label,
+              style: CommonUtils.commonTitleStyle(
+                fontSize: 18,
+                weight: FontWeight.w400,
+                color: Colors.white,
               ),
             ),
-          ),
-          const SizedBox(
-            width: 0,
           ),
           Expanded(
-            child: Container(
+            child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: filterData.value,
-                  isExpanded: true,
-                  style: CommonUtils.commonTitleStyle(
-                      fontSize: 18,
+                  hint: Text(
+                    'Select',
+                    style: CommonUtils.commonTitleStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
                       weight: FontWeight.w400,
-                      color: Colors.black),
-                  icon: SvgPicture.asset("assets/svg/drop_down_gradient.svg"),
+                    ),
+                  ),
+                  isExpanded: true,
+                  icon:
+                  SvgPicture.asset("assets/svg/drop_down_gradient.svg"),
                   items: filterData.options.map((option) {
                     return DropdownMenuItem(
                       value: option,
@@ -319,14 +321,9 @@ class FilterChip extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 8),
           InkWell(
             onTap: onRemove,
-            child: const Icon(
-              Icons.close,
-              color: Colors.black,
-              size: 18,
-            ),
+            child: const Icon(Icons.close, size: 18),
           ),
           const SizedBox(width: 8),
         ],
@@ -340,10 +337,10 @@ class AddFilterButton extends StatelessWidget {
   final VoidCallback onTap;
 
   const AddFilterButton({
-    Key? key,
+    super.key,
     required this.label,
     required this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -377,14 +374,14 @@ class AddFilterButton extends StatelessWidget {
 
 class FilterData {
   String label;
-  String value;
+  String? value; // nullable => no default selection
   List<String> options;
   bool isActive;
 
   FilterData({
     required this.label,
-    required this.value,
+    this.value,
     required this.options,
-    required this.isActive,
+    this.isActive = false,
   });
 }

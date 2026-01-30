@@ -509,7 +509,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
     );
   }
 
-  Map<String, dynamic> filters = {};
+  Map<String, String> filters = {};
 
   @override
   Widget build(BuildContext context) {
@@ -606,7 +606,7 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                       onTap: () async {
                         FocusManager.instance.primaryFocus?.unfocus();
                         final result =
-                            await showModalBottomSheet<Map<String, dynamic>>(
+                            await showModalBottomSheet<Map<String, String>>(
                           context: context,
                           isScrollControlled: true,
                           shape: const RoundedRectangleBorder(
@@ -624,7 +624,8 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
                             print("_selectedCategory==========${_selectedCategory}");
                             filterData = filterList;
                             searchedSelected = true;
-                          }),
+                          },
+                              appliedFilters:filters),
                         );
                         if (result != null) {
                           if (kDebugMode) print("Filtersssssssssss");

@@ -248,39 +248,42 @@ class _TermsConditionsBottomSheetState
                         children: [
                           // Scrollable HTML content
                           Expanded(
-                            child: SingleChildScrollView(
-                              controller: scrollController,
-                              padding: const EdgeInsets.all(16),
-                              child: Html(
-                                data: termsData.data.content,
-                                style: {
-                                  "body": Style(
-                                    margin: Margins.zero,
-                                    padding: HtmlPaddings.zero,
-                                  ),
-                                  "p": Style(
-                                    fontSize: FontSize(16),
-                                    lineHeight: const LineHeight(1.5),
-                                    margin: Margins.only(bottom: 12),
-                                  ),
-                                  "h1, h2, h3, h4, h5, h6": Style(
-                                    fontWeight: FontWeight.bold,
-                                    margin: Margins.only(top: 16, bottom: 8),
-                                  ),
-                                  "ul, ol": Style(
-                                    margin: Margins.only(bottom: 12, left: 16),
-                                  ),
-                                  "li": Style(
-                                    margin: Margins.only(bottom: 4),
-                                  ),
-                                  "a": Style(
-                                    color: Theme.of(context).primaryColor,
-                                    textDecoration: TextDecoration.underline,
-                                  ),
-                                },
-                                onLinkTap: (url, attributes, element) {
-                                  debugPrint('Link tapped: $url');
-                                },
+                            child: Scrollbar(
+                              thumbVisibility: true,
+                              child: SingleChildScrollView(
+                                controller: scrollController,
+                                padding: const EdgeInsets.all(16),
+                                child: Html(
+                                  data: termsData.data.content,
+                                  style: {
+                                    "body": Style(
+                                      margin: Margins.zero,
+                                      padding: HtmlPaddings.zero,
+                                    ),
+                                    "p": Style(
+                                      fontSize: FontSize(16),
+                                      lineHeight: const LineHeight(1.5),
+                                      margin: Margins.only(bottom: 12),
+                                    ),
+                                    "h1, h2, h3, h4, h5, h6": Style(
+                                      fontWeight: FontWeight.bold,
+                                      margin: Margins.only(top: 16, bottom: 8),
+                                    ),
+                                    "ul, ol": Style(
+                                      margin: Margins.only(bottom: 12, left: 16),
+                                    ),
+                                    "li": Style(
+                                      margin: Margins.only(bottom: 4),
+                                    ),
+                                    "a": Style(
+                                      color: Theme.of(context).primaryColor,
+                                      textDecoration: TextDecoration.underline,
+                                    ),
+                                  },
+                                  onLinkTap: (url, attributes, element) {
+                                    debugPrint('Link tapped: $url');
+                                  },
+                                ),
                               ),
                             ),
                           ),
