@@ -3,7 +3,7 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/api_constants.dart';
+import 'package:rwd/constants/api_constants.dart';
 
 import '../../../constants/token_manager.dart';
 import '../../api_model/registrations/auto_rikshaw_registration_model.dart';

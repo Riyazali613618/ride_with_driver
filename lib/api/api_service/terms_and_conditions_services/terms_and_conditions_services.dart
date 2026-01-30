@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
-import 'package:r_w_r/screens/block/language/language_provider.dart';
-import 'package:r_w_r/screens/block/language/language_repo.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
+import 'package:rwd/screens/block/language/language_provider.dart';
+import 'package:rwd/screens/block/language/language_repo.dart';
 
 import '../../api_model/term_and_conditions_model/terms_and_conditions_model.dart';
 

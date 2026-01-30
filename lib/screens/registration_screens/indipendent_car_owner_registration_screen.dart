@@ -4,8 +4,8 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:provider/provider.dart';
-// import 'package:r_w_r/screens/layout.dart';
-// import 'package:r_w_r/screens/registration_screens/r_widgets/doc_priview_dialog.dart';
+// import 'package:rwd/screens/layout.dart';
+// import 'package:rwd/screens/registration_screens/r_widgets/doc_priview_dialog.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:http/http.dart' as http;
 // import '../../api/api_model/language/language_model.dart';

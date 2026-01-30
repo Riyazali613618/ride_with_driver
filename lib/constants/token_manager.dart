@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
-import 'package:r_w_r/api/api_model/user_model/user_profile_model.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/api/api_model/user_model/user_profile_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenManager {

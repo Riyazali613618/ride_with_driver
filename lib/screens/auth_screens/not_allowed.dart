@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/components/app_appbar.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/components/app_appbar.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 class NotAllowed extends StatelessWidget {
   final String message;

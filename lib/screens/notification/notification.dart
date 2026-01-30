@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../../api/api_model/notification_model.dart';
 import '../../api/api_service/notification_service.dart';

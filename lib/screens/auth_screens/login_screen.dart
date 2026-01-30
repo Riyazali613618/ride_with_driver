@@ -18,7 +18,7 @@ import '../../utils/color.dart';
 import '../block/language/language_provider.dart';
 import 'int_number.dart';
 import 'otp_screen.dart';
-import 'package:r_w_r/api/api_model/countryModel.dart' as cm;
+import 'package:rwd/api/api_model/countryModel.dart' as cm;
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});

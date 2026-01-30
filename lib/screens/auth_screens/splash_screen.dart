@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:r_w_r/screens/auth_screens/select_language_screen.dart';
-import 'package:r_w_r/screens/layout.dart';
-import 'package:r_w_r/screens/user_screens/user_home_new.dart';
+import 'package:rwd/screens/auth_screens/select_language_screen.dart';
+import 'package:rwd/screens/layout.dart';
+import 'package:rwd/screens/user_screens/user_home_new.dart';
 
 import '../../constants/assets_constant.dart';
 import '../../constants/color_constants.dart';
@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   Future<void> _checkAuthenticationStatus() async {
     // Additional auth validation logic can go here
-    // For example, verify token with server if needed
+    // For app, verify token with server if needed
   }
 
   @override

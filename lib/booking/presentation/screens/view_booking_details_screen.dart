@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
-import 'package:r_w_r/booking/presentation/screens/booking_tabs.dart';
-import 'package:r_w_r/booking/presentation/screens/makeBooking/make_booking_full_screen.dart';
-import 'package:r_w_r/booking/presentation/screens/myBookings/my_booking_page.dart';
-import 'package:r_w_r/booking/presentation/widgets/add_value_popup.dart';
-import 'package:r_w_r/booking/presentation/widgets/show_otp_popup.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
+import 'package:rwd/booking/presentation/screens/booking_tabs.dart';
+import 'package:rwd/booking/presentation/screens/makeBooking/make_booking_full_screen.dart';
+import 'package:rwd/booking/presentation/screens/myBookings/my_booking_page.dart';
+import 'package:rwd/booking/presentation/widgets/add_value_popup.dart';
+import 'package:rwd/booking/presentation/widgets/show_otp_popup.dart';
+import 'package:rwd/components/common_parent_container.dart';
 
 import '../../../../components/app_loader.dart';
 import '../../../../utils/color.dart';

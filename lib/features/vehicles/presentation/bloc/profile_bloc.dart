@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/features/vehicles/presentation/bloc/profile_repository.dart';
+import 'package:rwd/features/vehicles/presentation/bloc/profile_repository.dart';
 
 import 'profile_event.dart';
 import 'profile_state.dart';

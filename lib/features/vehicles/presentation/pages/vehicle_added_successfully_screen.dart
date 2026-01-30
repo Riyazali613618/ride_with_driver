@@ -1,6 +1,6 @@
 // vehicle_registration_provider.dart
 import 'dart:io';
-import 'package:r_w_r/plan/data/services/plan_service.dart';
+import 'package:rwd/plan/data/services/plan_service.dart';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -9,15 +9,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_service/media_service.dart';
-import 'package:r_w_r/api/api_service/user_service/user_profile_service.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/features/vehicles/domain/entities/vehicle_entity.dart';
-import 'package:r_w_r/features/vehicles/presentation/bloc/profile_state.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
-import 'package:r_w_r/screens/vehicle/add_vehicle_screen.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/api/api_service/media_service.dart';
+import 'package:rwd/api/api_service/user_service/user_profile_service.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/features/vehicles/domain/entities/vehicle_entity.dart';
+import 'package:rwd/features/vehicles/presentation/bloc/profile_state.dart';
+import 'package:rwd/features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
+import 'package:rwd/screens/vehicle/add_vehicle_screen.dart';
+import 'package:rwd/utils/common_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../api/api_model/user_model/my_profile_model.dart';

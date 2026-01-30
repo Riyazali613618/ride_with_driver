@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/features/newDashboard/dashboard_model.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/features/newDashboard/dashboard_model.dart';
 
 import '../../components/app_loader.dart';
 

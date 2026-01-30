@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../components/app_loader.dart';
 import '../constants/api_constants.dart';

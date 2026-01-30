@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:r_w_r/components/app_appbar.dart';
+import 'package:rwd/components/app_appbar.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class LaunchUrl extends StatefulWidget {

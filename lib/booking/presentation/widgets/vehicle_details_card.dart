@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:r_w_r/components/app_loader.dart';
+import 'package:rwd/components/app_loader.dart';
 
 class VehicleDetailsCard extends StatelessWidget {
   final void Function(int)? onTap;

@@ -5,8 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:r_w_r/components/app_button.dart' show CustomButton;
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/components/app_button.dart' show CustomButton;
+import 'package:rwd/constants/color_constants.dart';
 
 import '../l10n/app_localizations.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_html/flutter_html.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../../api/api_model/term_and_conditions_model/terms_and_conditions_model.dart';
 import '../../api/api_service/terms_and_conditions_services/terms_and_conditions_services.dart';

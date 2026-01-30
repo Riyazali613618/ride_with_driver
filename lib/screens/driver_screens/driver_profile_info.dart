@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../../api/api_model/driver_transpoter_profile_model.dart';
 import '../../api/api_service/driver_transpoter_profile_service.dart';

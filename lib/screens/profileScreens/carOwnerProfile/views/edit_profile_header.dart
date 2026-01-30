@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../../../api/api_service/media_service.dart';
 import '../../../../components/app_loader.dart';

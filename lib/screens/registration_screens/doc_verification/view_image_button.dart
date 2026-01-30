@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 class ImagePreviewWidget extends StatelessWidget {
   final List<String> imageUrls; // Support both single and multiple images

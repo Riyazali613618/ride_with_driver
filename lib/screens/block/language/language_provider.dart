@@ -1,8 +1,8 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:r_w_r/api/api_model/language/language_model.dart';
-import 'package:r_w_r/api/api_model/languageModel.dart';
+import 'package:rwd/api/api_model/language/language_model.dart';
+import 'package:rwd/api/api_model/languageModel.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/api_service/language_service.dart';

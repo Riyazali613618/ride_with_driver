@@ -1,12 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
-
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/api/api_model/chat/chat_model.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
 
+/*
+
+import 'package:rwd/api/api_model/chat/chat_model.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
+*/
+
+import '../../../constants/api_constants.dart';
+import '../../../constants/token_manager.dart';
+import '../../api_model/chat/chat_model.dart';
 import '../../api_model/chat/delet_chat_api_model.dart';
 
 class ChatApiService {

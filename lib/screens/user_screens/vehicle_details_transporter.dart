@@ -4,10 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/screens/user_screens/transporter_details_screen.dart';
-import 'package:r_w_r/utils/color.dart';
+import 'package:rwd/api/api_model/vehicle/search_vehicles.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/screens/user_screens/transporter_details_screen.dart';
+import 'package:rwd/utils/color.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../components/app_loader.dart';
@@ -72,7 +72,7 @@ class _VehicleDetailScreenTransPorterState
     ));
 
     _controller = VideoPlayerController.network(
-      'https://example.com/your-video.mp4',
+      'https://app.com/your-video.mp4',
     )..initialize().then((_) {
         setState(() {});
       });
@@ -250,6 +250,7 @@ class _VehicleDetailScreenTransPorterState
             itemBuilder: (context, index) {
               final mediaUrl = _allMedia[index];
               final isVideo = widget.vehicle.videos.contains(mediaUrl);
+              print("Media URL====$mediaUrl");
 
               return GestureDetector(
                 onTap: () => _showFullScreenMedia(index),

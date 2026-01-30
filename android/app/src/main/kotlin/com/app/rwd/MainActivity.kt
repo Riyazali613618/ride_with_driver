@@ -1,4 +1,4 @@
-package com.example.r_w_r
+package com.app.rwd
 
 import io.flutter.embedding.android.FlutterActivity
 

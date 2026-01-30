@@ -3,11 +3,11 @@ import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:r_w_r/booking/presentation/screens/makeBooking/repository/comm_repo.dart';
-import 'package:r_w_r/components/app_loader.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/booking/presentation/screens/makeBooking/repository/comm_repo.dart';
+import 'package:rwd/components/app_loader.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../../../screens/multi_step_progress_bar.dart';
 import '../../../../utils/color.dart';

@@ -1,7 +1,7 @@
 // import 'package:flutter/cupertino.dart';
 // import 'package:flutter/material.dart';
-// import 'package:r_w_r/screens/driver_screens/profile.dart';
-// import 'package:r_w_r/screens/other/chat_history_list.dart';
+// import 'package:rwd/screens/driver_screens/profile.dart';
+// import 'package:rwd/screens/other/chat_history_list.dart';
 //
 // import '../../constants/color_constants.dart';
 // import '../other/category_view.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/api/api_model/payment/payment_model.dart';
-import 'package:r_w_r/screens/widgets/gradient_button.dart';
+import 'package:rwd/api/api_model/payment/payment_model.dart';
+import 'package:rwd/screens/widgets/gradient_button.dart';
 import '../../../api/api_service/payment_service/payment_service.dart';
 import '../../../bloc/payment/payment_bloc.dart';
 import '../../../bloc/payment/payment_event.dart';

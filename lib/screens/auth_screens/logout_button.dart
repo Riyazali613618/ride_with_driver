@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/screens/auth_screens/splash_screen.dart';
+import 'package:rwd/screens/auth_screens/splash_screen.dart';
 
 import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';

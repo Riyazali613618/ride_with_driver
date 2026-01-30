@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:r_w_r/core/extension/buildcontext_extension.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/core/extension/buildcontext_extension.dart';
+import 'package:rwd/utils/common_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants/api_constants.dart';

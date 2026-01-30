@@ -1,4 +1,4 @@
-import 'package:r_w_r/api/api_model/upgradeable_plans.dart';
+import 'package:rwd/api/api_model/upgradeable_plans.dart';
 
 import 'dashboard_api_service.dart';
 import 'dashboard_model.dart';

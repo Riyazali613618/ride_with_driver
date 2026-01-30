@@ -1,4 +1,5 @@
-import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
+import 'vehicle/search_vehicles.dart';
+
 class FavouriteModel {
   bool? success;
   String? message;

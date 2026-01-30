@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../api/api_service/user_service/user_profile_service.dart';

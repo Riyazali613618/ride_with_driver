@@ -3,7 +3,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:r_w_r/constants/api_constants.dart';
+import 'package:rwd/constants/api_constants.dart';
 import '../../../../components/app_loader.dart';
 import '../../../../constants/color_constants.dart';
 import '../../../../utils/color.dart';

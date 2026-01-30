@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/screens/transporterRegistration.dart';
+import 'package:rwd/screens/transporterRegistration.dart';
 
 import '../api/api_model/payment/payment_model.dart';
 import '../bloc/payment/payment_bloc.dart';

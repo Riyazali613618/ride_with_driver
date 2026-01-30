@@ -5,8 +5,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/token_manager.dart';
-import 'package:r_w_r/utils/color.dart';
+import 'package:rwd/constants/token_manager.dart';
+import 'package:rwd/utils/color.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/app_localizations.dart';
@@ -410,6 +410,7 @@ String convertVehicleType(String vehicleType) {
     case 'RICKSHAW':
       return 'RICKSHAW';
     case 'E-RICKSHAW':
+    case 'E_RICKSHAW':
       return 'E_RICKSHAW';
     case 'LUXURY':
       return 'LUXURY';

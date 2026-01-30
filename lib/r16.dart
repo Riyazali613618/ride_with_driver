@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_model/language/language_model.dart';
-import 'package:r_w_r/l10n/app_localizations.dart'; // Import generated localizations
-import 'package:r_w_r/screens/block/language/language_provider.dart';
-import 'package:r_w_r/screens/common_screens/language_screen.dart';
+import 'package:rwd/api/api_model/language/language_model.dart';
+import 'package:rwd/l10n/app_localizations.dart'; // Import generated localizations
+import 'package:rwd/screens/block/language/language_provider.dart';
+import 'package:rwd/screens/common_screens/language_screen.dart';
 
 class LocalizationTestScreen extends StatelessWidget {
   const LocalizationTestScreen({super.key});

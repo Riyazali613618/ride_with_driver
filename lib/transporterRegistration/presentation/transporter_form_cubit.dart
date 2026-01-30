@@ -1,6 +1,6 @@
 // lib/features/transporter_registration/presentation/cubit/transporter_form_cubit.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/transporterRegistration/presentation/transporter_form_state.dart';
+import 'package:rwd/transporterRegistration/presentation/transporter_form_state.dart';
 
 import '../../api/api_model/registrations/transporter_model.dart';
 

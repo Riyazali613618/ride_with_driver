@@ -1,8 +1,8 @@
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
-import 'package:r_w_r/screens/user_screens/vehicle_details_transporter.dart';
-import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
+import 'package:rwd/screens/user_screens/vehicle_details_transporter.dart';
+import 'package:rwd/api/api_model/vehicle/search_vehicles.dart';
 
 import '../api/api_service/vehicle/search_vehicle_service.dart';
 import '../components/app_loader.dart';

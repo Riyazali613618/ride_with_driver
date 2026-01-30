@@ -3,11 +3,11 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:intl/intl.dart';
-// import 'package:r_w_r/constants/api_constants.dart';
-// import 'package:r_w_r/screens/layout.dart';
-// import 'package:r_w_r/screens/registration_screens/r_widgets/custom_chips.dart';
-// import 'package:r_w_r/screens/registration_screens/r_widgets/doc_priview_dialog.dart';
-// import 'package:r_w_r/screens/registration_screens/r_widgets/select_city_state.dart';
+// import 'package:rwd/constants/api_constants.dart';
+// import 'package:rwd/screens/layout.dart';
+// import 'package:rwd/screens/registration_screens/r_widgets/custom_chips.dart';
+// import 'package:rwd/screens/registration_screens/r_widgets/doc_priview_dialog.dart';
+// import 'package:rwd/screens/registration_screens/r_widgets/select_city_state.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:geolocator/geolocator.dart';
 // import 'package:geocoding/geocoding.dart';

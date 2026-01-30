@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/bloc/payment/payment_event.dart';
-import 'package:r_w_r/bloc/payment/payment_state.dart';
+import 'package:rwd/bloc/payment/payment_event.dart';
+import 'package:rwd/bloc/payment/payment_state.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../api/api_service/payment_service/payment_service.dart';
 import '../../api/api_model/payment/payment_model.dart';

@@ -4,8 +4,8 @@
 // import 'package:cached_network_image/cached_network_image.dart';
 // import 'package:flutter/cupertino.dart';
 // import 'package:flutter/material.dart';
-// import 'package:r_w_r/constants/color_constants.dart';
-// import 'package:r_w_r/constants/token_manager.dart';
+// import 'package:rwd/constants/color_constants.dart';
+// import 'package:rwd/constants/token_manager.dart';
 // import 'package:url_launcher/url_launcher.dart';
 // import 'package:video_player/video_player.dart';
 // import 'package:web_socket_channel/status.dart' as status;

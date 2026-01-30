@@ -5,7 +5,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:r_w_r/features/vehicles/presentation/pages/vehicle_type_model.dart';
+import 'package:rwd/features/vehicles/presentation/pages/vehicle_type_model.dart';
 import '../../../constants/api_constants.dart';
 import '../../../constants/token_manager.dart';
 import '../../api_model/user_model/my_profile_model.dart';

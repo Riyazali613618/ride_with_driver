@@ -4,8 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/components/booking_container.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/components/booking_container.dart';
+import 'package:rwd/constants/color_constants.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../components/app_appbar.dart';

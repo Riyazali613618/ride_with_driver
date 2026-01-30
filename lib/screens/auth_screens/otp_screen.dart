@@ -3,9 +3,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/screens/auth_screens/not_allowed.dart';
-import 'package:r_w_r/screens/auth_screens/select_language_screen.dart';
-import 'package:r_w_r/screens/layout.dart';
+import 'package:rwd/screens/auth_screens/not_allowed.dart';
+import 'package:rwd/screens/auth_screens/select_language_screen.dart';
+import 'package:rwd/screens/layout.dart';
 
 import '../../api/api_service/countryStateProviderService.dart';
 import '../../api/api_service/verify_otp_service.dart';

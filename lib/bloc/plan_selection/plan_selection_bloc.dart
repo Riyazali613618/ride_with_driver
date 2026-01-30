@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/bloc/plan_selection/plan_selection_event.dart';
-import 'package:r_w_r/bloc/plan_selection/plan_selection_state.dart';
+import 'package:rwd/bloc/plan_selection/plan_selection_event.dart';
+import 'package:rwd/bloc/plan_selection/plan_selection_state.dart';
 import '../../api/api_model/payment/payment_model.dart';
 import '../../api/api_model/user_model/plan_model.dart';
 import '../../api/api_service/user_service/plan_service.dart';

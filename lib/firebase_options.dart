@@ -62,6 +62,6 @@ class DefaultFirebaseOptions {
     messagingSenderId: '901221900364',
     projectId: 'ridewithdriver-d271a',
     storageBucket: 'ridewithdriver-d271a.firebasestorage.app',
-    iosBundleId: 'com.example.rWr',
+    iosBundleId: 'com.app.rWr',
   );
 }

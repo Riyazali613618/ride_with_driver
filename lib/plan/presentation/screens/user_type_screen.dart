@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/plan/presentation/screens/plan_selection_screen.dart';
+import 'package:rwd/plan/presentation/screens/plan_selection_screen.dart';
 import '../bloc/plan_bloc.dart';
 import '../bloc/plan_event.dart';
 import '../bloc/plan_state.dart';

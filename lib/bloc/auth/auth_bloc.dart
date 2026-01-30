@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/api/api_service/api_repository.dart';
-import 'package:r_w_r/constants/token_manager.dart';
+import 'package:rwd/api/api_service/api_repository.dart';
+import 'package:rwd/constants/token_manager.dart';
 
 import 'auth_event.dart';
 import 'auth_state.dart';

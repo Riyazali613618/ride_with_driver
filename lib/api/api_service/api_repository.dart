@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/api_endpoints.dart';
-import 'package:r_w_r/constants/token_manager.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/api_endpoints.dart';
+import 'package:rwd/constants/token_manager.dart';
 
 /// A single centralized repository to manage all API calls.
 ///

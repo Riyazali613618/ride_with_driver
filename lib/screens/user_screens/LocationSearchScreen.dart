@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:r_w_r/api/api_model/VehicleType.dart';
-import 'package:r_w_r/components/app_loader.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/assets_constant.dart';
-import 'package:r_w_r/l10n/app_localizations.dart';
-import 'package:r_w_r/utils/color.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/api/api_model/VehicleType.dart';
+import 'package:rwd/components/app_loader.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/assets_constant.dart';
+import 'package:rwd/l10n/app_localizations.dart';
+import 'package:rwd/utils/color.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_service/location_service/location_service.dart';
@@ -207,9 +207,11 @@ class _LocationSearchScreenState extends State<LocationSearchScreen> {
 
   Future<void> _searchLocationsWithService(String query) async {
     if (kDebugMode) print("_searchLocationsWithService:$query");
-    if (!_availableCategories.contains(query.toUpperCase())) {
+    print("selectedLocationData===$selectedLocationData");
+    /*if (!_availableCategories.contains(query.toUpperCase())) {
       selectedLocationData = null;
-    }
+    }*/
+    print("selectedLocationData===$selectedLocationData");
     if (query.isEmpty) {
       _initializeSearchSuggestions();
       return;

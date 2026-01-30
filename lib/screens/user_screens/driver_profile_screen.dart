@@ -4,9 +4,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:r_w_r/api/api_model/rating_reviews_model.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/screens/user_screens/rating_and_reviews.dart';
+import 'package:rwd/api/api_model/rating_reviews_model.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/screens/user_screens/rating_and_reviews.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../api/api_model/transporter_model/transpoter_details_model.dart';

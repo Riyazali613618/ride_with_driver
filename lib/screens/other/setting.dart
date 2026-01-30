@@ -4,8 +4,8 @@ import 'dart:developer' as dev;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/screens/auth_screens/splash_screen.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/screens/auth_screens/splash_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../constants/color_constants.dart';

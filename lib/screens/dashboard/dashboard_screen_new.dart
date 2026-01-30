@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/screens/dashboard/performance_section.dart';
-import 'package:r_w_r/screens/dashboard/revenue_chart.dart';
-import 'package:r_w_r/screens/dashboard/summary_cards.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/screens/dashboard/performance_section.dart';
+import 'package:rwd/screens/dashboard/revenue_chart.dart';
+import 'package:rwd/screens/dashboard/summary_cards.dart';
 
 import '../../features/newDashboard/dashboard_api_service.dart';
 import '../../features/newDashboard/dashboard_repository.dart';

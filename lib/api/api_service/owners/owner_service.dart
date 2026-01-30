@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/api_constants.dart';
+import 'package:rwd/constants/api_constants.dart';
 
 import '../../../constants/token_manager.dart';
 import '../../api_model/owner/owners_model.dart';

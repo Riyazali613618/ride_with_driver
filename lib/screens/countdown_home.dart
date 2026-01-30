@@ -6,8 +6,8 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
 // import 'package:http/http.dart' as http;
-// import 'package:r_w_r/constants/api_constants.dart';
-// import 'package:r_w_r/screens/user_screens/user_profile_event.dart';
+// import 'package:rwd/constants/api_constants.dart';
+// import 'package:rwd/screens/user_screens/user_profile_event.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 // import 'package:video_player/video_player.dart';
 // import 'package:visibility_detector/visibility_detector.dart';

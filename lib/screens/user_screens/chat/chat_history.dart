@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../../../api/api_model/chat/chat_model.dart';
 import '../../../api/api_service/chat/chat_history_service.dart';

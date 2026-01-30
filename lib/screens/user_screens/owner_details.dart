@@ -1,10 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/components/app_appbar.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/assets_constant.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/screens/user_screens/rating_and_reviews.dart';
+import 'package:rwd/components/app_appbar.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/assets_constant.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/screens/user_screens/rating_and_reviews.dart';
 
 import '../../api/api_model/owner/driver_details_model.dart';
 import '../../api/api_service/owners/driver_details_service.dart';

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/api/api_model/upgradeable_plans.dart';
+import 'package:rwd/api/api_model/upgradeable_plans.dart';
 import '../../constants/api_constants.dart';
 import '../../constants/token_manager.dart';
 import 'dashboard_model.dart';

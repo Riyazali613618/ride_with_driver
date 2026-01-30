@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:r_w_r/screens/block/language/language_event.dart';
-import 'package:r_w_r/screens/block/language/language_repo.dart';
-import 'package:r_w_r/screens/block/language/language_state.dart';
+import 'package:rwd/screens/block/language/language_event.dart';
+import 'package:rwd/screens/block/language/language_repo.dart';
+import 'package:rwd/screens/block/language/language_state.dart';
 
 class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
   final LanguageRepository languageRepository;

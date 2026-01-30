@@ -4,19 +4,19 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:camera/camera.dart';
 import 'package:dotted_border/dotted_border.dart';
-import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
+import 'package:rwd/api/api_model/languageModel.dart' as lm;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
 
-import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/api/api_model/cityModel.dart' as cM;
-import 'package:r_w_r/constants/token_manager.dart';
+import 'package:rwd/api/api_model/stateModel.dart' as sm;
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/api/api_model/cityModel.dart' as cM;
+import 'package:rwd/constants/token_manager.dart';
 import '../../../../api/api_service/countryStateProviderService.dart';
 import '../../../../constants/api_constants.dart';
 import '../../../../constants/color_constants.dart';

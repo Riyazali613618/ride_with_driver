@@ -3,12 +3,12 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/components/custom_stepper.dart';
-import 'package:r_w_r/components/custom_text_field.dart';
-import 'package:r_w_r/components/media_uploader_widget.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
+import 'package:rwd/components/custom_stepper.dart';
+import 'package:rwd/components/custom_text_field.dart';
+import 'package:rwd/components/media_uploader_widget.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
 
 import '../../components/app_appbar.dart';
 import '../../components/custom_activity.dart';

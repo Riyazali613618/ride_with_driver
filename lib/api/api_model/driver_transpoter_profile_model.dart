@@ -1,4 +1,5 @@
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
+
+import 'user_model/my_profile_model.dart';
 
 class TransporterDriverProfileModel {
   final bool status;

@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/bloc/payment_status/payment_status_event.dart';
-import 'package:r_w_r/bloc/payment_status/payment_status_state.dart';
+import 'package:rwd/bloc/payment_status/payment_status_event.dart';
+import 'package:rwd/bloc/payment_status/payment_status_state.dart';
 import '../../api/api_service/user_service/PaymentStatusService.dart';
 
 class PaymentStatusBloc extends Bloc<PaymentStatusEvent, PaymentStatusState> {

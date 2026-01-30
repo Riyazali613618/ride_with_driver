@@ -1,7 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/components/app_loader.dart';
-import 'package:r_w_r/features/newDashboard/dashboard_model.dart';
+import 'package:rwd/components/app_loader.dart';
+import 'package:rwd/features/newDashboard/dashboard_model.dart';
 import 'package:speedometer_chart/speedometer_chart.dart';
 
 class PerformanceSection extends StatelessWidget {

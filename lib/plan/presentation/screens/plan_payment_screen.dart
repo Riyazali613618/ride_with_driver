@@ -37,7 +37,7 @@ class _PlanPaymentScreenState extends State<PlanPaymentScreen> {
       'description': widget.selectedPlan.name,
       'prefill': {
         'contact': '9999999999', // optional
-        'email': 'user@example.com', // optional
+        'email': 'user@app.com', // optional
       },
       'theme': {'color': '#6A1B9A'},
     };

@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
 
 class CarOwnerProfileApiService {
   Future<MyProfileModel> fetchProfile() async {

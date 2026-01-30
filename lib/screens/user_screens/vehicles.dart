@@ -4,14 +4,14 @@ import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/api/api_model/vehicle/search_vehicles.dart';
-import 'package:r_w_r/components/app_loader.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/main.dart';
-import 'package:r_w_r/screens/user_screens/LocationSearchScreen.dart';
-import 'package:r_w_r/screens/user_screens/transporter_details_screen.dart';
-import 'package:r_w_r/screens/user_screens/vehicle_details_transporter.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/api/api_model/vehicle/search_vehicles.dart';
+import 'package:rwd/components/app_loader.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/main.dart';
+import 'package:rwd/screens/user_screens/LocationSearchScreen.dart';
+import 'package:rwd/screens/user_screens/transporter_details_screen.dart';
+import 'package:rwd/screens/user_screens/vehicle_details_transporter.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_service/filter_service.dart';
@@ -53,14 +53,14 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   final LocationService _locationService = LocationService();
   List<fm.Data> favouritesData = [];
 
-  List<VehicleOwner> _vehicles = [];
+  List<VehicleOwner> vehicleOwners = [];
   bool _isLoading = false;
   String? _errorMessage;
   String _selectedVehicleType = ' ';
   bool _showLocationSearch = false;
   bool _isSearchingLocation = false;
   int _currentPage = 1;
-  final int _itemsPerPage = 10;
+  final int _itemsPerPage = 20;
   bool _hasMoreItems = true;
   bool _isLoadingMore = false;
   final ScrollController _scrollController = ScrollController();
@@ -498,8 +498,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   }
 
   void _scrollListener() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200 ) {
+      print(_hasMoreItems);
       if (!_isLoadingMore && _hasMoreItems) {
         _loadMoreVehicles();
       }
@@ -533,7 +534,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
       setState(() {
         if (response.data.results.isNotEmpty) {
-          _vehicles.addAll(response.data.results);
+          vehicleOwners.addAll(response.data.results);
+          vehicleOwners = mergeVehicleOwners(vehicleOwners);
+
           _currentPage = nextPage;
         }
         _isLoadingMore = false;
@@ -627,7 +630,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       _isLoading = true;
       _errorMessage = null;
       if (reset) {
-        _vehicles.clear();
+        vehicleOwners.clear();
         _currentPage = 1;
         _hasMoreItems = true;
         _isLoadingMore = false;
@@ -654,15 +657,17 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
       if (mounted) {
         setState(() {
-          _vehicles = List.from(response.data.results);
+          vehicleOwners = List.from(response.data.results);
+          vehicleOwners = mergeVehicleOwners(vehicleOwners);
           _isLoading = false;
           _currentVehicleIndex.clear();
-          for (var owner in _vehicles) {
+          for (var owner in vehicleOwners) {
             _currentVehicleIndex[owner.id] = 0;
             developer.log(
                 'Owner: ${owner.firstName}, ID: ${owner.id}, Vehicle Count: ${owner.vehicles.length}');
           }
-          _hasMoreItems = response.data.results.length >= _itemsPerPage;
+
+          _hasMoreItems = response.data.pagination.hasNext;
         });
       }
     } catch (e) {
@@ -675,6 +680,67 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       }
     }
   }
+  List<VehicleOwner> mergeVehicleOwners(List<VehicleOwner> apiResults) {
+    final Map<String, VehicleOwner> ownerMap = {};
+
+    for (final owner in apiResults) {
+      final ownerId = owner.id;
+
+      if (!ownerMap.containsKey(ownerId)) {
+        // Create fresh owner with empty vehicles
+        ownerMap[ownerId] = VehicleOwner(
+          id: owner.id,
+          userId: owner.userId,
+          userType: owner.userType,
+          firstName: owner.firstName,
+          lastName: owner.lastName,
+          profilePhoto: owner.profilePhoto,
+          email: owner.email,
+          message: owner.message,
+          isVerifiedByAdmin: owner.isVerifiedByAdmin,
+          rating: owner.rating,
+          gstin: owner.gstin,
+          companyName: owner.companyName,
+          bio: owner.bio,
+          fleetSize: owner.fleetSize,
+          counts: owner.counts,
+          address: owner.address,
+          businessMobileNumber: owner.businessMobileNumber,
+          coverImage: owner.coverImage,
+          vehicleType: owner.vehicleType,
+          serviceLocation: owner.serviceLocation,
+          languageSpoken: owner.languageSpoken,
+          experience: owner.experience,
+          minimumCharges: owner.minimumCharges,
+          negotiable: owner.negotiable,
+          dob: owner.dob,
+          gender: owner.gender,
+          totalRating: owner.totalRating,
+          totalRatingSum: owner.totalRatingSum,
+          independentCarOwnerFleetSize: owner.independentCarOwnerFleetSize,
+          vehicles: [],
+          reviews: owner.reviews,
+          reviewsTotal: owner.reviewsTotal,
+          language: owner.language,
+          country: owner.country,
+          state: owner.state,
+          city: owner.city,
+          fcmToken: owner.fcmToken,
+          preferencesWhatsapp: owner.preferencesWhatsapp,
+          preferencesPhone: owner.preferencesPhone,
+          lat: owner.lat,
+          lng: owner.lng,
+        );
+      }
+
+      // Merge vehicles
+      if (owner.vehicles.isNotEmpty) {
+        ownerMap[ownerId]!.vehicles.addAll(owner.vehicles);
+      }
+    }
+
+    return ownerMap.values.toList();
+  }
 
   Future<void> _refreshVehicles() async {
     developer.log('=== REFRESH TRIGGERED ===');
@@ -683,20 +749,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       developer.log('=== REFRESH COMPLETED ===');
     } catch (e) {
       developer.log('=== REFRESH FAILED: $e ===');
-    }
-  }
-
-  Future<void> _openFilters() async {
-    final filters = await FilterBottomSheet.show(
-      context,
-      _filterService,
-      filterType: currentFilterType,
-    );
-    if (filters != null && filters.isNotEmpty) {
-      setState(() {
-        _activeFilters = filters;
-      });
-      _searchVehicles();
     }
   }
 
@@ -744,7 +796,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   void _navigateVehicle(String ownerId, int direction) {
     setState(() {
       final currentIndex = _currentVehicleIndex[ownerId] ?? 0;
-      final owner = _vehicles.firstWhere((o) => o.id == ownerId);
+      final owner = vehicleOwners.firstWhere((o) => o.id == ownerId);
       final totalVehicles = owner.vehicles.length;
 
       int newIndex = currentIndex + direction;
@@ -790,7 +842,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: gradientFirst.withOpacity(0.1),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
@@ -1171,6 +1223,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                   ],
                 ),
               ),//Owner Info Section (Moved Below View More)
+               Container(height: 1,width: double.infinity,color: Color(0x05000000),),
               Container(
                 padding:
                 EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -1308,142 +1361,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
           ),
           const SizedBox(width: 4),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String asset, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Center(
-          child: Image.asset(
-            asset,
-            width: 20,
-            height: 20,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-
-// Helper method to build feature chips
-  Widget _buildFeatureChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: color.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 14,
-            color: color,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-// Helper method to get fuel type icon
-  IconData _getFuelIcon(String fuelType) {
-    switch (fuelType.toLowerCase()) {
-      case 'petrol':
-      case 'gasoline':
-        return Icons.local_gas_station_rounded;
-      case 'diesel':
-        return Icons.local_shipping_rounded;
-      case 'electric':
-      case 'ev':
-        return Icons.electric_car_rounded;
-      case 'hybrid':
-        return Icons.eco_rounded;
-      case 'cng':
-        return Icons.gas_meter_rounded;
-      default:
-        return Icons.local_gas_station_rounded;
-    }
-  }
-
-// Enhanced action button (you'll need to update this method too)
-  Widget _buildEnhancedActionButton(
-      String asset, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: color.withOpacity(0.3),
-            width: 1.5,
-          ),
-        ),
-        child: Center(
-          child: Image.asset(
-            asset,
-            width: 22,
-            height: 22,
-            color: color,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompactActionButton(String icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        padding: EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: ColorConstants.primaryColorNew.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: ColorConstants.primaryColorNew.withOpacity(0.3),
-            width: 0.5,
-          ),
-        ),
-        child: Image.asset(
-          icon,
-          width: 16,
-          height: 16,
-        ),
       ),
     );
   }
@@ -1686,26 +1603,18 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     _searchFocusNode.unfocus();
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Column(
-          children: [
-            // Remove the header section that was here before
-            if (_showLocationSearch) ...[
-              _buildLocationSearchBar(),
-              _buildLocationSuggestions(),
-            ] else ...[
-              _isLoading
-                  ? _buildLoadingWidget()
-                  : _errorMessage != null
-                      ? _buildErrorWidget()
-                      : _vehicles.isEmpty
-                          ? _buildEmptyWidget()
-                          : _buildVehiclesList(),
-            ],
-          ],
-        ),
-      ),
+      body:_showLocationSearch?Column(
+        children: [
+          _buildLocationSearchBar(),
+          _buildLocationSuggestions(),
+        ],
+      ):  _isLoading
+          ? _buildLoadingWidget()
+          : _errorMessage != null
+          ? _buildErrorWidget()
+          : vehicleOwners.isEmpty
+          ? _buildEmptyWidget()
+          : _buildVehiclesList(),
     );
   }
 
@@ -1715,19 +1624,12 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       color: ColorConstants.primaryColor,
       backgroundColor: Colors.white,
       child: ListView.builder(
-         shrinkWrap: true,
         controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 10, top: 10, left: 5, right: 5),
-        physics: const NeverScrollableScrollPhysics(), // ✅ KEY
-       /* gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 1,
-          childAspectRatio: 0.96, // Adjusted for new card height
-          crossAxisSpacing: 0.5,
-          mainAxisSpacing: 0.5,
-        ),*/
-        itemCount: _vehicles.length + (_hasMoreItems ? 1 : 0),
+        physics: const BouncingScrollPhysics(), // ✅ KEY
+        itemCount: vehicleOwners.length + (_hasMoreItems ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index >= _vehicles.length) {
+          if (index >= vehicleOwners.length) {
             return Container(
               margin: EdgeInsets.all(12),
               padding: EdgeInsets.all(16),
@@ -1788,7 +1690,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     ),
             );
           }
-          return _buildVehicleCard(_vehicles[index]);
+          return _buildVehicleCard(vehicleOwners[index]);
         },
       ),
     );

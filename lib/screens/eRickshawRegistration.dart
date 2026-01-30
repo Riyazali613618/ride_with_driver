@@ -5,9 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/screens/registrationSyccessfulScreen.dart';
-import 'package:r_w_r/screens/widgets/common_submit_button.dart';
-import 'package:r_w_r/screens/widgets/profile_image_capture.dart';
+import 'package:rwd/screens/registrationSyccessfulScreen.dart';
+import 'package:rwd/screens/widgets/common_submit_button.dart';
+import 'package:rwd/screens/widgets/profile_image_capture.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
 
@@ -22,9 +22,9 @@ import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import '../utils/common_utils.dart';
 import 'block/language/language_provider.dart';
-import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
-import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
-import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
+import 'package:rwd/api/api_model/languageModel.dart' as lm;
+import 'package:rwd/api/api_model/cityModel.dart' as cm;
+import 'package:rwd/api/api_model/stateModel.dart' as sm;
 
 import 'multi_step_progress_bar.dart';
 import 'other/terms_and_coditions_bottom_sheet.dart';

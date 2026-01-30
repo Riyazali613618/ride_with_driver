@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../block/provider/profile_provider.dart';

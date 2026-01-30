@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:r_w_r/api/api_model/e_rikshawModel.dart';
+import 'package:rwd/api/api_model/e_rikshawModel.dart';
 
 class ProfileViewModel extends ChangeNotifier {
   ERikshawModel? eRikshawModel;

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_model/language/language_model.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/screens/auth_screens/login_screen.dart';
-import 'package:r_w_r/screens/layout.dart';
-import 'package:r_w_r/l10n/app_localizations.dart';
-import 'package:r_w_r/api/api_model/languageModel.dart' as lm;
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/api/api_model/language/language_model.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/screens/auth_screens/login_screen.dart';
+import 'package:rwd/screens/layout.dart';
+import 'package:rwd/l10n/app_localizations.dart';
+import 'package:rwd/api/api_model/languageModel.dart' as lm;
+import 'package:rwd/utils/common_utils.dart';
 import '../../utils/color.dart';
 import '../block/language/language_provider.dart';
 

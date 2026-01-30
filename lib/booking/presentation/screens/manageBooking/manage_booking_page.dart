@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/components/booking_container.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/components/booking_container.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../../../../components/custom_text_field.dart';
 import '../../../../screens/layout.dart';

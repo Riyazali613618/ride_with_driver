@@ -2,10 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
-import 'package:r_w_r/screens/user_screens/transporter_details_screen.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
+import 'package:rwd/screens/user_screens/transporter_details_screen.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../api/api_model/rating_reviews_model.dart';
 import '../../constants/color_constants.dart';

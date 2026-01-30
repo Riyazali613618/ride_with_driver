@@ -5,10 +5,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_model/driver_transpoter_profile_model.dart';
-import 'package:r_w_r/api/api_service/countryStateProviderService.dart';
-import 'package:r_w_r/screens/block/language/language_provider.dart';
-import 'package:r_w_r/screens/user_screens/PartnerRegistrationWidget.dart';
+import 'package:rwd/api/api_model/driver_transpoter_profile_model.dart';
+import 'package:rwd/api/api_service/countryStateProviderService.dart';
+import 'package:rwd/screens/block/language/language_provider.dart';
+import 'package:rwd/screens/user_screens/PartnerRegistrationWidget.dart';
 
 import '../../../constants/api_constants.dart';
 import '../../../constants/token_manager.dart';

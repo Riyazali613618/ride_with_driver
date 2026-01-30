@@ -3,9 +3,9 @@ import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/utils/common_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/api_model/chat/chat_model.dart';

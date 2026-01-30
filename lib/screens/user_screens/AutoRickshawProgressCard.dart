@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:r_w_r/screens/autoRikshawDriverRegistration.dart';
-import 'package:r_w_r/screens/driverRegistrationScreen.dart';
-import 'package:r_w_r/screens/eRickshawRegistration.dart';
+import 'package:rwd/screens/autoRikshawDriverRegistration.dart';
+import 'package:rwd/screens/driverRegistrationScreen.dart';
+import 'package:rwd/screens/eRickshawRegistration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/api_model/language/language_model.dart';

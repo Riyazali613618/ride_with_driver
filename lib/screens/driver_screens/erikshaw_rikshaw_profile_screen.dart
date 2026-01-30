@@ -1,8 +1,8 @@
 // lib/screens/rickshaw_profile_screen.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
-import 'package:r_w_r/constants/color_constants.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/constants/color_constants.dart';
 
 import '../../api/api_model/erikshaw_rikshaw_model.dart';
 import '../../api/api_service/erikshaw_rikshaw_service.dart';

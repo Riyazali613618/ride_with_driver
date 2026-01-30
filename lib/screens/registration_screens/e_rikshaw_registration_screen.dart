@@ -5,7 +5,7 @@
 // import 'package:flutter/material.dart';
 // import 'package:flutter/services.dart';
 // import 'package:flutter_bloc/flutter_bloc.dart';
-// import 'package:r_w_r/screens/layout.dart';
+// import 'package:rwd/screens/layout.dart';
 // import 'package:shared_preferences/shared_preferences.dart';
 //
 // import '../../api/api_model/language/language_model.dart';

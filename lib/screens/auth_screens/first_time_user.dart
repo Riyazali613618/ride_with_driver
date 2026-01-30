@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/constants/api_constants.dart';
+import 'package:rwd/constants/api_constants.dart';
 
 import '../../api/api_service/countryStateProviderService.dart';
 import '../../api/api_service/user_service/user_profile_service.dart';
@@ -23,8 +23,8 @@ import '../../utils/color.dart';
 import '../common_screens/language_screen.dart';
 import '../layout.dart';
 import '../other/terms_and_coditions_bottom_sheet.dart';
-import 'package:r_w_r/api/api_model/cityModel.dart' as cm;
-import 'package:r_w_r/api/api_model/stateModel.dart' as sm;
+import 'package:rwd/api/api_model/cityModel.dart' as cm;
+import 'package:rwd/api/api_model/stateModel.dart' as sm;
 
 class FirstTimeUserScreen extends StatefulWidget {
   final String token;

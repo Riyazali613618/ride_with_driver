@@ -2,12 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/screens/profileScreens/carOwnerProfile/views/edit_car_owner_profile.dart';
-import 'package:r_w_r/screens/profileScreens/eRickshawProfile/e_rickshaw_owner_profile.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/screens/profileScreens/carOwnerProfile/views/edit_car_owner_profile.dart';
+import 'package:rwd/screens/profileScreens/eRickshawProfile/e_rickshaw_owner_profile.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../../api/api_service/user_service/user_profile_service.dart';
 import '../../../components/app_appbar.dart';

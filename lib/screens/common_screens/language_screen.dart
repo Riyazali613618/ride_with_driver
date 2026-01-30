@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:r_w_r/api/api_model/language/language_model.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/l10n/app_localizations.dart';
-import 'package:r_w_r/screens/layout.dart';
+import 'package:rwd/api/api_model/language/language_model.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/l10n/app_localizations.dart';
+import 'package:rwd/screens/layout.dart';
 
 import '../block/language/language_provider.dart';
 

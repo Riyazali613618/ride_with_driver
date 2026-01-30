@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:r_w_r/constants/api_constants.dart';
+import 'package:rwd/constants/api_constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../api/api_model/home/home_data_model.dart';

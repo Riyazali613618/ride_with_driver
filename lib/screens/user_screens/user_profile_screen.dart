@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/api/api_model/user_model/my_profile_model.dart';
-import 'package:r_w_r/components/app_button.dart';
-import 'package:r_w_r/screens/user_screens/user_profile_event.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/components/app_button.dart';
+import 'package:rwd/screens/user_screens/user_profile_event.dart';
 
 import '../../api/api_model/user_model/user_profile_model.dart';
 import '../../components/app_loader.dart';

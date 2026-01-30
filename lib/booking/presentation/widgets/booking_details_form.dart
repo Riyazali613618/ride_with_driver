@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:intl/intl.dart';
-import 'package:r_w_r/booking/presentation/widgets/vehicle_details_card.dart';
-import 'package:r_w_r/placeSearch/google_place_search_widget_booking.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/booking/presentation/widgets/vehicle_details_card.dart';
+import 'package:rwd/placeSearch/google_place_search_widget_booking.dart';
+import 'package:rwd/utils/common_utils.dart';
 
 import '../../../components/app_loader.dart';
 import '../../../constants/api_constants.dart';

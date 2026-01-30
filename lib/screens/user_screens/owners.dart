@@ -1,9 +1,9 @@
 // // lib/screens/owners.dart
 // import 'package:flutter/cupertino.dart';
 // import 'package:flutter/material.dart';
-// import 'package:r_w_r/components/app_appbar.dart';
-// import 'package:r_w_r/components/custom_activity.dart';
-// import 'package:r_w_r/constants/color_constants.dart';
+// import 'package:rwd/components/app_appbar.dart';
+// import 'package:rwd/components/custom_activity.dart';
+// import 'package:rwd/constants/color_constants.dart';
 //
 // import '../../api/api_model/location_model/location_model.dart';
 // import '../../api/api_model/owner/owners_model.dart';

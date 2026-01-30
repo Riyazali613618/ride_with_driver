@@ -6,11 +6,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/components/common_parent_container.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
-import 'package:r_w_r/utils/color.dart';
-import 'package:r_w_r/utils/common_utils.dart';
+import 'package:rwd/components/common_parent_container.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
+import 'package:rwd/utils/color.dart';
+import 'package:rwd/utils/common_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 import 'package:web_socket_channel/status.dart' as status;
@@ -1302,7 +1302,7 @@ class _MessagingScreenState extends State<MessagingScreen>
    /* final translated = await ChatService.translate(
         chatId: widget.chatId,qs
         targetLang: 'es',
-        messageId: message.messageId // example: Hindi
+        messageId: message.messageId // app: Hindi
         );
 */
     return "translated";

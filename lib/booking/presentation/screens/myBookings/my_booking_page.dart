@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
-import 'package:r_w_r/components/app_loader.dart';
-import 'package:r_w_r/components/booking_container.dart';
-import 'package:r_w_r/screens/layout.dart';
+import 'package:rwd/components/app_loader.dart';
+import 'package:rwd/components/booking_container.dart';
+import 'package:rwd/screens/layout.dart';
 
 import '../../../../components/common_parent_container.dart';
 import '../../../../components/custom_text_field.dart';

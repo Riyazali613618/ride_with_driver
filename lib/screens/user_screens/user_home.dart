@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/constants/assets_constant.dart';
-import 'package:r_w_r/constants/color_constants.dart';
-import 'package:r_w_r/screens/user_screens/owners.dart';
-import 'package:r_w_r/screens/user_screens/vehicles.dart';
+import 'package:rwd/constants/assets_constant.dart';
+import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/screens/user_screens/owners.dart';
+import 'package:rwd/screens/user_screens/vehicles.dart';
 
 import '../../api/api_model/location_model/location_model.dart';
 import '../../api/api_service/location_service/location_service.dart';

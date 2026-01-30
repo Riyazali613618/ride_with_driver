@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:r_w_r/api/api_model/language/language_model.dart';
-import 'package:r_w_r/constants/api_constants.dart';
-import 'package:r_w_r/constants/token_manager.dart';
+import 'package:rwd/api/api_model/language/language_model.dart';
+import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/constants/token_manager.dart';
 
 class LanguageRepository {
   // All supported languages restored

@@ -1,6 +1,6 @@
 // widgets/gradient_button.dart
 import 'package:flutter/material.dart';
-import 'package:r_w_r/constants/api_constants.dart';
+import 'package:rwd/constants/api_constants.dart';
 
 class CommonSubmitButton extends StatelessWidget {
   final String text;

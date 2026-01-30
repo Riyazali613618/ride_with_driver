@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_event.dart';
-import 'package:r_w_r/features/upgradeablePlans/upgradeable_plans_state.dart';
+import 'package:rwd/features/upgradeablePlans/upgradeable_plans_event.dart';
+import 'package:rwd/features/upgradeablePlans/upgradeable_plans_state.dart';
 
 import '../../features/newDashboard/dashboard_repository.dart';
 

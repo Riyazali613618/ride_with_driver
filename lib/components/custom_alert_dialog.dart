@@ -93,7 +93,7 @@ class CustomAlertDialog {
   }
 }
 
-// Usage example:
+// Usage app:
 // CustomAlertDialog.show(
 //   context: context,
 //   title: 'Quiz Submission',

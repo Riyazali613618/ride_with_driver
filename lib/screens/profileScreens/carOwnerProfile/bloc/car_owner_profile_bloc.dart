@@ -1,6 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:r_w_r/screens/profileScreens/carOwnerProfile/bloc/car_owner_profile_state.dart';
-import 'package:r_w_r/screens/profileScreens/carOwnerProfile/car_owner_profile_repository.dart';
+import 'package:rwd/screens/profileScreens/carOwnerProfile/bloc/car_owner_profile_state.dart';
+import 'package:rwd/screens/profileScreens/carOwnerProfile/car_owner_profile_repository.dart';
 
 import '../../../../features/vehicles/presentation/bloc/profile_state.dart' hide ProfileLoading;
 import 'car_owner_profile_event.dart';
