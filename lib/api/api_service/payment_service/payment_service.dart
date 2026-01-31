@@ -18,12 +18,12 @@ class PaymentService {
   // Create order for subscription renewal
   static Future<Map<String, dynamic>> createOrderForSubscriptionRenewal({
     required String planId,
-    double rwd_balance=0,
+    required String category,
   }) async {
-    return _createOrder({
-      'paymentType': 'SUBSCRIPTION',
+    return _createRenewalOrder({
+      'paymentGatewayType': 'razorpay',
       'subscriptionPlanId': planId,
-      'rwd_balance': rwd_balance,
+      'category': category,
     });
   }
 
@@ -112,7 +112,7 @@ class PaymentService {
     String planId,
   ) async {
     // Default to subscription renewal for backward compatibility
-    return createOrderForSubscriptionRenewal(planId: planId);
+    return createOrderForSubscriptionRenewal(planId: planId,category: "");
   }
 
   // Private method to handle the actual API call
@@ -127,6 +127,51 @@ class PaymentService {
       print(token);
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/user/create-order'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(requestBody),
+      );
+      print("==================================================");
+      print(response.body);
+      print("==================================================");
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        var data = jsonDecode(response.body);
+        print("Errro : ${response.body}");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          rootScaffoldMessengerKey.currentState?.showSnackBar(
+            SnackBar(
+              content: Text(
+                data["error"].toString(),
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        });
+        throw Exception('Failed to create order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to create order: $e');
+    }
+  }
+  // Private method to handle the actual API call
+  static Future<Map<String, dynamic>> _createRenewalOrder(
+    Map<String, dynamic> requestBody,
+  ) async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+      print(token);
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/user/create-renewal-order'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

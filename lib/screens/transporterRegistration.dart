@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,9 +10,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rwd/api/api_model/cityModel.dart' as cm;
 import 'package:rwd/api/api_model/stateModel.dart' as sm;
-import 'package:rwd/api/api_model/user_model/my_profile_model.dart'
-    hide Counts;
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart' hide Counts;
 import 'package:rwd/constants/api_constants.dart';
+import 'package:rwd/screens/commonWidgets/city_dropdown_widget.dart';
 import 'package:rwd/screens/layout.dart';
 import 'package:rwd/screens/registrationSyccessfulScreen.dart';
 import 'package:rwd/screens/widgets/common_submit_button.dart';
@@ -34,6 +33,7 @@ import '../components/app_loader.dart';
 import '../constants/color_constants.dart';
 import '../utils/color.dart';
 import 'block/provider/profile_provider.dart';
+import 'commonWidgets/state_dropdown_widget.dart';
 import 'multi_step_progress_bar.dart';
 import 'other/terms_and_coditions_bottom_sheet.dart';
 
@@ -1455,7 +1455,6 @@ class _TransporterRegistrationFlowState
               validator: _validateAddressLine,
               maxLines: 1),
           SizedBox(height: 20),
-
           _buildTextField('Pin Code*', _pincodeController,
               placeholder: '788799',
               textInputAction: TextInputAction.next,
@@ -1472,12 +1471,12 @@ class _TransporterRegistrationFlowState
             style: CommonUtils.commonTextLabelsStyle(),
           ),
           SizedBox(height: 8),
-          StateDropdown(
+          StateDropdownWidget(
             stateList: _stateList,
             selectedState: _selectedState,
             onChanged: (newValue) {
               final locProvider =
-              Provider.of<LocationProvider>(context, listen: false);
+                  Provider.of<LocationProvider>(context, listen: false);
 
               setState(() {
                 _selectedState = newValue;
@@ -1494,87 +1493,19 @@ class _TransporterRegistrationFlowState
               }
             },
           ),
-
-          DropdownButtonFormField<String>(
-            value: _stateList.any((s) => s.sId == _selectedState)
-                ? _selectedState
-                : null,
-            decoration: _dropdownDecoration('State*'),
-            icon: Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.grey[600],
-            ),
-            items: _stateList.map((sm.Data state) {
-              return DropdownMenuItem<String>(
-                value: state.sId,
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 200),
-                  // Adjust as needed
-                  child: Text(
-                    state.name.toString(),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.grey[800],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
-              final locProvider =
-                  Provider.of<LocationProvider>(context, listen: false);
-              setState(() {
-                _selectedState = newValue;
-                _selectedCity = null; // Reset city when state changes
-                _cityList = [];
-                if (newValue != null) {
-                  locProvider.fetchCity(newValue).then((_) {
-                    setState(() {
-                      _cityList = locProvider.cities;
-                    });
-                  });
-                }
-              });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a state';
-              }
-              return null;
-            },
-          ),
           SizedBox(height: 20),
           Text(
             "City*",
             style: CommonUtils.commonTextLabelsStyle(),
           ),
           SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            value: _cityList.any((s) => s.sId == _selectedCity)
-                ? _selectedCity
-                : null,
-            decoration: _dropdownDecoration('City*'),
-            icon: Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.grey[600],
-            ),
-            items: _cityList.map((cm.Data city) {
-              return DropdownMenuItem<String>(
-                value: city.sId,
-                child: Text(city.name.toString()),
-              );
-            }).toList(),
-            onChanged: (String? newValue) {
+          CityDropdownWidget(
+            cityList: _cityList,
+            selectedCity: _selectedCity,
+            onChanged: (newValue) {
               setState(() {
                 _selectedCity = newValue;
               });
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select a city';
-              }
-              return null;
             },
           ),
           SizedBox(height: 40),
@@ -2781,88 +2712,5 @@ class UserPrefillUtility {
     // This is a mock. In a real app, you'd get this from a UserProvider or similar.
     // contactPersonController.text = "John Doe";
     // phoneController.text = "9876543210";
-  }
-}
-
-
-
-
-class StateDropdown extends StatelessWidget {
-  final List<sm.Data> stateList;
-  final String? selectedState;
-  final Function(String?) onChanged;
-
-  const StateDropdown({
-    Key? key,
-    required this.stateList,
-    required this.selectedState,
-    required this.onChanged,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownSearch<sm.Data>(
-      items: (filter, loadProps) {
-        return stateList;
-      },
-      compareFn: (item1, item2) {
-        return item1.name == item2.name;
-      },
-      selectedItem: stateList
-          .where((s) => s.sId == selectedState)
-          .isNotEmpty
-          ? stateList.firstWhere((s) => s.sId == selectedState)
-          : null,
-
-      itemAsString: (sm.Data state) => state.name ?? '',
-
-      decoratorProps: DropDownDecoratorProps(
-        decoration: InputDecoration(
-          hintText: 'Select Type',
-          labelStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
-          hintStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        ),
-      ),
-
-      popupProps: PopupProps.menu(
-        showSearchBox: true,
-        searchFieldProps: TextFieldProps(
-          decoration: InputDecoration(
-            hintText: 'Search state',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        ),
-        itemBuilder: (context, item, isDisabled, isSelected) {
-          return Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              item.name ?? '',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[800],
-              ),
-            ),
-          );
-        },
-      ),
-
-      onChanged: (sm.Data? value) {
-        onChanged(value?.sId);
-      },
-
-      validator: (value) {
-        if (value == null) {
-          return 'Please select a state';
-        }
-        return null;
-      },
-    );
   }
 }

@@ -27,9 +27,11 @@ class PlanSelectionScreen extends StatefulWidget {
   final String title;
   final int count;
   final bool isAdOns;
+  final bool isRenewal;
 
   const PlanSelectionScreen(
       {super.key,
+      this.isRenewal = false,
       this.isAdOns = false,
       required this.title,
       required this.count,
@@ -315,6 +317,30 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
           Center(
             child: GestureDetector(
               onTap: () {
+                if(widget.isRenewal){
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => BlocProvider.value(
+                      value: context.read<PaymentBloc>(),
+                      child: PaymentBottomSheetBlocView(
+                        isAdOns: widget.isAdOns,
+                        plan: data,
+                        benefits: data.features,
+                        planName: data.name,
+                        finalPrice: data.finalPrice,
+                        rwdBalance: myProfileData?.rwdBalance??0,
+                        planType: widget.category,
+                        vehicleCount:
+                        ((data.maxVehicles ?? 0)+(widget.count-2)).toString(),
+                        currentCategory: widget.currentCategory,
+                        paymentType: PaymentType.subscriptionRenewal,
+                        category: widget.category,
+                      ),
+                    ),
+                  );
+                }else
                 if (category == UserType.TRANSPORTER.name &&
                     currentCategory.isNotEmpty) {
                   showAddVehicleQtyPopup(

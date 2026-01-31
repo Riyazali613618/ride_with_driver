@@ -7,6 +7,7 @@ import 'package:rwd/api/api_model/stateModel.dart' as sm;
 import 'package:rwd/constants/api_constants.dart';
 import 'package:rwd/api/api_model/cityModel.dart' as cM;
 import 'package:rwd/constants/token_manager.dart';
+import 'package:rwd/screens/commonWidgets/city_dropdown_widget.dart';
 import '../../../../api/api_service/countryStateProviderService.dart';
 import '../../../../constants/api_constants.dart';
 import '../../../../constants/color_constants.dart';
@@ -14,6 +15,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../../utils/color.dart';
 import '../../../../utils/common_utils.dart';
 import '../../../block/provider/profile_provider.dart';
+import '../../../commonWidgets/state_dropdown_widget.dart';
 import '../../../widgets/common_submit_button.dart';
 
 class ProfileForm extends StatefulWidget {
@@ -116,51 +118,37 @@ class _ProfileFormState extends State<ProfileForm> {
             maxLength: 6,
           ),
           SizedBox(height: 20),
-          _buildDropdown(
-            'State',
-            _selectedState,
-            _stateList
-                .map((state) => DropdownMenuItem(
-                      value: state.sId,
-                      child: Text(state.name.toString()),
-                    ))
-                .toList(),
-            (newValue) {
+          StateDropdownWidget(
+            stateList: _stateList,
+            selectedState: _selectedState,
+            onChanged: (newValue) {
+              final locProvider =
+              Provider.of<LocationProvider>(context, listen: false);
+
               setState(() {
                 _selectedState = newValue;
-                _stateController.text = newValue ?? '';
-                if (newValue != null) {
-                  final locProvider =
-                      Provider.of<LocationProvider>(context, listen: false);
-                  locProvider.fetchCity(newValue).then((_) {
-                    setState(() {
-                      _cityList = locProvider.cities;
-                      _selectedCity = null; // Reset city when state changes
-                    });
-                  });
-                }
+                _selectedCity = null;
+                _cityList = [];
               });
+
+              if (newValue != null) {
+                locProvider.fetchCity(newValue).then((_) {
+                  setState(() {
+                    _cityList = locProvider.cities;
+                  });
+                });
+              }
             },
-            validator: (value) =>
-                value == null ? 'Please select a state' : null,
           ),
           SizedBox(height: 20),
-          _buildDropdown(
-            'City',
-            _selectedCity,
-            _cityList
-                .map((city) => DropdownMenuItem(
-                      value: city.sId,
-                      child: Text(city.name.toString()),
-                    ))
-                .toList(),
-            (newValue) {
+          CityDropdownWidget(
+            cityList: _cityList,
+            selectedCity: _selectedCity,
+            onChanged: (newValue) {
               setState(() {
                 _selectedCity = newValue;
-                _cityController.text = newValue ?? '';
               });
             },
-            validator: (value) => value == null ? 'Please select a city' : null,
           ),
           SizedBox(height: 20),
           Text(
@@ -192,8 +180,7 @@ class _ProfileFormState extends State<ProfileForm> {
                         textAlign: TextAlign.center,
                         maxLength: 2,
                         style: vehicleCountStyle(),
-                        buildCounter: (
-                          context, {
+                        buildCounter: (context, {
                           required int currentLength,
                           required bool isFocused,
                           required int? maxLength,
@@ -241,8 +228,7 @@ class _ProfileFormState extends State<ProfileForm> {
                         textAlign: TextAlign.center,
                         maxLength: 2,
                         style: vehicleCountStyle(),
-                        buildCounter: (
-                          context, {
+                        buildCounter: (context, {
                           required int currentLength,
                           required bool isFocused,
                           required int? maxLength,
@@ -290,8 +276,7 @@ class _ProfileFormState extends State<ProfileForm> {
                         textAlign: TextAlign.center,
                         maxLength: 2,
                         style: vehicleCountStyle(),
-                        buildCounter: (
-                          context, {
+                        buildCounter: (context, {
                           required int currentLength,
                           required bool isFocused,
                           required int? maxLength,
@@ -339,8 +324,7 @@ class _ProfileFormState extends State<ProfileForm> {
                         textAlign: TextAlign.center,
                         maxLength: 2,
                         style: vehicleCountStyle(),
-                        buildCounter: (
-                          context, {
+                        buildCounter: (context, {
                           required int currentLength,
                           required bool isFocused,
                           required int? maxLength,
@@ -384,18 +368,19 @@ class _ProfileFormState extends State<ProfileForm> {
                           onTap: () {
                             showDialog(
                               context: context,
-                              builder: (context) => AlertDialog(
-                                title: Text('Vehicle Count Info'),
-                                content: Text(
-                                  'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: Text('OK'),
+                              builder: (context) =>
+                                  AlertDialog(
+                                    title: Text('Vehicle Count Info'),
+                                    content: Text(
+                                      'Tap on vehicle count boxes to increase count.\nLong press to decrease count.',
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: Text('OK'),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
                             );
                           },
                           child: Container(
@@ -417,7 +402,7 @@ class _ProfileFormState extends State<ProfileForm> {
                     SizedBox(height: 8),
                     Container(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         border: Border.all(
                             color: ColorConstants.inputFieldBorderColor),
@@ -426,8 +411,7 @@ class _ProfileFormState extends State<ProfileForm> {
                       child: TextField(
                         textAlign: TextAlign.start,
                         maxLength: 2,
-                        buildCounter: (
-                          context, {
+                        buildCounter: (context, {
                           required int currentLength,
                           required bool isFocused,
                           required int? maxLength,
@@ -473,7 +457,9 @@ class _ProfileFormState extends State<ProfileForm> {
   }
 
   String? _validateMobileNumber(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Mobile number is required';
     }
     if (value.length != 10 || !RegExp(r'^[0-9]{10}$').hasMatch(value)) {
@@ -492,16 +478,24 @@ class _ProfileFormState extends State<ProfileForm> {
   }
 
   void updateVehicleCount() {
-    int car = _carCountController.text.toString().isNotEmpty
+    int car = _carCountController.text
+        .toString()
+        .isNotEmpty
         ? int.parse(_carCountController.text.toString())
         : 0;
-    int bus = _busCountController.text.toString().isNotEmpty
+    int bus = _busCountController.text
+        .toString()
+        .isNotEmpty
         ? int.parse(_busCountController.text.toString())
         : 0;
-    int van = _miniVanCountController.text.toString().isNotEmpty
+    int van = _miniVanCountController.text
+        .toString()
+        .isNotEmpty
         ? int.parse(_miniVanCountController.text.toString())
         : 0;
-    int suv = _suvCountController.text.toString().isNotEmpty
+    int suv = _suvCountController.text
+        .toString()
+        .isNotEmpty
         ? int.parse(_suvCountController.text.toString())
         : 0;
 
@@ -510,7 +504,9 @@ class _ProfileFormState extends State<ProfileForm> {
   }
 
   String? _validatePincode(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (value == null || value
+        .trim()
+        .isEmpty) {
       return 'Pincode is required';
     }
     if (value.length != 6 || !RegExp(r'^[0-9]{6}$').hasMatch(value)) {
@@ -519,17 +515,16 @@ class _ProfileFormState extends State<ProfileForm> {
     return null;
   }
 
-  Widget _buildTextField(
-    String label,
-    TextEditingController controller, {
-    String? placeholder,
-    String? Function(String?)? validator,
-    List<TextInputFormatter>? inputFormater,
-    TextInputType? keyboardType,
-    int? maxLength,
-    bool isReadOnly = false,
-    Function(String)? onChanged,
-  }) {
+  Widget _buildTextField(String label,
+      TextEditingController controller, {
+        String? placeholder,
+        String? Function(String?)? validator,
+        List<TextInputFormatter>? inputFormater,
+        TextInputType? keyboardType,
+        int? maxLength,
+        bool isReadOnly = false,
+        Function(String)? onChanged,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -551,8 +546,7 @@ class _ProfileFormState extends State<ProfileForm> {
             inputFormatters: inputFormater,
             style: CommonUtils.commonInputTextStyle(
                 color: isReadOnly ? Colors.grey : Colors.black),
-            buildCounter: (
-              context, {
+            buildCounter: (context, {
               required int currentLength,
               required bool isFocused,
               required int? maxLength,
@@ -569,13 +563,12 @@ class _ProfileFormState extends State<ProfileForm> {
     );
   }
 
-  Widget _buildDropdown<T>(
-    String label,
-    T? value,
-    List<DropdownMenuItem<T>> items,
-    void Function(T?) onChanged, {
-    String? Function(T?)? validator,
-  }) {
+  Widget _buildDropdown<T>(String label,
+      T? value,
+      List<DropdownMenuItem<T>> items,
+      void Function(T?) onChanged, {
+        String? Function(T?)? validator,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -591,12 +584,12 @@ class _ProfileFormState extends State<ProfileForm> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
               borderSide:
-                  BorderSide(color: ColorConstants.inputFieldBorderColor),
+              BorderSide(color: ColorConstants.inputFieldBorderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide:
-                  BorderSide(color: ColorConstants.inputFieldBorderColor),
+              BorderSide(color: ColorConstants.inputFieldBorderColor),
             ),
           ),
           items: items,
@@ -613,7 +606,7 @@ class _ProfileFormState extends State<ProfileForm> {
     _selectedCity = profile?.city?.id ?? "";
 
     _nameController.text =
-        "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
+    "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
     _mobileController.text = profile?.mobileNumber ?? "";
     _addressController.text = profile?.address?.addressLine ?? "";
     _pinCodeController.text = "${profile?.address?.pincode ?? ""}";
@@ -654,7 +647,7 @@ class _ProfileFormState extends State<ProfileForm> {
 
     try {
       final success =
-          await context.read<ProfileProvider>().updateProfile(profileData);
+      await context.read<ProfileProvider>().updateProfile(profileData);
 
       if (mounted) {
         if (success) {
@@ -746,21 +739,39 @@ class _ProfileFormState extends State<ProfileForm> {
   bool isValidated() {
     bool isValid = true;
     String errorMsg = "";
-    if (_nameController.text.toString().trim().isEmpty) {
+    if (_nameController.text
+        .toString()
+        .trim()
+        .isEmpty) {
       isValid = false;
-    } else if (_mobileController.text.toString().trim().isEmpty) {
+    } else if (_mobileController.text
+        .toString()
+        .trim()
+        .isEmpty) {
       isValid = false;
-    } else if (_addressController.text.toString().trim().isEmpty) {
+    } else if (_addressController.text
+        .toString()
+        .trim()
+        .isEmpty) {
       isValid = false;
-    } else if (_pinCodeController.text.toString().trim().isEmpty) {
+    } else if (_pinCodeController.text
+        .toString()
+        .trim()
+        .isEmpty) {
       isValid = false;
     } else if (_selectedState == null || _selectedState!.isEmpty) {
       isValid = false;
     } else if (_selectedCity == null || _selectedCity!.isEmpty) {
       isValid = false;
-    } else if (_pinCodeController.text.toString().trim().isEmpty) {
+    } else if (_pinCodeController.text
+        .toString()
+        .trim()
+        .isEmpty) {
       isValid = false;
-    } else if (_totalVehicleCountController.text.toString().trim().isEmpty) {
+    } else if (_totalVehicleCountController.text
+        .toString()
+        .trim()
+        .isEmpty) {
       errorMsg = "Please select at lest one vehicle count";
       isValid = false;
     }

@@ -20,6 +20,8 @@ import '../../constants/color_constants.dart';
 import '../../constants/token_manager.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/color.dart';
+import '../commonWidgets/city_dropdown_widget.dart';
+import '../commonWidgets/state_dropdown_widget.dart';
 import '../common_screens/language_screen.dart';
 import '../layout.dart';
 import '../other/terms_and_coditions_bottom_sheet.dart';
@@ -929,53 +931,37 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
                       },
                     ),
                     const SizedBox(height: 10),
-                    _buildDropdown(
-                      'State',
-                      _selectedState,
-                      _stateList
-                          .map((state) => DropdownMenuItem(
-                                value: state.sId,
-                                child: Text(state.name.toString()),
-                              ))
-                          .toList(),
-                      (newValue) {
-                        _selectedState = newValue;
-                        _stateController.text = newValue ?? '';
+                    StateDropdownWidget(
+                      stateList: _stateList,
+                      selectedState: _selectedState,
+                      onChanged: (newValue) {
+                        final locProvider =
+                        Provider.of<LocationProvider>(context, listen: false);
+
+                        setState(() {
+                          _selectedState = newValue;
+                          _selectedCity = null;
+                          _cityList = [];
+                        });
+
                         if (newValue != null) {
-                          final locProvider = Provider.of<LocationProvider>(
-                              context,
-                              listen: false);
                           locProvider.fetchCity(newValue).then((_) {
                             setState(() {
                               _cityList = locProvider.cities;
-                              _selectedCity =
-                                  null; // Reset city when state changes
                             });
                           });
                         }
                       },
-                      validator: (value) =>
-                          value == null ? 'Please select a state' : null,
                     ),
-                    const SizedBox(height: 20),
-                    // State Dropdown
-                    _buildDropdown(
-                      'City',
-                      _selectedCity,
-                      _cityList
-                          .map((city) => DropdownMenuItem(
-                                value: city.sId,
-                                child: Text(city.name.toString()),
-                              ))
-                          .toList(),
-                      (newValue) {
+                    SizedBox(height: 20),
+                    CityDropdownWidget(
+                      cityList: _cityList,
+                      selectedCity: _selectedCity,
+                      onChanged: (newValue) {
                         setState(() {
                           _selectedCity = newValue;
-                          _cityController.text = newValue ?? '';
                         });
                       },
-                      validator: (value) =>
-                          value == null ? 'Please select a city' : null,
                     ),
                     SizedBox(height: 20),
 

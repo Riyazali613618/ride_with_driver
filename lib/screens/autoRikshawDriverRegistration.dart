@@ -25,6 +25,8 @@ import '../constants/api_constants.dart';
 import '../utils/color.dart';
 import '../utils/common_utils.dart';
 import 'block/language/language_provider.dart';
+import 'commonWidgets/city_dropdown_widget.dart';
+import 'commonWidgets/state_dropdown_widget.dart';
 import 'multi_step_progress_bar.dart';
 import 'other/terms_and_coditions_bottom_sheet.dart';
 
@@ -863,52 +865,37 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                   ],
                   maxLength: 6),
               SizedBox(height: 20),
-              _buildDropdown(
-                'State',
-                _selectedState,
-                _stateList
-                    .map((state) => DropdownMenuItem(
-                          value: state.sId,
-                          child: Text(state.name.toString()),
-                        ))
-                    .toList(),
-                (newValue) {
+              StateDropdownWidget(
+                stateList: _stateList,
+                selectedState: _selectedState,
+                onChanged: (newValue) {
+                  final locProvider =
+                      Provider.of<LocationProvider>(context, listen: false);
+
                   setState(() {
                     _selectedState = newValue;
-                    _stateController.text = newValue ?? '';
-                    if (newValue != null) {
-                      final locProvider =
-                          Provider.of<LocationProvider>(context, listen: false);
-                      locProvider.fetchCity(newValue).then((_) {
-                        setState(() {
-                          _cityList = locProvider.cities;
-                          _selectedCity = null; // Reset city when state changes
-                        });
-                      });
-                    }
+                    _selectedCity = null;
+                    _cityList = [];
                   });
+
+                  if (newValue != null) {
+                    locProvider.fetchCity(newValue).then((_) {
+                      setState(() {
+                        _cityList = locProvider.cities;
+                      });
+                    });
+                  }
                 },
-                validator: (value) =>
-                    value == null ? 'Please select a state' : null,
               ),
               SizedBox(height: 20),
-              _buildDropdown(
-                'City',
-                _selectedCity,
-                _cityList
-                    .map((city) => DropdownMenuItem(
-                          value: city.sId,
-                          child: Text(city.name.toString()),
-                        ))
-                    .toList(),
-                (newValue) {
+              CityDropdownWidget(
+                cityList: _cityList,
+                selectedCity: _selectedCity,
+                onChanged: (newValue) {
                   setState(() {
                     _selectedCity = newValue;
-                    _cityController.text = newValue ?? '';
                   });
                 },
-                validator: (value) =>
-                    value == null ? 'Please select a city' : null,
               ),
             ],
           )),
@@ -1422,7 +1409,7 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                   _aboutController.text,
+                  _aboutController.text,
                   style: CommonUtils.commonTitleStyle(
                       fontSize: 13, weight: FontWeight.w400),
                 ),
@@ -1464,7 +1451,7 @@ class _AutoRickshawDriverFlowState extends State<AutoRickshawDriverFlow> {
 
     if (accepted != true) {
       return;
-    }else{
+    } else {
       _proceedToFinalStep();
       return;
     }

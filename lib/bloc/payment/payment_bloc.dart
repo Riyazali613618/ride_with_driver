@@ -86,18 +86,6 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       late Map<String, dynamic> orderResponse;
       final rwdBalance = event.rwdBalance ?? 0;
       switch (event.paymentType) {
-        case PaymentType.subscriptionRenewal:
-          isAddOns = false;
-          maxVehicles = 1;
-          orderResponse =
-              await PaymentService.createOrderForSubscriptionRenewal(
-                  planId: event.plan.id,
-                  rwd_balance: rwdBalance > 0
-                      ? rwdBalance
-                      : (event.finalPrice ?? 0) < 0
-                          ? event.finalPrice?.abs() ?? 0
-                          : 0);
-          break;
         case PaymentType.registrationOnly:
           isAddOns = false;
           maxVehicles = 1;
@@ -118,8 +106,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                   category: event.category ?? event.planType,
                   currentCategory: event.currentCategory ?? "",
                   planId: event.plan.id,
-                  planName: event.planName??"",
-                  benefits: event.benefits??[],
+                  planName: event.planName ?? "",
+                  benefits: event.benefits ?? [],
                   isAdOns: event.isAdOns,
                   maxvehicles: event.maxvehicles ?? 1,
                   durationInMonths: event.duration ?? 0,
@@ -148,6 +136,14 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
                       : (event.finalPrice ?? 0) < 0
                           ? event.finalPrice?.abs() ?? 0
                           : 0);
+          break;
+        case PaymentType.subscriptionRenewal:
+          maxVehicles = event.maxvehicles ?? 1;
+          isAddOns=false;
+          orderResponse =
+              await PaymentService.createOrderForSubscriptionRenewal(
+                  planId: event.plan.id,
+                  category: event.category??event.category??"");
           break;
       }
       isAddOns = event.isAdOns;

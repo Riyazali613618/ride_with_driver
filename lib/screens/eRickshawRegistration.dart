@@ -26,6 +26,8 @@ import 'package:rwd/api/api_model/languageModel.dart' as lm;
 import 'package:rwd/api/api_model/cityModel.dart' as cm;
 import 'package:rwd/api/api_model/stateModel.dart' as sm;
 
+import 'commonWidgets/city_dropdown_widget.dart';
+import 'commonWidgets/state_dropdown_widget.dart';
 import 'multi_step_progress_bar.dart';
 import 'other/terms_and_coditions_bottom_sheet.dart';
 
@@ -925,52 +927,37 @@ class _ERickshawDriverFlowState extends State<ERickshawDriverFlow> {
                   ],
                   maxLength: 6),
               SizedBox(height: 20),
-              _buildDropdown(
-                'State',
-                _selectedState,
-                _stateList
-                    .map((state) => DropdownMenuItem(
-                          value: state.sId,
-                          child: Text(state.name.toString()),
-                        ))
-                    .toList(),
-                (newValue) {
+              StateDropdownWidget(
+                stateList: _stateList,
+                selectedState: _selectedState,
+                onChanged: (newValue) {
+                  final locProvider =
+                  Provider.of<LocationProvider>(context, listen: false);
+
                   setState(() {
                     _selectedState = newValue;
-                    _stateController.text = newValue ?? '';
-                    if (newValue != null) {
-                      final locProvider =
-                          Provider.of<LocationProvider>(context, listen: false);
-                      locProvider.fetchCity(newValue).then((_) {
-                        setState(() {
-                          _cityList = locProvider.cities;
-                          _selectedCity = null; // Reset city when state changes
-                        });
-                      });
-                    }
+                    _selectedCity = null;
+                    _cityList = [];
                   });
+
+                  if (newValue != null) {
+                    locProvider.fetchCity(newValue).then((_) {
+                      setState(() {
+                        _cityList = locProvider.cities;
+                      });
+                    });
+                  }
                 },
-                validator: (value) =>
-                    value == null ? 'Please select a state' : null,
               ),
               SizedBox(height: 20),
-              _buildDropdown(
-                'City',
-                _selectedCity,
-                _cityList
-                    .map((city) => DropdownMenuItem(
-                          value: city.sId,
-                          child: Text(city.name.toString()),
-                        ))
-                    .toList(),
-                (newValue) {
+              CityDropdownWidget(
+                cityList: _cityList,
+                selectedCity: _selectedCity,
+                onChanged: (newValue) {
                   setState(() {
                     _selectedCity = newValue;
-                    _cityController.text = newValue ?? '';
                   });
                 },
-                validator: (value) =>
-                    value == null ? 'Please select a city' : null,
               ),
             ],
           )),

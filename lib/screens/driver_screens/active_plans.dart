@@ -239,9 +239,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     // Check if there are no plans and no active transactions
     List<Subscription> activeSubscriptions =
-        _subscriptionData.where((s) => s.status == 'active').toList();
+        _subscriptionData.where((s) => s.status == 'active' || s.status == 'created').toList();
     List<Subscription> expiredSubscription =
-        _subscriptionData.where((s) => s.status != 'active').toList();
+        _subscriptionData.where((s) => s.status != 'active' && s.status != 'created').toList();
 
     if (_subscriptionData.isEmpty) {
       return Center(
@@ -626,7 +626,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               borderRadius: BorderRadius.all(Radius.circular(10))),
           child: GestureDetector(
             onTap: () async {
-             /* final profile = await UserProfileService().getUserProfile();
+              final profile = await UserProfileService().getUserProfile();
               String title = profile.usertype == UserType.TRANSPORTER.name
                   ? "Renew Transporter Plan"
                   : profile.usertype == UserType.DRIVER.name
@@ -650,10 +650,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                       title: title,
                       count: 1,
                       currentCategory: "",
+                      isRenewal: true,
                     ),
                   ),
                 ),
-              );*/
+              );
             },
             child: Text(
               "Renew Plan",

@@ -72,17 +72,18 @@ class _MoreScreenState extends State<MoreScreen> with WidgetsBindingObserver {
       _loadProfileData();
     }
   }
-String userType="";
+
+  String userType = "";
+
   Future<void> _loadProfileData() async {
     await context.read<ProfileProvider>().loadProfile(context);
-    try{
+    try {
       final data = await UserProfileService().getUserProfile();
-      _visiblePlan = data.subscriptions != null && data.subscriptions.isNotEmpty;
-      userType=data.usertype??"USER";
+      _visiblePlan =
+          data.subscriptions != null && data.subscriptions.isNotEmpty;
+      userType = data.usertype ?? "USER";
       if (mounted) setState(() {});
-    }catch(e){
-
-    }
+    } catch (e) {}
   }
 
   @override
@@ -164,19 +165,19 @@ String userType="";
             await Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (context) => DriverProfileUpdateScreen(userType: "DRIVER",),
+                builder: (context) => DriverProfileUpdateScreen(
+                  userType: "DRIVER",
+                ),
               ),
             );
-          }
-         else if (userType == 'INDEPENDENT_CAR_OWNER') {
+          } else if (userType == 'INDEPENDENT_CAR_OWNER') {
             await Navigator.push(
               context,
               CupertinoPageRoute(
                 builder: (context) => EditCarOwnerProfile(),
               ),
             );
-          }
-          else if (['E_RICKSHAW', 'RICKSHAW'].contains(userType)) {
+          } else if (['E_RICKSHAW', 'RICKSHAW'].contains(userType)) {
             print(
                 'User type is $userType, navigating to TransporterDriverProfileScreen');
             await Navigator.push(
@@ -269,15 +270,15 @@ String userType="";
                 ],
               ),
             ),
-            if(userType!="USER")
-            GestureDetector(
-              onTap: () {},
-              child: SvgPicture.asset(
-                "assets/svg/share-profile.svg",
-                width: 20,
-                height: 20,
+            if (userType != "USER")
+              GestureDetector(
+                onTap: () {},
+                child: SvgPicture.asset(
+                  "assets/svg/share-profile.svg",
+                  width: 20,
+                  height: 20,
+                ),
               ),
-            ),
             SizedBox(
               width: 20,
             ),
@@ -331,7 +332,8 @@ String userType="";
                 onTap: () {
                   Navigator.push(
                     context,
-                    CupertinoPageRoute(builder: (context) => RatingsReviewsPage()),
+                    CupertinoPageRoute(
+                        builder: (context) => RatingsReviewsPage()),
                   );
                 },
               ),
@@ -425,12 +427,16 @@ String userType="";
             padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               children: [
-                SvgPicture.asset(icon,width: 24,height: 24,),
+                SvgPicture.asset(
+                  icon,
+                  width: 24,
+                  height: 24,
+                ),
                 const SizedBox(width: 20),
                 Expanded(
                   child: Text(
                     title,
-                    style:  TextStyle(
+                    style: TextStyle(
                       fontFamily: AppConstants.ptSansFont,
                       fontSize: 16,
                       fontWeight: FontWeight.w400,

@@ -25,6 +25,8 @@ import '../../../components/app_loader.dart';
 import '../../../features/vehicles/presentation/pages/add_new_vehicle_screen.dart';
 import '../../block/language/language_provider.dart';
 import '../../block/provider/profile_provider.dart' show ProfileProvider;
+import '../../commonWidgets/city_dropdown_widget.dart';
+import '../../commonWidgets/state_dropdown_widget.dart';
 import '../../widgets/common_submit_button.dart';
 
 class DriverProfileForm extends StatefulWidget {
@@ -145,53 +147,40 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
             maxLength: 6,
           ),
           SizedBox(height: 20),
-          _buildDropdown(
-            'State',
-            _selectedState,
-            _stateList
-                .map((state) => DropdownMenuItem(
-              value: state.sId,
-              child: Text(state.name.toString()),
-            ))
-                .toList(),
-                (newValue) {
+          StateDropdownWidget(
+            stateList: _stateList,
+            selectedState: _selectedState,
+            onChanged: (newValue) {
+              final locProvider =
+              Provider.of<LocationProvider>(context, listen: false);
+
               setState(() {
                 _selectedState = newValue;
-                _stateController.text = newValue ?? '';
-                if (newValue != null) {
-                  final locProvider =
-                  Provider.of<LocationProvider>(context, listen: false);
-                  locProvider.fetchCity(newValue).then((_) {
-                    setState(() {
-                      _cityList = locProvider.cities;
-                      _selectedCity = null; // Reset city when state changes
-                    });
-                  });
-                }
+                _selectedCity = null;
+                _cityList = [];
               });
+
+              if (newValue != null) {
+                locProvider.fetchCity(newValue).then((_) {
+                  setState(() {
+                    _cityList = locProvider.cities;
+                  });
+                });
+              }
             },
-            validator: (value) =>
-            value == null ? 'Please select a state' : null,
           ),
+
           SizedBox(height: 20),
-          _buildDropdown(
-            'City',
-            _selectedCity,
-            _cityList
-                .map((city) => DropdownMenuItem(
-              value: city.sId,
-              child: Text(city.name.toString()),
-            ))
-                .toList(),
-                (newValue) {
+          CityDropdownWidget(
+            cityList: _cityList,
+            selectedCity: _selectedCity,
+            onChanged: (newValue) {
               setState(() {
                 _selectedCity = newValue;
-                _cityController.text = newValue ?? '';
               });
             },
-            validator: (value) =>
-            value == null ? 'Please select a city' : null,
           ),
+
           SizedBox(height: 20),
           _buildTextField(
             'Vehicle Number',
