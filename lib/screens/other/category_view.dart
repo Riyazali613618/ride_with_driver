@@ -13,6 +13,8 @@ import 'package:rwd/screens/user_screens/vehicles.dart';
 import 'package:rwd/utils/common_utils.dart';
 
 import '../../api/api_model/VehicleType.dart';
+import '../../api/api_service/user_service/user_profile_service.dart';
+import '../../features/vehicles/presentation/pages/vehicle_type_model.dart';
 import '../../l10n/app_localizations.dart';
 import '../../utils/color.dart';
 import '../user_screens/LocationSearchScreen.dart';
@@ -40,9 +42,107 @@ class _GridViewExampleState extends State<GridViewExample> {
   @override
   void initState() {
     super.initState();
+    getVehicleTypeList();
     _loadRecentLocations();
     searchFocusNode.addListener(_handleFocusChange);
     searchController.addListener(_handleSearchTextChange);
+  }
+
+  List<Categories> _vehicleTypes = [];
+
+  Future<void> getVehicleTypeList() async {
+    WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) async {
+            addVehicles();
+        final data = await UserProfileService().getVehicleTypeList();
+        if (data.data != null) {
+          _vehicleTypes = data.data?.categories ?? [];
+
+          _vehicleTypes = mergeServerWithLocalUI(_vehicleTypes);
+          setState(() {});
+        }
+      },
+    );
+  }
+  Map<String, VehicleType> vehicles = {};
+  void addVehicles() {
+    WidgetsBinding.instance.addPostFrameCallback(
+          (timeStamp) {
+        final localizations = AppLocalizations.of(context)!;
+        vehicles = {
+          'CAR': VehicleType(
+            name: localizations.car,
+            assetImagePath: AssetsConstant.car,
+            color: const Color(0xFFEF9A9A),
+            color1: const Color(0xFFFFEBEE),
+          ),
+          'AUTO': VehicleType(
+            name: localizations.auto,
+            assetImagePath: AssetsConstant.tukTuk,
+            color: const Color(0xFFFFE082),
+            color1: const Color(0xFFFFF8E1),
+          ),
+          'E_RICKSHAW': VehicleType(
+            name: localizations.eRickshaw,
+            assetImagePath: AssetsConstant.auto,
+            color: const Color(0xFF9575CD),
+            color1: const Color(0xFFEDE7F6),
+          ),
+          'SUV': VehicleType(
+            name: localizations.suv,
+            assetImagePath: AssetsConstant.suv,
+            color: const Color(0xFFFFAB91),
+            color1: const Color(0xFFFFEBE9),
+          ),
+          'MINIVAN': VehicleType(
+            name: localizations.minivan,
+            assetImagePath: AssetsConstant.minivan,
+            color: const Color(0xFFF48FB1),
+            color1: const Color(0xFFFCE4EC),
+          ),
+          'BUS': VehicleType(
+            name: localizations.bus,
+            assetImagePath: AssetsConstant.bus,
+            color: const Color(0xFFA5D6A7),
+            color1: const Color(0xFFE8F5E9),
+          ),
+          'RICKSHAW': VehicleType(
+            name: localizations.driver,
+            assetImagePath: AssetsConstant.driverBus,
+            color: const Color(0xFF81D4FA),
+            color1: const Color(0xFFE1F5FE),
+          ),
+          'LUXURY': VehicleType(
+            name: 'Luxury',
+            assetImagePath: AssetsConstant.suv,
+            color: const Color(0xFFFFAB91),
+            color1: const Color(0xFFE1F5FE),
+          ),
+        };
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  List<Categories> mergeServerWithLocalUI(
+      List<Categories> serverCategories,
+      ) {
+    return serverCategories.map((category) {
+      final local = vehicles[category.code];
+
+      if (local == null) {
+        // No local match → return as-is
+        return category;
+      }
+
+      return category.copyWith(
+        color: local.color,
+        color1: local.color1,
+        image: local.assetImagePath,
+      );
+    }).toList();
   }
 
   void _handleFocusChange() {
@@ -326,7 +426,6 @@ class _GridViewExampleState extends State<GridViewExample> {
   }
 
   Widget _buildGridView(double screenWidth) {
-    final suggestions = getLocalizedSuggestions(context);
 
     return Padding(
       padding: const EdgeInsets.all(12.0),
@@ -335,7 +434,7 @@ class _GridViewExampleState extends State<GridViewExample> {
           double maxCrossAxisExtent = screenWidth / 3;
 
           return GridView.builder(
-            itemCount: suggestions.length,
+            itemCount: _vehicleTypes.length,
             gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
               maxCrossAxisExtent: maxCrossAxisExtent.clamp(100, 160),
               mainAxisSpacing: 12,
@@ -343,7 +442,7 @@ class _GridViewExampleState extends State<GridViewExample> {
               childAspectRatio: 3 / 3.2,
             ),
             itemBuilder: (BuildContext context, int index) {
-              final suggestion = suggestions[index];
+              final suggestion = _vehicleTypes[index];
               return GestureDetector(
                 onTap: () async {
                   setState(() {
@@ -354,7 +453,7 @@ class _GridViewExampleState extends State<GridViewExample> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => LocationSearchScreen(
-                        selectedCategory: getCategoryName(index),
+                        selectedCategory: getCategoryName(_vehicleTypes[index].code??""),
                         isRentVehicle: false,
                       ),
                     ),
@@ -615,7 +714,7 @@ class _GridViewExampleState extends State<GridViewExample> {
     );
   }
 
-  Widget _suggestionItem(VehicleType vehicle) {
+  Widget _suggestionItem(Categories vehicle) {
     return Container(
       padding: EdgeInsets.only(top: 28, bottom: 22, left: 4, right: 8),
       decoration: BoxDecoration(
@@ -623,8 +722,8 @@ class _GridViewExampleState extends State<GridViewExample> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            vehicle.color1,
-            vehicle.color,
+            vehicle.color1??Colors.purple,
+            vehicle.color??Colors.purple.shade50,
           ],
           stops: const [0.0, 0.7],
         ),
@@ -639,7 +738,7 @@ class _GridViewExampleState extends State<GridViewExample> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 0),
                 child: Image.asset(
-                  vehicle.assetImagePath ?? "",
+                  vehicle.image ?? "",
                   width: 80,
                   height: 50,
                   fit: BoxFit.contain,
@@ -651,7 +750,7 @@ class _GridViewExampleState extends State<GridViewExample> {
           Padding(
             padding: const EdgeInsets.only(left: 0),
             child: Text(
-              vehicle.name,
+              vehicle.code??"",
               overflow: TextOverflow.ellipsis,
               style: CommonUtils.commonTitleStyle(
                   fontSize: 14, weight: FontWeight.w600),
@@ -662,23 +761,25 @@ class _GridViewExampleState extends State<GridViewExample> {
     );
   }
 
-  getCategoryName(int index) {
-    switch (selectedVehicleIndex) {
-      case 0:
+  getCategoryName(String name) {
+    switch (name.toUpperCase()) {
+      case "CAR":
         return 'CAR';
-      case 1:
+      case "AUTO":
+      case "RICKSHAW":
         return 'RICKSHAW';
-      case 2:
+      case "E-RICKSHAW":
+      case "E_RICKSHAW":
         return 'E_RICKSHAW';
-      case 3:
+      case "SUV":
         return 'SUV';
-      case 4:
+      case "MINIVAN":
         return 'MINIVAN';
-      case 5:
+      case "BUS":
         return 'BUS';
-      case 6:
+      case "DRIVER":
         return 'DRIVER';
-      case 7:
+      case "LUXURY":
         return 'LUXURY';
       default:
         return 'ALLVEHICLES';
