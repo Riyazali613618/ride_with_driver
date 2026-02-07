@@ -523,7 +523,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
     super.dispose();
   }
 
-  List<VehicleType> vehicles = [];
+  Map<String, VehicleType> vehicles = {};
 
   String selectedLanguage = 'En';
 
@@ -912,13 +912,13 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                                       ),
                                                     ),
                                                   ),
-                                                  ...vehicles.map(
-                                                      (VehicleType vehicle) {
+                                                  ..._vehicleTypes.map(
+                                                      (Categories vehicle) {
                                                     return PopupMenuItem<
                                                         String>(
-                                                      value: vehicle.name,
+                                                      value: vehicle.code,
                                                       child: Text(
-                                                        vehicle.name,
+                                                        vehicle.code!,
                                                         style: TextStyle(
                                                           fontSize: 14,
                                                           fontWeight:
@@ -1123,9 +1123,10 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                             padding: const EdgeInsets.only(
                                 left: 8, right: 8, bottom: 10),
                             child: Row(
-                              children: vehicles.asMap().entries.map((entry) {
+                              children:
+                                  _vehicleTypes.asMap().entries.map((entry) {
                                 int index = entry.key;
-                                VehicleType vehicle = entry.value;
+                                Categories vehicle = entry.value;
 
                                 return Container(
                                   margin: const EdgeInsets.symmetric(
@@ -1162,8 +1163,8 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                           begin: Alignment.topCenter,
                                           end: Alignment.bottomCenter,
                                           colors: [
-                                            vehicle.color1,
-                                            vehicle.color,
+                                            vehicle.color1 ?? Colors.purple,
+                                            vehicle.color ?? Colors.white,
                                           ],
                                           stops: const [0.0, 0.7],
                                         ),
@@ -1186,7 +1187,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                             padding:
                                                 const EdgeInsets.only(left: 8),
                                             child: Image.asset(
-                                              vehicle.assetImagePath ?? "",
+                                              vehicle.image ?? "",
                                               width: 90,
                                               height: 55,
                                               fit: BoxFit.contain,
@@ -1197,7 +1198,7 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
                                             padding:
                                                 const EdgeInsets.only(left: 8),
                                             child: Text(
-                                              vehicle.name,
+                                              vehicle.code!,
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontSize: 14,
@@ -1454,66 +1455,86 @@ class _UserHomeNewScreenState extends State<UserHomeNewScreen>
         if (data.data != null) {
           _vehicleTypes = data.data?.categories ?? [];
 
+          _vehicleTypes = mergeServerWithLocalUI(_vehicleTypes);
           setState(() {});
         }
       },
     );
   }
 
+  List<Categories> mergeServerWithLocalUI(
+    List<Categories> serverCategories,
+  ) {
+    return serverCategories.map((category) {
+      final local = vehicles[category.code];
+
+      if (local == null) {
+        // No local match → return as-is
+        return category;
+      }
+
+      return category.copyWith(
+        color: local.color,
+        color1: local.color1,
+        image: local.assetImagePath,
+      );
+    }).toList();
+  }
+
   void addVehicles() {
     WidgetsBinding.instance.addPostFrameCallback(
       (timeStamp) {
         final localizations = AppLocalizations.of(context)!;
-        vehicles = [
-          VehicleType(
+        vehicles = {
+          'CAR': VehicleType(
             name: localizations.car,
             assetImagePath: AssetsConstant.car,
             color: const Color(0xFFEF9A9A),
             color1: const Color(0xFFFFEBEE),
           ),
-          VehicleType(
+          'AUTO': VehicleType(
             name: localizations.auto,
             assetImagePath: AssetsConstant.tukTuk,
             color: const Color(0xFFFFE082),
             color1: const Color(0xFFFFF8E1),
           ),
-          VehicleType(
+          'E_RICKSHAW': VehicleType(
             name: localizations.eRickshaw,
             assetImagePath: AssetsConstant.auto,
             color: const Color(0xFF9575CD),
             color1: const Color(0xFFEDE7F6),
           ),
-          VehicleType(
+          'SUV': VehicleType(
             name: localizations.suv,
             assetImagePath: AssetsConstant.suv,
             color: const Color(0xFFFFAB91),
             color1: const Color(0xFFFFEBE9),
           ),
-          VehicleType(
+          'MINIVAN': VehicleType(
             name: localizations.minivan,
             assetImagePath: AssetsConstant.minivan,
             color: const Color(0xFFF48FB1),
             color1: const Color(0xFFFCE4EC),
           ),
-          VehicleType(
+          'BUS': VehicleType(
             name: localizations.bus,
             assetImagePath: AssetsConstant.bus,
             color: const Color(0xFFA5D6A7),
             color1: const Color(0xFFE8F5E9),
           ),
-          VehicleType(
+          'RICKSHAW': VehicleType(
             name: localizations.driver,
             assetImagePath: AssetsConstant.driverBus,
             color: const Color(0xFF81D4FA),
             color1: const Color(0xFFE1F5FE),
           ),
-          VehicleType(
-            name: "Luxury",
+          'LUXURY': VehicleType(
+            name: 'Luxury',
             assetImagePath: AssetsConstant.suv,
             color: const Color(0xFFFFAB91),
             color1: const Color(0xFFE1F5FE),
           ),
-        ];
+        };
         if (mounted) {
           setState(() {});
         }

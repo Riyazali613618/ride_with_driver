@@ -326,7 +326,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
           SizedBox(height: 20),
           _buildAboutTextField("About", _aboutController),
           const SizedBox(height: 20),
-          /* Container(
+           Container(
             alignment: Alignment.center,
             child: CommonSubmitButton(
               gradientColors: [gradientFirst, gradientSecond],
@@ -337,7 +337,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
               borderRadius: 12,
               isLoading: _submitting,
             ),
-          ),*/
+          ),
         ],
       ),
     );

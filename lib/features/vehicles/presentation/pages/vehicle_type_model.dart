@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 class VehicleTypeModel {
   bool? success;
   String? message;
@@ -46,6 +48,9 @@ class Data {
 }
 
 class Categories {
+  Color? color1;
+  Color? color;
+  String? image;
   String? sId;
   String? code;
   String? description;
@@ -59,6 +64,9 @@ class Categories {
 
   Categories(
       {this.sId,
+        this.color,
+        this.color1,
+        this.image,
         this.code,
         this.description,
         this.seatingLimits,
@@ -70,6 +78,9 @@ class Categories {
         this.updatedAt});
 
   Categories.fromJson(Map<String, dynamic> json) {
+    color = json['color'];
+    color1 = json['color1'];
+    image = json['image'];
     sId = json['_id'];
     code = json['code'];
     description = json['description'];
@@ -86,6 +97,9 @@ class Categories {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['color'] = this.color;
+    data['image'] = this.image;
+    data['color1'] = this.color1;
     data['_id'] = this.sId;
     data['code'] = this.code;
     data['description'] = this.description;
@@ -99,6 +113,42 @@ class Categories {
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
     return data;
+  }
+
+  Categories copyWith({
+    Color? color1,
+    Color? color,
+    String? image,
+    String? sId,
+    String? code,
+    String? description,
+    SeatingLimits? seatingLimits,
+    List<String>? allowedForPartners,
+    bool? isActive,
+    List<String>? brands,
+    int? iV,
+    String? createdAt,
+    String? updatedAt,
+  }) {
+    return Categories(
+      color1: color1 ?? this.color1,
+      color: color ?? this.color,
+      image: image ?? this.image,
+      sId: sId ?? this.sId,
+      code: code ?? this.code,
+      description: description ?? this.description,
+      seatingLimits: seatingLimits ?? this.seatingLimits,
+      allowedForPartners: allowedForPartners ??
+          (this.allowedForPartners != null
+              ? List<String>.from(this.allowedForPartners!)
+              : null),
+      isActive: isActive ?? this.isActive,
+      brands: brands ??
+          (this.brands != null ? List<String>.from(this.brands!) : null),
+      iV: iV ?? this.iV,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
 

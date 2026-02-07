@@ -325,7 +325,7 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
           SizedBox(height: 20),
           _buildAboutTextField("About", _aboutController),
           const SizedBox(height: 20),
-          /* Container(
+           Container(
             alignment: Alignment.center,
             child: CommonSubmitButton(
               gradientColors: [gradientFirst, gradientSecond],
@@ -336,7 +336,7 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
               borderRadius: 12,
               isLoading: _submitting,
             ),
-          ),*/
+          ),
         ],
       ),
     );
