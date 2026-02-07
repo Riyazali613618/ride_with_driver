@@ -2,14 +2,22 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rwd/api/api_model/user_model/my_profile_model.dart';
+import 'package:rwd/api/api_service/user_service/user_profile_service.dart';
 import 'package:rwd/components/common_parent_container.dart';
 import 'package:rwd/constants/api_constants.dart';
 import 'package:rwd/constants/color_constants.dart';
+import 'package:rwd/screens/commonWidgets/state_dropdown_widget.dart';
 import 'package:rwd/utils/common_utils.dart';
 
+import 'package:rwd/api/api_model/cityModel.dart' as cm;
+import 'package:rwd/api/api_model/stateModel.dart' as sm;
+
+import '../../../api/api_service/countryStateProviderService.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
 import '../../block/provider/profile_provider.dart';
 import '../../../api/api_service/media_service.dart';
+import '../../commonWidgets/city_dropdown_widget.dart';
 
 class ProfileUpdateScreen extends StatefulWidget {
   const ProfileUpdateScreen({Key? key}) : super(key: key);
@@ -33,15 +41,58 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
   Map<String, dynamic>? _originalData; // Store original data
   late AnimationController _fabAnimationController;
   late Animation<double> _fabAnimation;
+  String? _selectedCity;
+  String? _selectedState;
+  List<cm.Data> _cityList = [];
+  List<sm.Data> _stateList = [];
+  String? currentCountry;
+
+  MyProfileData? myProfile;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfileData();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadProfileData();
+      _initializeLocation();
     });
     _setupControllerListeners();
     _setupAnimations();
+  }
+
+  void _initializeLocation() {
+    final langProvider = Provider.of<LocationProvider>(context, listen: false);
+    currentCountry =
+        langProvider.selectedCountry ?? ApiConstants.defaultCountryCodeInd;
+    print("StateID===${myProfile?.state?.id}");
+    String stateId = "";
+    langProvider.fetchStates(currentCountry!).then((_) {
+      if (mounted) {
+        _stateList = langProvider.states;
+        for (final state in _stateList) {
+          if ((myProfile?.state?.id ?? "") == state.sId) {
+            stateId = state.sId ?? "";
+            _selectedState = stateId;
+            break;
+          }
+        }
+        if (_selectedState != null && _selectedState!.isNotEmpty) {
+          langProvider.fetchCity(stateId ?? "").then((_) {
+            setState(() {
+              _cityList = langProvider.cities;
+              for (final city in _cityList) {
+                if ((myProfile?.city?.id ?? "") == city.sId) {
+                  _selectedCity = city.sId;
+                  break;
+                }
+              }
+            });
+          });
+        }
+
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -101,6 +152,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
   Future<void> _loadProfileData() async {
     final provider = context.read<ProfileProvider>();
     await provider.loadProfile(context);
+    myProfile = await UserProfileService().getUserProfile();
 
     if (provider.profileData != null) {
       final data = provider.profileData!;
@@ -167,6 +219,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
       'number': _phoneController.text.trim(),
       // 'language': _languageController.text.trim(),
       'profilePhoto': _profileImageUrl ?? '',
+      "state":_selectedState,
+      "city":_selectedCity,
     };
     jsonEncode(profileData);
 
@@ -357,7 +411,42 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
               keyboardType: TextInputType.phone,
               enabled: false, // Phone is always disabled
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
+            StateDropdownWidget(
+              isReadonly: !_isEditing,
+              stateList: _stateList,
+              selectedState: _selectedState,
+              onChanged: (newValue) {
+                final locProvider =
+                    Provider.of<LocationProvider>(context, listen: false);
+
+                setState(() {
+                  _selectedState = newValue;
+                  _selectedCity = null;
+                  _cityList = [];
+                });
+
+                if (newValue != null) {
+                  locProvider.fetchCity(newValue).then((_) {
+                    setState(() {
+                      _cityList = locProvider.cities;
+                    });
+                  });
+                }
+              },
+            ),
+            SizedBox(height: 16),
+            CityDropdownWidget(
+              isReadonly: !_isEditing,
+              cityList: _cityList,
+              selectedCity: _selectedCity,
+              onChanged: (newValue) {
+                setState(() {
+                  _selectedCity = newValue;
+                });
+              },
+            ),
+            SizedBox(height: 16),
             _buildAnimatedTextField(
               label: "Language",
               controller: _languageController,
@@ -734,17 +823,19 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,style: CommonUtils.commonTextLabelsStyle(),),
-                const SizedBox(height: 5,),
+                Text(
+                  label,
+                  style: CommonUtils.commonTextLabelsStyle(),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
                 Container(
                   height: 48,
-                  padding: EdgeInsets.symmetric(horizontal: 10,vertical: 0),
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(5),
-                    border: Border.all(
-                        color: Color(0xFF641BB4),
-                        width: 1
-                    ),
+                    border: Border.all(color: Color(0xFF641BB4), width: 1),
                   ),
                   child: TextFormField(
                     controller: controller,
@@ -982,77 +1073,78 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
         //   ),
         // ),
         body: CommonParentContainer(
-          child:
-              profileProvider.isLoading && profileProvider.profileData == null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              ColorConstants.primaryColor,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            localizations.loading_profile,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
+          child: profileProvider.isLoading &&
+                  profileProvider.profileData == null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          ColorConstants.primaryColor,
+                        ),
                       ),
-                    )
-                  : Form(
-                      key: _formKey,
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Column(
-                                children: [
-                                  Container(
-                                    margin: EdgeInsets.only(top: 20),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 20),
-                                    child: Row(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.arrow_back_ios,
-                                            color: ColorConstants.white,
-                                          ),
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(),
-                                        ),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                localizations.edit_profile,
-                                                style: CommonUtils.commonTitleStyle(color: Colors.white),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
+                      const SizedBox(height: 16),
+                      Text(
+                        localizations.loading_profile,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(top: 20),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 20),
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.arrow_back_ios,
+                                        color: ColorConstants.white,
+                                      ),
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
                                     ),
-                                  ),
-                                  _buildFormSection(),
-                                  // if (profileProvider.error != null)
-                                  //   _buildErrorCard(profileProvider.error!),
-                                  const SizedBox(height: 20),
-                                ],
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            localizations.edit_profile,
+                                            style: CommonUtils.commonTitleStyle(
+                                                color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
+                              _buildFormSection(),
+                              // if (profileProvider.error != null)
+                              //   _buildErrorCard(profileProvider.error!),
+                              const SizedBox(height: 20),
+                            ],
                           ),
-                          _buildActionButtons(),
-                        ],
+                        ),
                       ),
-                    ),
+                      _buildActionButtons(),
+                    ],
+                  ),
+                ),
         ),
       ),
     );

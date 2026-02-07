@@ -8,10 +8,12 @@ import '../../utils/common_utils.dart';
 class StateDropdownWidget extends StatelessWidget {
   final List<sm.Data> stateList;
   final String? selectedState;
+  final bool isReadonly;
   final Function(String?) onChanged;
 
   const StateDropdownWidget({
     super.key,
+    this.isReadonly = false,
     required this.stateList,
     required this.selectedState,
     required this.onChanged,
@@ -20,33 +22,29 @@ class StateDropdownWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownSearch<sm.Data>(
+      enabled: !isReadonly,
       items: (filter, loadProps) {
         return stateList;
       },
       compareFn: (item1, item2) {
         return item1.name == item2.name;
       },
-      selectedItem: stateList
-          .where((s) => s.sId == selectedState)
-          .isNotEmpty
+      selectedItem: stateList.where((s) => s.sId == selectedState).isNotEmpty
           ? stateList.firstWhere((s) => s.sId == selectedState)
           : null,
-
       itemAsString: (sm.Data state) => state.name ?? '',
-
       decoratorProps: DropDownDecoratorProps(
         decoration: InputDecoration(
-          hintText: 'Select Type',
+          hintText: 'Select State',
           labelStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
           hintStyle: CommonUtils.commonTextLabelsStyle(fontSize: 12),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
           ),
           contentPadding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
       ),
-
       popupProps: PopupProps.menu(
         showSearchBox: true,
         searchFieldProps: TextFieldProps(
@@ -70,11 +68,9 @@ class StateDropdownWidget extends StatelessWidget {
           );
         },
       ),
-
       onChanged: (sm.Data? value) {
         onChanged(value?.sId);
       },
-
       validator: (value) {
         if (value == null) {
           return 'Please select a state';

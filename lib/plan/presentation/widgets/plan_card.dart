@@ -139,7 +139,7 @@ class PlanCard extends StatelessWidget {
                       text: "Continue",
                       onPressed: () {
                         //  context.read<PaymentBloc>().add(event)
-                     /*   context.read<PaymentBloc>().add(
+                        /*   context.read<PaymentBloc>().add(
                               InitiatePayment(
                                 plan: Plan(
                                     id: plan.id,

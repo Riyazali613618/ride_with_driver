@@ -17,6 +17,7 @@ import 'package:rwd/api/api_model/stateModel.dart' as sm;
 import 'package:rwd/constants/api_constants.dart';
 import 'package:rwd/api/api_model/cityModel.dart' as cM;
 import 'package:rwd/constants/token_manager.dart';
+import 'package:rwd/screens/user_screens/user_home_new.dart';
 import '../../../../api/api_service/countryStateProviderService.dart';
 import '../../../../constants/api_constants.dart';
 import '../../../../constants/color_constants.dart';
@@ -152,7 +153,7 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
             selectedState: _selectedState,
             onChanged: (newValue) {
               final locProvider =
-              Provider.of<LocationProvider>(context, listen: false);
+                  Provider.of<LocationProvider>(context, listen: false);
 
               setState(() {
                 _selectedState = newValue;
@@ -179,7 +180,6 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
               });
             },
           ),
-
           SizedBox(height: 20),
           _buildTextField(
             'Vehicle Number',
@@ -303,7 +303,7 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
           ),
           const SizedBox(height: 8),
           _languageMultiSelectDropdown(),
-          SizedBox(height: 20),
+         /* SizedBox(height: 20),
           _buildFileUploadSection(
             title: 'Upload Vehicle Image',
             files: _vehicleImages,
@@ -320,11 +320,12 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
             onAddFile: () => _pickVideo(),
             onRemoveFile: (index) => _removeFile('video', index),
             fileType: 'video',
-          ),
+          ),*/
+          if (_vehicleVideosServer.isNotEmpty) _showVehicleVideos(),
           SizedBox(height: 20),
           _buildAboutTextField("About", _aboutController),
           const SizedBox(height: 20),
-          Container(
+          /* Container(
             alignment: Alignment.center,
             child: CommonSubmitButton(
               gradientColors: [gradientFirst, gradientSecond],
@@ -335,7 +336,7 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
               borderRadius: 12,
               isLoading: _submitting,
             ),
-          ),
+          ),*/
         ],
       ),
     );
@@ -1294,5 +1295,44 @@ class _RickshawProfileFormState extends State<RickshawProfileForm> {
         _vehicleVideos.add(File(video.path));
       });
     }
+  }
+
+  _showVehicleVideos() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Vehicle Videos",
+            style: CommonUtils.commonTextLabelsStyle(),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 80,
+            width: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _vehicleVideosServer.length,
+              itemBuilder: (context, index) {
+                final videoUrl = _vehicleVideosServer[index] ?? '';
+                return VideoThumbnailView(
+                  videoUrl: videoUrl,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            FullScreenVideoPlayer(videoUrl: videoUrl),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

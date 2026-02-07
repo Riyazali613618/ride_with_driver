@@ -27,6 +27,7 @@ import '../../block/language/language_provider.dart';
 import '../../block/provider/profile_provider.dart' show ProfileProvider;
 import '../../commonWidgets/city_dropdown_widget.dart';
 import '../../commonWidgets/state_dropdown_widget.dart';
+import '../../user_screens/user_home_new.dart';
 import '../../widgets/common_submit_button.dart';
 
 class DriverProfileForm extends StatefulWidget {
@@ -82,7 +83,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
     // TODO: implement initState
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-       profile = await getProfile();
+      profile = await getProfile();
       _initializeLocation();
     });
   }
@@ -97,13 +98,12 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
     await langProvider.fetchStates(currentCountry!);
     _stateList = langProvider.states;
     final languageProvider =
-    Provider.of<LanguageProvider>(context, listen: false);
+        Provider.of<LanguageProvider>(context, listen: false);
     langData = languageProvider.language ?? [];
-    await langProvider.fetchCity(_selectedState??"");
-    _cityList=langProvider.cities;
-    setState(() {
-    });
-  /*  await langProvider.fetchCity(stateData?.sId ?? "");
+    await langProvider.fetchCity(_selectedState ?? "");
+    _cityList = langProvider.cities;
+    setState(() {});
+    /*  await langProvider.fetchCity(stateData?.sId ?? "");
     if (mounted) {
       setState(() {
         _cityList = langProvider.cities;
@@ -152,7 +152,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
             selectedState: _selectedState,
             onChanged: (newValue) {
               final locProvider =
-              Provider.of<LocationProvider>(context, listen: false);
+                  Provider.of<LocationProvider>(context, listen: false);
 
               setState(() {
                 _selectedState = newValue;
@@ -169,7 +169,6 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
               }
             },
           ),
-
           SizedBox(height: 20),
           CityDropdownWidget(
             cityList: _cityList,
@@ -180,7 +179,6 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
               });
             },
           ),
-
           SizedBox(height: 20),
           _buildTextField(
             'Vehicle Number',
@@ -282,18 +280,18 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
             _selectedSeatingCount,
             seatingList
                 .map((value) => DropdownMenuItem(
-              value: value,
-              child: Text(value),
-            ))
+                      value: value,
+                      child: Text(value),
+                    ))
                 .toList(),
-                (newValue) {
+            (newValue) {
               setState(() {
                 _selectedSeatingCount = newValue;
                 _cityController.text = newValue ?? '';
               });
             },
             validator: (value) =>
-            value == null ? 'Please seating capacity' : null,
+                value == null ? 'Please seating capacity' : null,
           ),
           SizedBox(height: 20),
           _googlePlaceSearch(),
@@ -305,27 +303,30 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
           const SizedBox(height: 8),
           _languageMultiSelectDropdown(),
           SizedBox(height: 20),
-          _buildFileUploadSection(
+          /*_buildFileUploadSection(
             title: 'Upload Vehicle Image',
             files: _vehicleImages,
             filesServer: _vehicleImagesServer,
             onAddFile: () => _pickImage('vehicle'),
             onRemoveFile: (index) => _removeFile('vehicle', index),
             fileType: 'image',
-          ),
+          ),*/
+          if(_vehicleImagesServer.isNotEmpty)
+          _showVehicleImages(),
           SizedBox(height: 20),
-          _buildFileUploadSection(
+          /*_buildFileUploadSection(
             title: 'Upload Vehicle Video',
             files: _vehicleVideos,
             filesServer: _vehicleVideosServer,
             onAddFile: () => _pickVideo(),
             onRemoveFile: (index) => _removeFile('video', index),
             fileType: 'video',
-          ),
+          ),*/
+          if (_vehicleVideosServer.isNotEmpty) _showVehicleVideos(),
           SizedBox(height: 20),
           _buildAboutTextField("About", _aboutController),
           const SizedBox(height: 20),
-          Container(
+          /* Container(
             alignment: Alignment.center,
             child: CommonSubmitButton(
               gradientColors: [gradientFirst, gradientSecond],
@@ -335,6 +336,109 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
               text: "Update",
               borderRadius: 12,
               isLoading: _submitting,
+            ),
+          ),*/
+        ],
+      ),
+    );
+  }
+
+  _showVehicleVideos() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Vehicle Videos",
+            style: CommonUtils.commonTextLabelsStyle(),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 80,
+            width: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _vehicleVideosServer.length,
+              itemBuilder: (context, index) {
+                final videoUrl = _vehicleVideosServer[index] ?? '';
+                return VideoThumbnailView(
+                  videoUrl: videoUrl,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>
+                            FullScreenVideoPlayer(videoUrl: videoUrl),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _showVehicleImages() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Vehicle Images",
+            style: CommonUtils.commonTextLabelsStyle(),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 80,
+            width: 80,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _vehicleImagesServer.length,
+              itemBuilder: (context, index) {
+                final imageUrl = _vehicleImagesServer[index] ?? '';
+                return GestureDetector(
+                  onTap: () {},
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.black12,
+                        ),
+                        child: imageUrl != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : const Center(child: CircularProgressIndicator()),
+                      ),
+
+                      // ▶ Play icon
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          shape: BoxShape.circle,
+                        ),
+                        padding: const EdgeInsets.all(12),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 36,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -432,12 +536,12 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                               child: fileType == 'video'
                                   ? const Icon(Icons.video_file, size: 40)
                                   : ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  files[index],
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        files[index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                             ),
                             Positioned(
                               top: -4,
@@ -488,12 +592,12 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                               child: fileType == 'video'
                                   ? const Icon(Icons.video_file, size: 40)
                                   : ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: CachedNetworkImage(
-                                  imageUrl: filesServer[index],
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: CachedNetworkImage(
+                                        imageUrl: filesServer[index],
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
                             ),
                             Positioned(
                               top: -4,
@@ -558,7 +662,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                       fontFamily: AppConstants.ptSansFont,
                       fontSize: 14,
                       color:
-                      _selectedLangs.isEmpty ? Colors.grey : Colors.black,
+                          _selectedLangs.isEmpty ? Colors.grey : Colors.black,
                     ),
                   ),
                 ),
@@ -587,7 +691,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                 final isSelected = _selectedLangs.contains(language.name);
                 return CheckboxListTile(
                   contentPadding:
-                  EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                      EdgeInsets.symmetric(horizontal: 10, vertical: 0),
                   value: isSelected,
                   title: Text(language.name!),
                   controlAffinity: ListTileControlAffinity.leading,
@@ -617,9 +721,9 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
               children: [
                 Container(
                   margin:
-                  const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                      const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                   padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
                     color: const Color(0x1F641BB4).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -714,16 +818,16 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
   }
 
   Widget _buildTextField(
-      String label,
-      TextEditingController controller, {
-        String? placeholder,
-        String? Function(String?)? validator,
-        List<TextInputFormatter>? inputFormater,
-        TextInputType? keyboardType,
-        int? maxLength,
-        bool isReadOnly = false,
-        Function(String)? onChanged,
-      }) {
+    String label,
+    TextEditingController controller, {
+    String? placeholder,
+    String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormater,
+    TextInputType? keyboardType,
+    int? maxLength,
+    bool isReadOnly = false,
+    Function(String)? onChanged,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -746,11 +850,11 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
             style: CommonUtils.commonInputTextStyle(
                 color: isReadOnly ? Colors.grey : Colors.black),
             buildCounter: (
-                context, {
-                  required int currentLength,
-                  required bool isFocused,
-                  required int? maxLength,
-                }) {
+              context, {
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) {
               return null; // 👈 hides the counter
             },
             decoration: InputDecoration.collapsed(
@@ -764,21 +868,21 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
   }
 
   Widget _buildAboutTextField(
-      String label,
-      TextEditingController controller, {
-        String? placeholder,
-        String? Function(String?)? validator,
-        List<TextInputFormatter>? inputFormater,
-        TextInputType? keyboardType,
-        int? maxLength,
-        bool isReadOnly = false,
-        Function(String)? onChanged,
-      }) {
+    String label,
+    TextEditingController controller, {
+    String? placeholder,
+    String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormater,
+    TextInputType? keyboardType,
+    int? maxLength,
+    bool isReadOnly = false,
+    Function(String)? onChanged,
+  }) {
     return Container(
       height: 140,
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration:
-      CommonUtils.commonInputBoxDecoration(color: Color(0x0A641BB4)),
+          CommonUtils.commonInputBoxDecoration(color: Color(0x0A641BB4)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -800,11 +904,11 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                 fWeight: FontWeight.w400,
                 color: isReadOnly ? Colors.grey : Colors.black),
             buildCounter: (
-                context, {
-                  required int currentLength,
-                  required bool isFocused,
-                  required int? maxLength,
-                }) {
+              context, {
+              required int currentLength,
+              required bool isFocused,
+              required int? maxLength,
+            }) {
               return null; // 👈 hides the counter
             },
             decoration: InputDecoration.collapsed(
@@ -818,12 +922,12 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
   }
 
   Widget _buildDropdown<T>(
-      String label,
-      T? value,
-      List<DropdownMenuItem<T>> items,
-      void Function(T?) onChanged, {
-        String? Function(T?)? validator,
-      }) {
+    String label,
+    T? value,
+    List<DropdownMenuItem<T>> items,
+    void Function(T?) onChanged, {
+    String? Function(T?)? validator,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -839,12 +943,12 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(6),
               borderSide:
-              BorderSide(color: ColorConstants.inputFieldBorderColor),
+                  BorderSide(color: ColorConstants.inputFieldBorderColor),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide:
-              BorderSide(color: ColorConstants.inputFieldBorderColor),
+                  BorderSide(color: ColorConstants.inputFieldBorderColor),
             ),
           ),
           items: items,
@@ -861,12 +965,12 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
     _selectedCity = profile?.city?.id ?? "";
 
     _nameController.text =
-    "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
+        "${profile?.firstName ?? ""} ${profile?.lastName ?? ""}";
     _mobileController.text = profile?.mobileNumber ?? "";
     _addressController.text = profile?.address?.addressLine ?? "";
     _pinCodeController.text = "${profile?.address?.pincode ?? ""}";
     _aboutController.text = profile?.bio ?? "";
-    if(profile?.vehicles!=null && profile!.vehicles.isNotEmpty) {
+    if (profile?.vehicles != null && profile!.vehicles.isNotEmpty) {
       _vehicleNoController.text = profile?.vehicles[0].vehicleNumber ?? "";
       _selectedSeatingCount =
           (profile?.vehicles[0].seatingCapacity ?? 0).toString();
@@ -903,7 +1007,7 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
 
     try {
       final success =
-      await context.read<ProfileProvider>().updateProfile(profileData);
+          await context.read<ProfileProvider>().updateProfile(profileData);
 
       if (mounted) {
         if (success) {
@@ -1069,27 +1173,27 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                   border: InputBorder.none,
                   hintStyle: CommonUtils.commonHintTextStyle(),
                   suffixIcon: !isLoadingLocation &&
-                      searchLocationController.text.isNotEmpty
+                          searchLocationController.text.isNotEmpty
                       ? IconButton(
-                    icon: Icon(
-                      Icons.cancel_outlined,
-                      size: 16,
-                    ),
-                    onPressed: () {
-                      searchLocationController.clear();
-                      setState(() {
-                        _suggestions.clear();
-                        _showDropdown = false;
-                      });
-                    },
-                  )
+                          icon: Icon(
+                            Icons.cancel_outlined,
+                            size: 16,
+                          ),
+                          onPressed: () {
+                            searchLocationController.clear();
+                            setState(() {
+                              _suggestions.clear();
+                              _showDropdown = false;
+                            });
+                          },
+                        )
                       : null,
                 ),
                 onChanged: (value) {
                   _searchDebounceTimer?.cancel();
                   _searchDebounceTimer = Timer(
                     const Duration(milliseconds: 500),
-                        () => _searchLocationsWithService(value),
+                    () => _searchLocationsWithService(value),
                   );
                 },
               ),
@@ -1161,9 +1265,9 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                 children: [
                   Container(
                     margin:
-                    const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+                        const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
                     padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: const Color(0x1F641BB4).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
@@ -1192,8 +1296,8 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                     child: GestureDetector(
                       onTap: () {
                         final newList =
-                        List<String>.from(selectedServiceLocations)
-                          ..remove(item);
+                            List<String>.from(selectedServiceLocations)
+                              ..remove(item);
                         setState(() {
                           selectedServiceLocations = newList;
                         });
@@ -1204,9 +1308,9 @@ class _DriverProfileFormState extends State<DriverProfileForm> {
                           decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius:
-                              BorderRadius.all(Radius.circular(30)),
+                                  BorderRadius.all(Radius.circular(30)),
                               border:
-                              Border.all(color: Colors.black, width: 1)),
+                                  Border.all(color: Colors.black, width: 1)),
                           child: const Icon(
                             Icons.close,
                             size: 10,

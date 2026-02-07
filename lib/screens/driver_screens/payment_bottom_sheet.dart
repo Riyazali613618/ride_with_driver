@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:rwd/screens/layout.dart';
 
 import '../../api/api_model/user_model/my_profile_model.dart';
 import '../../api/api_service/payment_service/payment_service.dart';
@@ -32,6 +33,7 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
   final List<String>? benefits;
   final String planName;
   final bool isAdOns;
+  final bool isRenewal;
 
   const PaymentBottomSheetBlocView({
     super.key,
@@ -44,6 +46,7 @@ class PaymentBottomSheetBlocView extends StatefulWidget {
     this.benefits,
     this.planName = "",
     this.isAdOns = false,
+    this.isRenewal = false,
     this.paymentType = PaymentType.subscriptionRenewal,
     this.category,
   });
@@ -68,6 +71,8 @@ class _PaymentBottomSheetBlocViewState
             context.read<PaymentBloc>().openRazorpayCheckout(
                   state.orderData,
                   isAdOns: widget.isAdOns,
+                  isRenewal: state.orderData['description'] ==
+                      PaymentType.subscriptionRenewal.name,
                 );
           });
         }
@@ -77,8 +82,16 @@ class _PaymentBottomSheetBlocViewState
           if (!mounted) return;
 
           Navigator.of(context).pop(); // close bottom sheet
-
-          if (widget.isAdOns) {
+          if (widget.isRenewal) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => Layout(),
+              ),
+              (route) => false,
+            );
+            return;
+          } else if (widget.isAdOns) {
             MyProfileData? profile = await TokenManager.getProfile();
             if (!mounted) return;
 
@@ -162,7 +175,15 @@ class _PaymentBottomSheetBlocViewState
 
   Widget _buildTotalAndPaymentButton(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
-
+    double rwdBalance = widget.rwdBalance;
+    double payablePrice = widget.finalPrice;
+    if (rwdBalance > payablePrice) {
+      payablePrice = 0;
+      rwdBalance = rwdBalance - payablePrice;
+    } else {
+      payablePrice = payablePrice - rwdBalance;
+      rwdBalance = 0;
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -178,7 +199,7 @@ class _PaymentBottomSheetBlocViewState
                 ),
               ),
               Text(
-                '₹ ${widget.finalPrice.toStringAsFixed(2)}',
+                '₹ ${(payablePrice).toStringAsFixed(2)}',
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -195,7 +216,8 @@ class _PaymentBottomSheetBlocViewState
                 context.read<PaymentBloc>().add(
                       InitiatePayment(
                         isAdOns: widget.isAdOns,
-                        finalPrice: widget.finalPrice,
+                        isRenewal: widget.isRenewal,
+                        finalPrice: payablePrice,
                         duration: widget.plan.durationInMonths,
                         earlyBirdDiscountPrice:
                             widget.plan.earlyBirdDiscountPrice,
@@ -206,7 +228,7 @@ class _PaymentBottomSheetBlocViewState
                             ? int.parse(widget.vehicleCount)
                             : widget.plan.maxVehicles,
                         planType: widget.planType,
-                        rwdBalance: widget.rwdBalance,
+                        rwdBalance: rwdBalance,
                         paymentType: widget.paymentType,
                         category: widget.category,
                         currentCategory: widget.currentCategory,

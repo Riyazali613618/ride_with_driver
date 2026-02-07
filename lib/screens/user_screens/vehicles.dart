@@ -499,7 +499,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
   void _scrollListener() {
     if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 200 ) {
+        _scrollController.position.maxScrollExtent - 200) {
       print(_hasMoreItems);
       if (!_isLoadingMore && _hasMoreItems) {
         _loadMoreVehicles();
@@ -680,6 +680,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       }
     }
   }
+
   List<VehicleOwner> mergeVehicleOwners(List<VehicleOwner> apiResults) {
     final Map<String, VehicleOwner> ownerMap = {};
 
@@ -862,8 +863,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     width: double.infinity,
                     height: 160,
                     child: ClipRRect(
-                      borderRadius: BorderRadius.only(topRight: Radius.circular(16),topLeft: Radius.circular(16)),
-
+                      borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(16),
+                          topLeft: Radius.circular(16)),
                       child: _buildVehicleImage(vehicle),
                     ),
                   ),
@@ -942,8 +944,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                 ],
               ),
               Padding(
-                padding:
-                const EdgeInsets.only(left: 12, right: 12, top: 12),
+                padding: const EdgeInsets.only(left: 12, right: 12, top: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -956,7 +957,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                           style: TextStyle(
                             fontFamily: AppConstants.ptSansFont,
                             fontSize: (vehicle != null &&
-                                vehicle.vehicleName.isNotEmpty)
+                                    vehicle.vehicleName.isNotEmpty)
                                 ? 16
                                 : 12,
                             fontWeight: FontWeight.bold,
@@ -977,8 +978,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (vehicle != null &&
-                            vehicle.vehicleName.isNotEmpty)
+                        if (vehicle != null && vehicle.vehicleName.isNotEmpty)
                           Spacer()
                         else
                           const SizedBox(width: 20),
@@ -990,8 +990,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                               horizontal: 4, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.amber[50],
-                            border:
-                            BoxBorder.all(color: Color(0xFFF9E9AD)),
+                            border: BoxBorder.all(color: Color(0xFFF9E9AD)),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -1046,36 +1045,32 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                         Spacer(),
                         GestureDetector(
                           onTap: () async {
-                            if (favoriteStates
-                                .containsKey(vehicle!.id)) {
+                            if (favoriteStates.containsKey(vehicle!.id)) {
                               await deleteFavourires(vehicle!.id);
                               setState(() {
                                 favoriteStates[vehicle.id] = false;
                               });
                             } else {
-                              await addToFav(
-                                  vehicle!.userId, vehicle.id);
+                              await addToFav(vehicle!.userId, vehicle.id);
                               setState(() {
                                 favoriteStates[vehicle.id] =
-                                !(favoriteStates[vehicle.id] ??
-                                    false);
+                                    !(favoriteStates[vehicle.id] ?? false);
                               });
                             }
                           },
                           child: (favAdded || deletFav)
                               ? Center(
-                            child: CircularProgressIndicator(),
-                          )
+                                  child: CircularProgressIndicator(),
+                                )
                               : Icon(
-                            (favoriteStates[vehicle?.id] ?? false)
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            color: (favoriteStates[vehicle?.id] ??
-                                false)
-                                ? Colors.red
-                                : Colors.grey[400],
-                            size: 22,
-                          ),
+                                  (favoriteStates[vehicle?.id] ?? false)
+                                      ? Icons.favorite
+                                      : Icons.favorite_border,
+                                  color: (favoriteStates[vehicle?.id] ?? false)
+                                      ? Colors.red
+                                      : Colors.grey[400],
+                                  size: 22,
+                                ),
                         ),
                       ],
                     ),
@@ -1094,8 +1089,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                             const SizedBox(width: 5),
                             Text(
                               '₹ ${vehicle?.minimumChargePerHour ?? owner.minimumCharges}',
-                              style: CommonUtils.commonTitleStyle(
-                                  fontSize: 12),
+                              style: CommonUtils.commonTitleStyle(fontSize: 12),
                             ),
                             const SizedBox(width: 10),
                           ],
@@ -1105,9 +1099,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                             owner.negotiable)
                           Flexible(
                               child: Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 2),
-                                /* decoration: BoxDecoration(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            /* decoration: BoxDecoration(
                                 color: gradientSecond,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
@@ -1115,19 +1109,19 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                   width: 0.5,
                                 ),
                               ),*/
-                                child: Text(
-                                  (vehicle?.isPriceNegotiable == true ||
+                            child: Text(
+                              (vehicle?.isPriceNegotiable == true ||
                                       owner.negotiable)
-                                      ? localizations.negotiable
-                                      : localizations.fixedPrice,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: CommonUtils.commonTitleStyle(
-                                      fontSize: 12,
-                                      color: Color(0xFF1FAF38),
-                                      weight: FontWeight.w400),
-                                ),
-                              )),
+                                  ? localizations.negotiable
+                                  : localizations.fixedPrice,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: CommonUtils.commonTitleStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF1FAF38),
+                                  weight: FontWeight.w400),
+                            ),
+                          )),
                         const SizedBox(width: 10),
                       ],
                     ),
@@ -1136,8 +1130,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     Container(
                       color: Colors.transparent,
                       child: Row(
-                        mainAxisAlignment:
-                        MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             mainAxisAlignment: MainAxisAlignment.start,
@@ -1151,13 +1144,11 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 userImage: owner.profilePhoto,
                                 phone: owner.businessMobileNumber,
                                 activityType: ActivityType.WHATSAPP,
-                                userType: getMyType(
-                                    owner.vehicles.length > 1 &&
+                                userType: getMyType(owner.vehicles.length > 1 &&
                                         owner.vehicles.isNotEmpty
-                                        ? "Transporter"
-                                        : owner.vehicles.isNotEmpty
-                                        ? owner.vehicles.first
-                                        .vehicleType
+                                    ? "Transporter"
+                                    : owner.vehicles.isNotEmpty
+                                        ? owner.vehicles.first.vehicleType
                                         : "Unknown"),
                               ),
                               CustomActivity(
@@ -1167,13 +1158,11 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 type: 'WHATSAPP',
                                 phone: owner.businessMobileNumber,
                                 activityType: ActivityType.WHATSAPP,
-                                userType: getMyType(
-                                    owner.vehicles.length > 1 &&
+                                userType: getMyType(owner.vehicles.length > 1 &&
                                         owner.vehicles.isNotEmpty
-                                        ? "Transporter"
-                                        : owner.vehicles.isNotEmpty
-                                        ? owner.vehicles.first
-                                        .vehicleType
+                                    ? "Transporter"
+                                    : owner.vehicles.isNotEmpty
+                                        ? owner.vehicles.first.vehicleType
                                         : "Unknown"),
                               ),
                               CustomActivity(
@@ -1183,12 +1172,10 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                 type: 'PHONE',
                                 phone: owner.businessMobileNumber,
                                 activityType: ActivityType.PHONE,
-                                userType: getMyType(
-                                    owner.vehicles.length > 1
-                                        ? "Transporter"
-                                        : owner.vehicles.isNotEmpty
-                                        ? owner.vehicles.first
-                                        .vehicleType
+                                userType: getMyType(owner.vehicles.length > 1
+                                    ? "Transporter"
+                                    : owner.vehicles.isNotEmpty
+                                        ? owner.vehicles.first.vehicleType
                                         : "Unknown"),
                               ),
                             ],
@@ -1204,8 +1191,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: gradientSecond,
-                                  borderRadius:
-                                  BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   "👉 Send Request",
@@ -1222,11 +1208,14 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                     ),
                   ],
                 ),
-              ),//Owner Info Section (Moved Below View More)
-               Container(height: 1,width: double.infinity,color: Color(0x05000000),),
+              ), //Owner Info Section (Moved Below View More)
               Container(
-                padding:
-                EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                height: 1,
+                width: double.infinity,
+                color: Color(0x05000000),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.only(
@@ -1242,27 +1231,25 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                       decoration: BoxDecoration(
                           color: Colors.grey[300],
                           shape: BoxShape.circle,
-                          border:
-                          Border.all(color: Colors.white, width: 1)),
+                          border: Border.all(color: Colors.white, width: 1)),
                       child: owner.profilePhoto.isNotEmpty
                           ? ClipOval(
-                        child: Image.network(
-                          owner.profilePhoto,
-                          fit: BoxFit.cover,
-                          errorBuilder:
-                              (context, error, stackTrace) =>
-                          const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
-                      )
+                              child: Image.network(
+                                owner.profilePhoto,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
+                              ),
+                            )
                           : const Icon(
-                        Icons.person,
-                        color: Colors.white,
-                        size: 18,
-                      ),
+                              Icons.person,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                     ),
                     const SizedBox(width: 4),
                     // Owner Name and Details
@@ -1275,8 +1262,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                               Flexible(
                                 child: Text(
                                   "${owner.firstName} ${owner.lastName}",
-                                  style:
-                                  CommonUtils.commonTextLabelsStyle(
+                                  style: CommonUtils.commonTextLabelsStyle(
                                       fontSize: 12),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -1303,15 +1289,15 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                       children: [
                         Text(
                           'Vehicles',
-                          style: CommonUtils.commonTextLabelsStyle(
-                              fontSize: 12),
+                          style:
+                              CommonUtils.commonTextLabelsStyle(fontSize: 12),
                         ),
                         SizedBox(
                           width: 10,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 2),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 14, vertical: 2),
                           decoration: BoxDecoration(
                             color: gradientFirst.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
@@ -1571,7 +1557,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     }
 
     return ClipRRect(
-      borderRadius: BorderRadius.only(topRight: Radius.circular(16),topLeft: Radius.circular(16)),
+      borderRadius: BorderRadius.only(
+          topRight: Radius.circular(16), topLeft: Radius.circular(16)),
       child: Image.network(
         vehicle.images.first,
         fit: BoxFit.cover,
@@ -1603,18 +1590,20 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     _searchFocusNode.unfocus();
     return Scaffold(
       backgroundColor: Colors.white,
-      body:_showLocationSearch?Column(
-        children: [
-          _buildLocationSearchBar(),
-          _buildLocationSuggestions(),
-        ],
-      ):  _isLoading
-          ? _buildLoadingWidget()
-          : _errorMessage != null
-          ? _buildErrorWidget()
-          : vehicleOwners.isEmpty
-          ? _buildEmptyWidget()
-          : _buildVehiclesList(),
+      body: _showLocationSearch
+          ? Column(
+              children: [
+                _buildLocationSearchBar(),
+                _buildLocationSuggestions(),
+              ],
+            )
+          : _isLoading
+              ? _buildLoadingWidget()
+              : _errorMessage != null
+                  ? _buildErrorWidget()
+                  : vehicleOwners.isEmpty
+                      ? _buildEmptyWidget()
+                      : _buildVehiclesList(),
     );
   }
 
@@ -1626,7 +1615,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.only(bottom: 10, top: 10, left: 5, right: 5),
-        physics: const BouncingScrollPhysics(), // ✅ KEY
+        physics: const BouncingScrollPhysics(),
+        // ✅ KEY
         itemCount: vehicleOwners.length + (_hasMoreItems ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= vehicleOwners.length) {
@@ -1751,275 +1741,262 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
             ),
           ),
         );
-
       },
       child: Container(
-        margin: EdgeInsets.only(left: 16,right:16,bottom: 10),
-        padding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+        margin: EdgeInsets.only(left: 16, right: 16, bottom: 10),
+        padding: EdgeInsets.only(left: 16,right: 16, top: 10),
         decoration: BoxDecoration(
             color: Color(0x90FFFFFF),
             borderRadius: BorderRadius.all(Radius.circular(12)),
-            boxShadow: [BoxShadow(color: Color(0x2E000000), blurRadius: 4,spreadRadius: 1,blurStyle: BlurStyle.outer)]),
-        child: Row(
+            boxShadow: [
+              BoxShadow(
+                  color: Color(0x2E000000),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                  blurStyle: BlurStyle.outer)
+            ]),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
+            children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
                   color: Colors.grey[300],
-                  shape: BoxShape.circle,),
-              child: owner.profilePhoto.isNotEmpty
-                  ? ClipOval(
-                child: Image.network(
-                  owner.profilePhoto,
-                  fit: BoxFit.cover,
-                  errorBuilder:
-                      (context, error, stackTrace) =>
-                  const Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 30,
-                  ),
+                  shape: BoxShape.circle,
                 ),
-              )
-                  : const Icon(
-                Icons.person,
-                color: Colors.white,
-                size: 30,
+                child: owner.profilePhoto.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          owner.profilePhoto,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 30,
+                          ),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.person,
+                        color: Colors.white,
+                        size: 30,
+                      ),
               ),
-            ),
-            const SizedBox(width: 10),
-            // Owner Name and Details
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        "${owner.firstName}",
-                        style:
-                        CommonUtils.commonTitleStyle(
-                            fontSize: 14),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if (owner.isVerifiedByAdmin) ...[
-                        const SizedBox(width: 20),
-                        const Icon(
-                          Icons.verified,
-                          size: 12,
-                          color: Colors.green,
-                        ),
-                      ],
-                      Spacer(),
-                      Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 4, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.amber[50],
-                          border:
-                          BoxBorder.all(color: Color(0xFFF9E9AD)),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 14,
-                              color: Color(0xFFFFC633),
-                            ),
-                            const SizedBox(width: 2),
-                            Text(
-                              owner.rating > 0
-                                  ? owner.rating.toStringAsFixed(1)
-                                  : '4.3',
-                              style: CommonUtils.commonTitleStyle(
-                                  fontSize: 12,
-                                  color: Color(0xFFF38B0F),
-                                  weight: FontWeight.w400),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Min Charge',
-                            style: CommonUtils.commonTextLabelsStyle(
-                                fontSize: 10),
-                          ),
-                          const SizedBox(width: 22),
-                          Text(
-                            '₹ ${owner?.minimumCharges ?? owner.minimumCharges}',
-                            style: CommonUtils.commonTitleStyle(
-                                fontSize: 10),
-                          ),
-                          const SizedBox(width: 5),
-                        ],
-                      ),
-                      // Negotiable Badge
-                      if (owner.negotiable == true)
-                        Flexible(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              child: Text(localizations.negotiable,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: CommonUtils.commonTitleStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF1FAF38),
-                                    weight: FontWeight.w400),
-                              ),
-                            )),
-
-
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Experience',
-                            style: CommonUtils.commonTextLabelsStyle(
-                                fontSize: 10),
-                          ),
-                          const SizedBox(width: 25),
-                          Text(
-                            '₹ ${owner.experience} Year',
-                            style: CommonUtils.commonTitleStyle(
-                                fontSize: 10),
-                          ),
-                          const SizedBox(width: 25),
-                        ],
-                      ),
-                      // Negotiable Badge
-                      if (owner.negotiable == true)
-                        Flexible(
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              child: Text(
-                                (owner.negotiable == true)
-                                    ? localizations.negotiable
-                                    : localizations.fixedPrice,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: CommonUtils.commonTitleStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF1FAF38),
-                                    weight: FontWeight.w400),
-                              ),
-                            )),
-                      const SizedBox(width: 10),
-                    ],
-                  ),
-                  Container(
-                    color: Colors.transparent,
-                    alignment: Alignment.bottomCenter,
-                    child: Row(
-                      mainAxisAlignment:
-                      MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.end,
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            CustomActivity(
-                              isDriver: true,
-                              baseUrl: ApiConstants.baseUrl,
-                              userId: owner.userId,
-                              icon: AssetsConstant.chatSVG,
-                              type: 'CHAT',
-                              userName: owner.firstName,
-                              userImage: owner.profilePhoto,
-                              phone: owner.businessMobileNumber,
-                              activityType: ActivityType.WHATSAPP,
-                              userType: getMyType(
-                                  owner.vehicles.length > 1 &&
-                                      owner.vehicles.isNotEmpty
-                                      ? "Transporter"
-                                      : owner.vehicles.isNotEmpty
-                                      ? owner.vehicles.first
-                                      .vehicleType
-                                      : "Unknown"),
-                            ),
-                            CustomActivity(
-                              isDriver: true,
-                              baseUrl: ApiConstants.baseUrl,
-                              userId: owner.userId,
-                              icon: AssetsConstant.whatsAppSVG,
-                              type: 'WHATSAPP',
-                              phone: owner.businessMobileNumber,
-                              activityType: ActivityType.WHATSAPP,
-                              userType: getMyType(
-                                  owner.vehicles.length > 1 &&
-                                      owner.vehicles.isNotEmpty
-                                      ? "Transporter"
-                                      : owner.vehicles.isNotEmpty
-                                      ? owner.vehicles.first
-                                      .vehicleType
-                                      : "Unknown"),
-                            ),
-                            CustomActivity(
-                              isDriver: true,
-                              baseUrl: ApiConstants.baseUrl,
-                              userId: owner.userId,
-                              icon: AssetsConstant.callPhoneSVG,
-                              type: 'PHONE',
-                              phone: owner.businessMobileNumber,
-                              activityType: ActivityType.PHONE,
-                              userType: getMyType(
-                                  owner.vehicles.length > 1
-                                      ? "Transporter"
-                                      : owner.vehicles.isNotEmpty
-                                      ? owner.vehicles.first
-                                      .vehicleType
-                                      : "Unknown"),
-                            ),
-                          ],
+                        Text(
+                          owner.firstName,
+                          style: CommonUtils.commonTitleStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        Align(
-                          alignment: Alignment.center,
-                          child: InkWell(
-                            onTap: () {
-                              // _navigateToVehicleDetail(owner);
-                            },
-                            child: Container(
-                              alignment: Alignment.center,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: gradientSecond,
-                                borderRadius:
-                                BorderRadius.circular(8),
+                        if (owner.isVerifiedByAdmin) ...[
+                          const SizedBox(width: 20),
+                          const Icon(
+                            Icons.verified,
+                            size: 12,
+                            color: Colors.green,
+                          ),
+                        ],
+                        Spacer(),
+                        Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.amber[50],
+                            border: BoxBorder.all(color: Color(0xFFF9E9AD)),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Color(0xFFFFC633),
                               ),
-                              child: Text(
-                                "👉 Send Request",
+                              const SizedBox(width: 2),
+                              Text(
+                                owner.rating > 0
+                                    ? owner.rating.toStringAsFixed(1)
+                                    : '4.3',
                                 style: CommonUtils.commonTitleStyle(
-                                    fontSize: 10,
-                                    weight: FontWeight.w400,
-                                    color: Colors.white),
+                                    fontSize: 12,
+                                    color: Color(0xFFF38B0F),
+                                    weight: FontWeight.w400),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                  )
-                ],
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Min Charge',
+                              style: CommonUtils.commonTextLabelsStyle(
+                                  fontSize: 11),
+                            ),
+                            const SizedBox(width: 22),
+                            Text(
+                              '₹ ${owner?.minimumCharges ?? owner.minimumCharges}',
+                              style: CommonUtils.commonTitleStyle(fontSize: 11),
+                            ),
+                            const SizedBox(width: 5),
+                          ],
+                        ),
+                        // Negotiable Badge
+                        if (owner.negotiable == true)
+                          Flexible(
+                              child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            child: Text(
+                              localizations.negotiable,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: CommonUtils.commonTitleStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF1FAF38),
+                                  weight: FontWeight.w400),
+                            ),
+                          )),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Row(
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              'Experience',
+                              style: CommonUtils.commonTextLabelsStyle(
+                                  fontSize: 11),
+                            ),
+                            const SizedBox(width: 25),
+                            Text(
+                              '₹ ${owner.experience} Year',
+                              style: CommonUtils.commonTitleStyle(fontSize: 11),
+                            ),
+                            const SizedBox(width: 25),
+                          ],
+                        ),
+                        // Negotiable Badge
+                        if (owner.negotiable == true)
+                          Flexible(
+                              child: Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            child: Text(
+                              (owner.negotiable == true)
+                                  ? localizations.negotiable
+                                  : localizations.fixedPrice,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: CommonUtils.commonTitleStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF1FAF38),
+                                  weight: FontWeight.w400),
+                            ),
+                          )),
+                        const SizedBox(width: 10),
+                      ],
+                    ),
+                  ],
+                ),
               ),
+            ],
+          ),
+          Container(
+            color: Colors.transparent,
+            alignment: Alignment.topCenter,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomActivity(
+                      baseUrl: ApiConstants.baseUrl,
+                      userId: owner.userId,
+                      icon: AssetsConstant.chatSVG,
+                      type: 'CHAT',
+                      userName: owner.firstName,
+                      userImage: owner.profilePhoto,
+                      phone: owner.businessMobileNumber,
+                      activityType: ActivityType.WHATSAPP,
+                      userType: getMyType(
+                          owner.vehicles.length > 1 && owner.vehicles.isNotEmpty
+                              ? "Transporter"
+                              : owner.vehicles.isNotEmpty
+                                  ? owner.vehicles.first.vehicleType
+                                  : "Unknown"),
+                    ),
+                    CustomActivity(
+                      baseUrl: ApiConstants.baseUrl,
+                      userId: owner.userId,
+                      icon: AssetsConstant.whatsAppSVG,
+                      type: 'WHATSAPP',
+                      phone: owner.businessMobileNumber,
+                      activityType: ActivityType.WHATSAPP,
+                      userType: getMyType(
+                          owner.vehicles.length > 1 && owner.vehicles.isNotEmpty
+                              ? "Transporter"
+                              : owner.vehicles.isNotEmpty
+                                  ? owner.vehicles.first.vehicleType
+                                  : "Unknown"),
+                    ),
+                    CustomActivity(
+                      baseUrl: ApiConstants.baseUrl,
+                      userId: owner.userId,
+                      icon: AssetsConstant.callPhoneSVG,
+                      type: 'PHONE',
+                      phone: owner.businessMobileNumber,
+                      activityType: ActivityType.PHONE,
+                      userType: getMyType(owner.vehicles.length > 1
+                          ? "Transporter"
+                          : owner.vehicles.isNotEmpty
+                              ? owner.vehicles.first.vehicleType
+                              : "Unknown"),
+                    ),
+                  ],
+                ),
+                InkWell(
+                  onTap: () {},
+                  child: Container(
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: gradientSecond,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "👉 Send Request",
+                      style: CommonUtils.commonTitleStyle(
+                          fontSize: 10,
+                          weight: FontWeight.w400,
+                          color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          )
+        ]),
       ),
     );
   }

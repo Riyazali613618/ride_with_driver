@@ -6,11 +6,13 @@ import '../../utils/common_utils.dart';
 
 class CityDropdownWidget extends StatelessWidget {
   final List<cm.Data> cityList;
+  final bool isReadonly;
   final String? selectedCity;
   final Function(String?) onChanged;
 
   const CityDropdownWidget({
     super.key,
+     this.isReadonly=false,
     required this.cityList,
     required this.selectedCity,
     required this.onChanged,
@@ -22,6 +24,7 @@ class CityDropdownWidget extends StatelessWidget {
       items: (filter, loadProps) {
         return cityList;
       },
+      enabled: !isReadonly,
       compareFn: (item1, item2) {
         return item1.name == item2.name;
       },

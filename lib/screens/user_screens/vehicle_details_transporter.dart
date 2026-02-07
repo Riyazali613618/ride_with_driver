@@ -740,16 +740,14 @@ class _VehicleDetailScreenTransPorterState
                       children: [
                         Row(
                           children: [
-                            Flexible(
-                              child: Text(
-                                "${widget.owner.firstName} ${widget.owner.lastName},\n${widget.owner.companyName}",
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w400,
-                                  color: Colors.black87,
-                                ),
-                                overflow: TextOverflow.ellipsis,
+                            Text(
+                              "${widget.owner.firstName} ${widget.owner.lastName}",
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w400,
+                                color: Colors.black87,
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                             if (widget.owner.isVerifiedByAdmin) ...[
                               const SizedBox(width: 4),
@@ -759,6 +757,7 @@ class _VehicleDetailScreenTransPorterState
                                 color: Colors.green,
                               ),
                             ],
+                            Spacer(),
                             const SizedBox(width: 6),
                             Text(
                               'Vehicles Owned',

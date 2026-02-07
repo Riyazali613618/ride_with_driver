@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
@@ -9,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import 'package:rwd/constants/token_manager.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../l10n/app_localizations.dart';
@@ -433,3 +438,76 @@ class _DynamicInvoiceBottomSheetState extends State<DynamicInvoiceBottomSheet> {
     );
   }
 }
+
+Future<File?> downloadAndShareInvoice({
+  required BuildContext context,
+  required String invoiceId,
+}) async {
+  final url =
+      "https://api.ridewithdriverr.com/user/invoices/$invoiceId/download";
+
+  try {
+    // Optional loader
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final dir = await getTemporaryDirectory();
+    print(url);
+
+    final file=await downloadInvoicePdf(url);
+
+    if (context.mounted) Navigator.pop(context);
+
+
+    if (await file!.exists()) {
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: "Invoice PDF",
+      );
+    }
+
+    return file;
+  } catch (e) {
+    if (context.mounted) Navigator.pop(context);
+    print("Failed to download invoice====${e.toString()}");
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Failed to download invoice====${e.toString()}")),
+    );
+
+    return null;
+  }
+}
+
+
+Future<File?> downloadInvoicePdf(String url) async {
+  final token = await TokenManager.getToken();
+  final headers = {
+    'Authorization':
+    'Bearer $token'
+  };
+  print('Token===: ${token}');
+
+  final response = await http.get(
+    Uri.parse(url ),
+    headers: headers
+  );
+
+
+  if (response.statusCode == 200) {
+    final bytes = response.bodyBytes; // ✅ raw PDF bytes
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/invoice.pdf');
+
+    await file.writeAsBytes(bytes, flush: true);
+
+    print('PDF saved at: ${file.path}');
+    return file;
+  } else {
+    throw Exception('Failed: ${response.reasonPhrase}');
+  }
+}
+

@@ -439,7 +439,7 @@ class _ProfileFormState extends State<ProfileForm> {
           const SizedBox(height: 16),
           _buildTextField("About", _aboutController),
           const SizedBox(height: 20),
-          Container(
+          /*Container(
             alignment: Alignment.center,
             child: CommonSubmitButton(
               gradientColors: [gradientFirst, gradientSecond],
@@ -450,7 +450,7 @@ class _ProfileFormState extends State<ProfileForm> {
               borderRadius: 12,
               isLoading: _submitting,
             ),
-          ),
+          ),*/
         ],
       ),
     );

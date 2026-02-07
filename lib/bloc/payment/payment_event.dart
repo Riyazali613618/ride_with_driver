@@ -19,11 +19,13 @@ class InitiatePayment extends PaymentEvent {
   final int? duration;
   final int? maxvehicles;
   final bool isAdOns;
+  final bool isRenewal;
   final double? earlyBirdDiscountPrice;
   final double? rwdBalance;
 
   InitiatePayment({
     required this.finalPrice,
+    this.isRenewal=false,
     this.isAdOns=false,
     this.maxvehicles,
     this.benefits,

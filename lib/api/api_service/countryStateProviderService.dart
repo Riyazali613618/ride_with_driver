@@ -65,6 +65,7 @@ class LocationProvider with ChangeNotifier {
     print("fetchCity:$state");
     final url =
         Uri.parse("${ApiConstants.baseUrl}/public/states/$state/cities");
+    print(url);
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final json = jsonDecode(response.body);

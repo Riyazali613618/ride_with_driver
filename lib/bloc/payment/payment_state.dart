@@ -18,7 +18,8 @@ class PaymentProcessing extends PaymentState {}
 
 class PaymentCompleted extends PaymentState {
   final String planType;
-  PaymentCompleted(this.planType);
+  final bool isRenewal;
+  PaymentCompleted(this.planType,{this.isRenewal=false});
 }
 
 class PaymentError extends PaymentState {

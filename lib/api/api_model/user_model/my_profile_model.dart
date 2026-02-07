@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class MyProfileModel {
   MyProfileModel({
     required this.success,
@@ -172,7 +174,7 @@ class MyProfileData {
   final List<Subscription> subscriptions;
   final List<Subscription> activeSubscriptions;
   final List<Subscription> expiredSubscriptions;
-  final List<dynamic> renewalSubscriptions;
+  final List<Subscription> renewalSubscriptions;
   final List<AddOnVehicles>? addonVehicles;
   final int? vehicleLimit;
   final int? addOnVehicleLimit;
@@ -240,7 +242,7 @@ class MyProfileData {
     List<Subscription>? subscriptions,
     List<Subscription>? activeSubscriptions,
     List<Subscription>? expiredSubscriptions,
-    List<dynamic>? renewalSubscriptions,
+    List<Subscription>? renewalSubscriptions,
     List<AddOnVehicles>? addonVehicles,
     int? vehicleLimit,
     int? addOnVehicleLimit,
@@ -409,7 +411,7 @@ class MyProfileData {
               .map((x) => Subscription.fromJson(x))),
       renewalSubscriptions: json["renewal_subscriptions"] == null
           ? []
-          : List<dynamic>.from(json["renewal_subscriptions"]!.map((x) => x)),
+          : List<Subscription>.from(json["renewal_subscriptions"]!.map((x) => Subscription.fromJson(x))),
       addonVehicles: json["addonVehicles"] == null
           ? []
           : List<AddOnVehicles>.from(
@@ -484,7 +486,7 @@ class MyProfileData {
             activeSubscriptions.map((x) => x?.toJson()).toList(),
         "expired_subscriptions":
             expiredSubscriptions.map((x) => x?.toJson()).toList(),
-        "renewal_subscriptions": renewalSubscriptions.map((x) => x).toList(),
+        "renewal_subscriptions": renewalSubscriptions.map((x) => x.toJson()).toList(),
         "addonVehicles": addonVehicles?.map((x) => x).toList() ?? [],
         "vehicleLimit": vehicleLimit,
         "addon_vehicle_limit": addOnVehicleLimit,
@@ -499,6 +501,7 @@ class MyProfileData {
 
 class Subscription {
   Subscription({
+    required this.pdfFile,
     required this.id,
     required this.plan,
     required this.pdfUrl,
@@ -523,6 +526,7 @@ class Subscription {
 
   final List<String>? benefits;
   final String? id;
+   File? pdfFile;
   final String? pdfUrl;
   final String? planName;
   final String? plan;
@@ -545,6 +549,7 @@ class Subscription {
   Subscription copyWith({
     String? id,
     String? plan,
+    File? pdfFile,
     String? pdfUrl,
     String? planName,
     int? maxVehicles,
@@ -567,6 +572,7 @@ class Subscription {
     return Subscription(
       id: id ?? this.id,
       pdfUrl: pdfUrl ?? this.pdfUrl,
+      pdfFile: pdfFile ?? this.pdfFile,
       planName: planName ?? this.planName,
       plan: plan ?? this.plan,
       maxVehicles: maxVehicles ?? this.maxVehicles,
@@ -592,6 +598,7 @@ class Subscription {
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
       id: json["_id"],
+      pdfFile: json["pdfFile"] !=null? json["pdfFile"] as File:null,
       pdfUrl: json["pdfUrl"] ?? "",
       planName: json["planName"] ?? "",
       plan: json["plan"],
@@ -619,6 +626,7 @@ class Subscription {
   Map<String, dynamic> toJson() => {
         "_id": id,
         "benefits": benefits,
+        "pdfFile": pdfFile,
         "pdfUrl": pdfUrl,
         "planName": planName,
         "plan": plan,

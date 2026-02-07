@@ -326,6 +326,7 @@ class _PlanSelectionScreenState extends State<PlanSelectionScreen> {
                       value: context.read<PaymentBloc>(),
                       child: PaymentBottomSheetBlocView(
                         isAdOns: widget.isAdOns,
+                        isRenewal: true,
                         plan: data,
                         benefits: data.features,
                         planName: data.name,

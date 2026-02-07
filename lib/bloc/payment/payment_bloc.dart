@@ -85,67 +85,85 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
       // Create order for Razorpay payment
       late Map<String, dynamic> orderResponse;
       final rwdBalance = event.rwdBalance ?? 0;
-      switch (event.paymentType) {
-        case PaymentType.registrationOnly:
-          isAddOns = false;
-          maxVehicles = 1;
-          orderResponse = await PaymentService.createOrderForRegistrationOnly(
-              category: event.category ?? event.planType,
-              currentCategory: event.currentCategory ?? "",
-              planId: event.plan.id,
-              rwd_balance: rwdBalance > 0
-                  ? rwdBalance
-                  : (event.finalPrice ?? 0) < 0
-                      ? event.finalPrice?.abs() ?? 0
-                      : 0);
-          break;
-        case PaymentType.registrationWithSubscription:
-          maxVehicles = event.maxvehicles ?? 1;
-          orderResponse =
-              await PaymentService.createOrderForRegistrationWithSubscription(
-                  category: event.category ?? event.planType,
-                  currentCategory: event.currentCategory ?? "",
-                  planId: event.plan.id,
-                  planName: event.planName ?? "",
-                  benefits: event.benefits ?? [],
-                  isAdOns: event.isAdOns,
-                  maxvehicles: event.maxvehicles ?? 1,
-                  durationInMonths: event.duration ?? 0,
-                  earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
-                  pay_amount:
-                      double.parse((event.finalPrice?.toInt()).toString()) ?? 0,
-                  rwd_balance: rwdBalance > 0
-                      ? rwdBalance
-                      : (event.finalPrice ?? 0) < 0
-                          ? event.finalPrice?.abs() ?? 0
-                          : 0);
-        case PaymentType.addOns:
-          maxVehicles = event.maxvehicles ?? 1;
-          orderResponse =
-              await PaymentService.createOrderForRegistrationWithSubscription(
-                  category: event.category ?? event.planType,
-                  currentCategory: event.currentCategory ?? "",
-                  planId: event.plan.id,
-                  isAdOns: event.isAdOns,
-                  maxvehicles: event.maxvehicles ?? 1,
-                  durationInMonths: event.duration ?? 0,
-                  earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
-                  pay_amount: event.finalPrice ?? 0,
-                  rwd_balance: rwdBalance > 0
-                      ? rwdBalance
-                      : (event.finalPrice ?? 0) < 0
-                          ? event.finalPrice?.abs() ?? 0
-                          : 0);
-          break;
-        case PaymentType.subscriptionRenewal:
-          maxVehicles = event.maxvehicles ?? 1;
-          isAddOns=false;
-          orderResponse =
-              await PaymentService.createOrderForSubscriptionRenewal(
-                  planId: event.plan.id,
-                  category: event.category??event.category??"");
-          break;
+      if (event.isRenewal) {
+        maxVehicles = event.maxvehicles ?? 1;
+        isAddOns = false;
+        orderResponse = await PaymentService.createOrderForRenewal(
+          planId: event.plan.id,
+          amount: event.finalPrice!.toStringAsFixed(2),
+          category: event.category ?? event.category ?? "",
+          planName: event.planName ?? "",
+          benefits: event.benefits ?? [],
+          maxvehicles: event.maxvehicles ?? 1,
+          durationInMonths: event.duration ?? 0,
+          rwdBalance: event.rwdBalance ?? 0,
+          earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
+        );
+      } else {
+        switch (event.paymentType) {
+          case PaymentType.registrationOnly:
+            isAddOns = false;
+            maxVehicles = 1;
+            orderResponse = await PaymentService.createOrderForRegistrationOnly(
+                category: event.category ?? event.planType,
+                currentCategory: event.currentCategory ?? "",
+                planId: event.plan.id,
+                rwd_balance: rwdBalance > 0
+                    ? rwdBalance
+                    : (event.finalPrice ?? 0) < 0
+                        ? event.finalPrice?.abs() ?? 0
+                        : 0);
+            break;
+          case PaymentType.registrationWithSubscription:
+            maxVehicles = event.maxvehicles ?? 1;
+            orderResponse =
+                await PaymentService.createOrderForRegistrationWithSubscription(
+                    category: event.category ?? event.planType,
+                    currentCategory: event.currentCategory ?? "",
+                    planId: event.plan.id,
+                    planName: event.planName ?? "",
+                    benefits: event.benefits ?? [],
+                    isAdOns: event.isAdOns,
+                    maxvehicles: event.maxvehicles ?? 1,
+                    durationInMonths: event.duration ?? 0,
+                    earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
+                    pay_amount:
+                        double.parse((event.finalPrice?.toInt()).toString()) ??
+                            0,
+                    rwd_balance: rwdBalance > 0
+                        ? rwdBalance
+                        : (event.finalPrice ?? 0) < 0
+                            ? event.finalPrice?.abs() ?? 0
+                            : 0);
+          case PaymentType.addOns:
+            maxVehicles = event.maxvehicles ?? 1;
+            orderResponse =
+                await PaymentService.createOrderForRegistrationWithSubscription(
+                    category: event.category ?? event.planType,
+                    currentCategory: event.currentCategory ?? "",
+                    planId: event.plan.id,
+                    isAdOns: event.isAdOns,
+                    maxvehicles: event.maxvehicles ?? 1,
+                    durationInMonths: event.duration ?? 0,
+                    earlyBirdDiscountPrice: event.earlyBirdDiscountPrice ?? 0.0,
+                    pay_amount: event.finalPrice ?? 0,
+                    rwd_balance: rwdBalance > 0
+                        ? rwdBalance
+                        : (event.finalPrice ?? 0) < 0
+                            ? event.finalPrice?.abs() ?? 0
+                            : 0);
+            break;
+          case PaymentType.subscriptionRenewal:
+            maxVehicles = event.maxvehicles ?? 1;
+            isAddOns = false;
+            orderResponse =
+                await PaymentService.createOrderForSubscriptionRenewal(
+                    planId: event.plan.id,
+                    category: event.category ?? event.category ?? "");
+            break;
+        }
       }
+
       isAddOns = event.isAdOns;
       if (!isAddOns) {
         maxVehicles = 1;
@@ -185,9 +203,11 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           'key': orderData.razorpayKey,
           'amount': event.finalPrice,
           'name': 'Ride with Driver',
-          'description': (event.currentCategory ?? "").isEmpty
-              ? _getPaymentDescription(event.paymentType)
-              : "SUBSCRIPTION_UPGRADE",
+          'description': event.isRenewal
+              ? PaymentType.subscriptionRenewal.name
+              : (event.currentCategory ?? "").isEmpty
+                  ? _getPaymentDescription(event.paymentType)
+                  : "SUBSCRIPTION_UPGRADE",
           'order_id': orderData.orderId,
           'prefill': {
             'contact': profileProvider?.phoneNumber ?? '',
@@ -229,12 +249,12 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
     try {
       switch (event.paymentType) {
         case PaymentType.subscriptionRenewal:
-          await PaymentService.saveOrderForSubscriptionRenewal(
+          await PaymentService.saveOrderRenewal(
             razorpayOrderId: event.response.orderId ?? '',
             razorpayPaymentId: event.response.paymentId ?? '',
             razorpaySignature: event.response.signature ?? '',
             planId: event.plan.id,
-            currentCategory: event.currentCategory ?? "",
+            category: event.category ?? "",
           );
           break;
         case PaymentType.registrationOnly:
@@ -277,7 +297,8 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
           break;
       }
 
-      emit(PaymentCompleted(event.planType));
+      emit(PaymentCompleted(event.planType,
+          isRenewal: event.paymentType == PaymentType.subscriptionRenewal));
     } catch (e) {
       emit(PaymentError("Error: $e"));
     }
@@ -300,7 +321,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   String _getPaymentDescription(PaymentType paymentType) {
     switch (paymentType) {
       case PaymentType.subscriptionRenewal:
-        return 'Subscription';
+        return paymentType.name;
       case PaymentType.registrationOnly:
         return 'Subscription';
       case PaymentType.registrationWithSubscription:
@@ -311,7 +332,7 @@ class PaymentBloc extends Bloc<PaymentEvent, PaymentState> {
   }
 
   void openRazorpayCheckout(Map<String, dynamic> options,
-      {bool isAdOns = false}) {
+      {bool isAdOns = false, bool isRenewal = false}) {
     try {
       print('[PaymentBloc] Opening Razorpay checkout with options: $options');
       print(

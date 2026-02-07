@@ -27,6 +27,33 @@ class PaymentService {
     });
   }
 
+  static Future<Map<String, dynamic>> createOrderForRenewal({
+    required String planId,
+    required String category,
+    required String amount,
+    required String planName,
+    required List<String> benefits,
+    required int maxvehicles,
+    required double rwdBalance,
+    required int durationInMonths,
+    required double earlyBirdDiscountPrice,
+  }) async {
+    return _createRenewalOrder({
+      'paymentGatewayType': 'razorpay',
+      'subscriptionPlanId': planId,
+      'paymentType': "SUBSCRIPTION_RENEWAL",
+      'category': category,
+      'amount': amount,
+      'planName': planName,
+      'chosen_category': category,
+      'max_vehicles': maxvehicles,
+      'maxvehicles': maxvehicles,
+      'rwd_balance': rwdBalance.toInt(),
+      'durationInMonths': durationInMonths,
+      'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
+    });
+  }
+
   // Create order for registration only
   static Future<Map<String, dynamic>> createOrderForRegistrationOnly({
     required String category,
@@ -42,7 +69,7 @@ class PaymentService {
         'chosen_category': category,
         'subscriptionPlanId': planId,
         'durationInMonths': durationInMonths,
-        'pay_amount':pay_amount<=0?1: pay_amount,
+        'pay_amount': pay_amount <= 0 ? 1 : pay_amount,
         'rwd_balance': rwd_balance,
         'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
       });
@@ -51,7 +78,7 @@ class PaymentService {
         'paymentType': 'SUBSCRIPTION',
         'category': category,
         'rwd_balance': rwd_balance,
-        'pay_amount':pay_amount<=0?1: pay_amount,
+        'pay_amount': pay_amount <= 0 ? 1 : pay_amount,
         'subscriptionPlanId': planId,
         'paymentGatewayType': 'razorpay',
       });
@@ -68,21 +95,20 @@ class PaymentService {
     int durationInMonths = 1,
     double rwd_balance = 0,
     List<String>? benefits,
-    String planName="",
+    String planName = "",
     int maxvehicles = 1,
     double pay_amount = 1,
     double earlyBirdDiscountPrice = 1,
   }) async {
-    if(isAdOns){
+    if (isAdOns) {
       return _createAddOnsVehicles({
         'add_on_vehicles': maxvehicles,
         'subscriptionPlanId': planId,
-        'amount': pay_amount<=0?1:pay_amount,
+        'amount': pay_amount <= 0 ? 1 : pay_amount,
         'rwd_balance': rwd_balance,
         'paymentGatewayType': "razorpay",
       });
-    }else
-    if (currentCategory.isNotEmpty) {
+    } else if (currentCategory.isNotEmpty) {
       return _createUpgradeOrder({
         'benefits': benefits,
         'planName': planName,
@@ -92,14 +118,14 @@ class PaymentService {
         'maxvehicles': maxvehicles,
         'rwd_balance': rwd_balance.toInt(),
         'durationInMonths': durationInMonths,
-        'pay_amount': pay_amount<=0?1:pay_amount,
+        'pay_amount': pay_amount <= 0 ? 1 : pay_amount,
         'earlyBirdDiscountPrice': earlyBirdDiscountPrice,
       });
     } else {
       return _createOrder({
         'paymentType': 'SUBSCRIPTION',
         'category': category,
-        'pay_amount': pay_amount<=0?1:pay_amount,
+        'pay_amount': pay_amount <= 0 ? 1 : pay_amount,
         'rwd_balance': rwd_balance,
         'subscriptionPlanId': planId,
         'paymentGatewayType': 'razorpay',
@@ -112,7 +138,7 @@ class PaymentService {
     String planId,
   ) async {
     // Default to subscription renewal for backward compatibility
-    return createOrderForSubscriptionRenewal(planId: planId,category: "");
+    return createOrderForSubscriptionRenewal(planId: planId, category: "");
   }
 
   // Private method to handle the actual API call
@@ -160,6 +186,7 @@ class PaymentService {
       throw Exception('Failed to create order: $e');
     }
   }
+
   // Private method to handle the actual API call
   static Future<Map<String, dynamic>> _createRenewalOrder(
     Map<String, dynamic> requestBody,
@@ -207,43 +234,31 @@ class PaymentService {
   }
 
   // Save order for subscription renewal
-  static Future<Map<String, dynamic>> saveOrderForSubscriptionRenewal({
+  static Future<Map<String, dynamic>> saveOrderRenewal({
     required String razorpayOrderId,
     required String razorpayPaymentId,
     required String razorpaySignature,
     required String planId,
-    required String currentCategory,
+    required String category,
   }) async {
-    if (currentCategory.isNotEmpty) {
-      return _verifyUpgradeOrder({
-        'razorpay_order_id': razorpayOrderId,
-        'razorpay_payment_id': razorpayPaymentId,
-        'razorpay_signature': razorpaySignature,
-        'paymentType': 'SUBSCRIPTION_UPGRADE',
-        'subscriptionPlanId': planId,
-        'paymentGatewayType': "razorpay",
-      });
-    } else {
-      if (currentCategory.isNotEmpty) {
-        return _verifyUpgradeOrder({
-          'razorpay_order_id': razorpayOrderId,
-          'razorpay_payment_id': razorpayPaymentId,
-          'razorpay_signature': razorpaySignature,
-          'paymentType': 'SUBSCRIPTION_UPGRADE',
-          'subscriptionPlanId': planId,
-          'paymentGatewayType': "razorpay",
-        });
-      } else {
-        return _saveOrder({
-          'razorpay_order_id': razorpayOrderId,
-          'razorpay_payment_id': razorpayPaymentId,
-          'razorpay_signature': razorpaySignature,
-          'paymentType': 'SUBSCRIPTION',
-          'subscriptionPlanId': planId,
-          'paymentGatewayType': "razorpay",
-        });
-      }
-    }
+    return _saveRenewalOrder({
+      "razorpay_order_id": razorpayOrderId,
+      "razorpay_payment_id": razorpayPaymentId,
+      "razorpay_signature": razorpaySignature,
+      "paymentType": "SUBSCRIPTION_RENEWAL",
+      "category": category,
+      "subscriptionPlanId": planId,
+      "paymentGatewayType": "razorpay"
+    } /*{
+      'razorpay_order_id': razorpayOrderId,
+      'razorpay_payment_id': razorpayPaymentId,
+      'razorpay_signature': razorpaySignature,
+      'paymentType': 'SUBSCRIPTION',
+      'subscriptionPlanId': planId,
+      'paymentGatewayType': "razorpay",
+      'category': category,
+    }*/
+        );
   }
 
   // Save order for registration only
@@ -349,7 +364,7 @@ class PaymentService {
 
           // Call regStatusUpdate with the subscriptionId (make it non-blocking)
           try {
-           // await regStatusUpdate(subscriptionId);
+            // await regStatusUpdate(subscriptionId);
             print('[PaymentService] regStatusUpdate completed successfully');
           } catch (e) {
             // Log the error but don't fail the entire payment process
@@ -402,12 +417,56 @@ class PaymentService {
 
           // Call regStatusUpdate with the subscriptionId (make it non-blocking)
           try {
-           // await regStatusUpdate(subscriptionId);
+            // await regStatusUpdate(subscriptionId);
             print('[PaymentService] regStatusUpdate completed successfully');
           } catch (e) {
             // Log the error but don't fail the entire payment process
             print('[PaymentService] regStatusUpdate failed but continuing: $e');
             // Note: We don't rethrow here so the payment can still be marked as successful
+          }
+        } else {
+          print('[PaymentService] No subscriptionId found in response data');
+        }
+
+        return responseData;
+      } else {
+        throw Exception('Failed to save order: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Failed to save order: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> _saveRenewalOrder(
+      Map<String, dynamic> requestBody) async {
+    try {
+      final token = await TokenManager.getToken();
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/user/verify-renewal-payment'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(requestBody),
+      );
+
+      print("==================================================");
+      print(response);
+      print("==================================================");
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        // Check if subscriptionId exists in the response data
+        if (responseData['data'] != null &&
+            responseData['data']['subscriptionId'] != null) {
+          final subscriptionId = responseData['data']['subscriptionId'];
+          if (subscriptionId == null || subscriptionId.toString().isEmpty) {
+            throw Exception('Failed to save order: ${response.statusCode}');
           }
         } else {
           print('[PaymentService] No subscriptionId found in response data');
@@ -515,7 +574,8 @@ class PaymentService {
     }
   }
 
-  static Future<Map<String, dynamic>> _createAddOnsVehicles(Map<String, Object> map) async {
+  static Future<Map<String, dynamic>> _createAddOnsVehicles(
+      Map<String, Object> map) async {
     try {
       final token = await TokenManager.getToken();
       if (token == null) {

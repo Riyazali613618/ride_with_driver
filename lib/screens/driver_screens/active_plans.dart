@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -11,6 +13,7 @@ import 'package:rwd/components/common_parent_container.dart';
 import 'package:rwd/constants/api_constants.dart';
 import 'package:rwd/screens/driver_screens/plans.dart';
 import 'package:rwd/utils/common_utils.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../plan/presentation/screens/plan_selection_screen.dart' as planNew;
 
@@ -28,6 +31,7 @@ import '../../plan/data/models/plan_model.dart';
 import '../../plan/data/repositories/plan_repository.dart';
 import '../../plan/data/services/plan_service.dart' show PlanService;
 import '../../plan/presentation/bloc/plan_bloc.dart';
+import '../../plan/presentation/screens/renew_transporter_plan.dart';
 import '../autoRikshawDriverRegistration.dart';
 import '../block/provider/profile_provider.dart';
 import '../driverRegistrationScreen.dart';
@@ -51,8 +55,10 @@ class SubscriptionsScreen extends StatefulWidget {
 class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
-  List<Subscription> _subscriptionData = [];
   bool _isInitialized = false;
+  List<Subscription> activeSubscriptions = [];
+  List<Subscription> expiredSubscription = [];
+  List<Subscription> renewalSubscriptions = [];
 
   @override
   void initState() {
@@ -103,7 +109,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
 
     try {
       final data = await UserProfileService().getUserProfile();
-      _subscriptionData = data.subscriptions;
+      activeSubscriptions = data.activeSubscriptions;
+      expiredSubscription = data.expiredSubscriptions;
+      renewalSubscriptions = data.renewalSubscriptions;
       setState(() {
         _isLoading = false;
         _errorMessage = '';
@@ -237,13 +245,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       );
     }
 
-    // Check if there are no plans and no active transactions
-    List<Subscription> activeSubscriptions =
-        _subscriptionData.where((s) => s.status == 'active' || s.status == 'created').toList();
-    List<Subscription> expiredSubscription =
-        _subscriptionData.where((s) => s.status != 'active' && s.status != 'created').toList();
-
-    if (_subscriptionData.isEmpty) {
+    if (activeSubscriptions.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -281,6 +283,12 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Text(
+            "Active Plan",
+            style: CommonUtils.commonTitleStyle(
+                weight: FontWeight.w700, fontSize: 14),
+          ),
+          const SizedBox(height: 10),
           if (activeSubscriptions.isNotEmpty)
             _buildActivePlanCard(
               activeSubscriptions,
@@ -288,6 +296,19 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           const SizedBox(height: 10),
 
           _buildActionButtons(activeSubscriptions),
+          if (renewalSubscriptions.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(
+              "Future Plan",
+              style: CommonUtils.commonTitleStyle(
+                  weight: FontWeight.w700, fontSize: 14),
+            ),
+            const SizedBox(height: 10),
+            _buildFuturePlanCard(
+              renewalSubscriptions,
+            )
+          ],
+          const SizedBox(height: 10),
 
           if (expiredSubscription.isNotEmpty) ...[
             const SizedBox(height: 24),
@@ -300,14 +321,6 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            /*  ...expiredSubscription
-                .map(
-                  (transaction) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _buildTransactionItem(transaction),
-                  ),
-                )
-                .toList(),*/
             SizedBox(
                 height: 110,
                 child: ListView.builder(
@@ -473,28 +486,100 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     );
   }
 
-  void _showInvoiceBottomSheet(BuildContext context, String invoice) {
-    showModalBottomSheet(
+  Widget _buildFuturePlanCard(List<Subscription> renewPlanList) {
+    final width = MediaQuery.of(context).size.width;
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: List.generate(renewPlanList.length, (index) {
+          final data = renewPlanList[index];
+
+          return Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: width - 100,
+                  margin: const EdgeInsets.only(right: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+                  decoration: BoxDecoration(
+                    color: const Color(0x1A1FAF38),
+                    borderRadius: BorderRadius.circular(27),
+                    border: Border.all(color: const Color(0xFF1FAF38)),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x1F000000),
+                        blurRadius: 2,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: _futurePlanContent(data), // your existing Column
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                GestureDetector(
+                  onTap: () async {
+                    if (data.pdfFile != null) {
+                      final file = data.pdfFile;
+                      if (await file!.exists()) {
+                        await Share.shareXFiles(
+                          [XFile(file.path)],
+                          text: "Invoice PDF",
+                        );
+                      }
+                    } else {
+                      final file = await _showInvoiceBottomSheet(
+                        context,
+                        data.id.toString(),
+                      );
+                      if (file != null) {
+                        data.pdfFile = file;
+                      }
+                    }
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                      ),
+                      SvgPicture.asset(
+                        "assets/svg/download.svg",
+                        width: 20,
+                        height: 20,
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      Text(
+                        "Invoice",
+                        style: CommonUtils.commonTitleStyle(
+                            fontSize: 12, color: AppColors.blue),
+                      )
+                    ],
+                  ),
+                )
+              ]);
+        }),
+      ),
+    );
+  }
+
+  Future<File?> _showInvoiceBottomSheet(BuildContext context, String invoice) {
+    return downloadAndShareInvoice(
       context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext context) {
-        return DynamicInvoiceBottomSheet(
-          htmlContent: invoice,
-        );
-      },
+      invoiceId: invoice, // or invoice id
     );
   }
 
   Widget _buildTransactionItem(Subscription transaction) {
-    return GestureDetector(
-      onTap: () {
-        _showInvoiceBottomSheet(
-          context,
-          transaction.subscriptionAmount.toString(),
-        );
-      },
-      child: Container(
+    return Column(children: [
+      Container(
         width: MediaQuery.of(context).size.width * 0.60,
         // ✅ FIXED WIDTH (REQUIRED)
         margin: const EdgeInsets.only(right: 12),
@@ -577,7 +662,56 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
           ],
         ),
       ),
-    );
+      const SizedBox(
+        height: 10,
+      ),
+      const SizedBox(
+        height: 10,
+      ),
+      GestureDetector(
+        onTap: () async {
+          if (transaction.pdfFile != null) {
+            final file = transaction.pdfFile;
+            if (await file!.exists()) {
+              await Share.shareXFiles(
+                [XFile(file.path)],
+                text: "Invoice PDF",
+              );
+            }
+          } else {
+            final file = await _showInvoiceBottomSheet(
+              context,
+              transaction.id.toString(),
+            );
+            if (file != null) {
+              transaction.pdfFile = file;
+            }
+          }
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 20,
+            ),
+            SvgPicture.asset(
+              "assets/svg/download.svg",
+              width: 20,
+              height: 20,
+            ),
+            SizedBox(
+              width: 10,
+            ),
+            Text(
+              "Invoice",
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 12, color: AppColors.blue),
+            )
+          ],
+        ),
+      )
+    ]);
   }
 
   Widget _buildActionButtons(List<Subscription> activeSubscriptions) {
@@ -589,11 +723,28 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
       children: [
         Expanded(
             child: GestureDetector(
-          onTap: () {
-            if (activeSubscriptions.isNotEmpty &&
-                activeSubscriptions[0].pdfUrl != null &&
-                activeSubscriptions[0].pdfUrl!.isNotEmpty)
-              viewOrDownloadInvoice(activeSubscriptions[0].pdfUrl!);
+          onTap: () async {
+            if (activeSubscriptions.isNotEmpty) {
+              if (activeSubscriptions[0].pdfFile != null) {
+                final file = activeSubscriptions[0].pdfFile;
+                if (await file!.exists()) {
+                  await Share.shareXFiles(
+                    [XFile(file.path)],
+                    text: "Invoice PDF",
+                  );
+                }
+              } else {
+                final file = await _showInvoiceBottomSheet(
+                  context,
+                  activeSubscriptions[0].id.toString(),
+                );
+                if (file != null) {
+                  activeSubscriptions[0].pdfFile = file;
+                }
+              }
+            }
+
+            // viewOrDownloadInvoice(activeSubscriptions[0].pdfUrl!);
           },
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -626,35 +777,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               borderRadius: BorderRadius.all(Radius.circular(10))),
           child: GestureDetector(
             onTap: () async {
-              final profile = await UserProfileService().getUserProfile();
-              String title = profile.usertype == UserType.TRANSPORTER.name
-                  ? "Renew Transporter Plan"
-                  : profile.usertype == UserType.DRIVER.name
-                      ? "Renew Independent Taxi Driver Plan"
-                      : profile.usertype == UserType.RICKSHAW.name
-                          ? "Renew Rickshaw Driver Plan"
-                          : profile.usertype == UserType.E_RICKSHAW.name
-                              ? "Renew E-Rickshaw Driver Plan"
-                              : profile.usertype ==
-                                      UserType.INDEPENDENT_CAR_OWNER.name
-                                  ? "Renew Stand Alone Driver Plan"
-                                  : "";
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => BlocProvider(
-                    create: (_) => PaymentBloc(
-                        profileProvider: context.read<ProfileProvider>()),
-                    child: planNew.PlanSelectionScreen(
-                      category: profile.usertype ?? "",
-                      title: title,
-                      count: 1,
-                      currentCategory: "",
-                      isRenewal: true,
-                    ),
-                  ),
-                ),
-              );
+              renewPlan();
             },
             child: Text(
               "Renew Plan",
@@ -859,6 +982,183 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
 
     return totalMonths;
+  }
+
+  Future<void> renewPlan() async {
+    final profile = await UserProfileService().getUserProfile();
+    String title = profile.usertype == UserType.TRANSPORTER.name
+        ? "Renew Transporter Plan"
+        : profile.usertype == UserType.DRIVER.name
+            ? "Renew Independent Taxi Driver Plan"
+            : profile.usertype == UserType.RICKSHAW.name
+                ? "Renew Rickshaw Driver Plan"
+                : profile.usertype == UserType.E_RICKSHAW.name
+                    ? "Renew E-Rickshaw Driver Plan"
+                    : profile.usertype == UserType.INDEPENDENT_CAR_OWNER.name
+                        ? "Renew Stand Alone Driver Plan"
+                        : "";
+
+    if (profile.usertype == UserType.TRANSPORTER.name) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) =>
+                PaymentBloc(profileProvider: context.read<ProfileProvider>()),
+            child: RenewTransporterPlan(
+              category: profile.usertype ?? "",
+              title: title,
+              count: 1,
+              isRenewal: true,
+            ),
+          ),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) =>
+                PaymentBloc(profileProvider: context.read<ProfileProvider>()),
+            child: planNew.PlanSelectionScreen(
+              category: profile.usertype ?? "",
+              title: title,
+              count: 1,
+              currentCategory: "",
+              isRenewal: true,
+            ),
+          ),
+        ),
+      );
+    }
+  }
+
+  _futurePlanContent(Subscription data) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          data.planName ?? "",
+          style: CommonUtils.commonTitleStyle(
+              weight: FontWeight.w700, fontSize: 14),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+                child: Align(
+              alignment: Alignment.centerLeft,
+              child: IntrinsicWidth(
+                child: Container(
+                  margin: EdgeInsets.symmetric(vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 1),
+                  decoration: BoxDecoration(
+                      color: Color(0x1F641BB4),
+                      border: Border.all(color: AppColors.blue, width: 0.5),
+                      borderRadius: BorderRadius.all(Radius.circular(12))),
+                  child: Text(
+                    "Validity: ${getDuration(data)} months | Expires On: ${DateFormat('dd MMM yyyy').format(data.endDate!)}",
+                    style: TextStyle(
+                      fontFamily: AppConstants.ptSansFont,
+                      fontSize: 10,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ),
+            )),
+            const SizedBox(width: 8),
+            const Icon(Icons.info_outline, size: 20),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        /// PRICE
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: "₹ ${(data.totalAmount ?? 0).toStringAsFixed(0)}",
+                style: TextStyle(
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.blue,
+                ),
+              ),
+              TextSpan(
+                text: " (Vehicle-${profileData?.vehicleLimit ?? 1})",
+                style: TextStyle(
+                  fontFamily: AppConstants.ptSansFont,
+                  fontSize: 14,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        /// BENEFITS TITLE
+        const Text(
+          "Benefits:",
+          style: TextStyle(
+            fontFamily: AppConstants.ptSansFont,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Colors.black,
+          ),
+        ),
+
+        const SizedBox(height: 5),
+
+        /// BENEFITS GRID
+        if ((data.benefits ?? []).isNotEmpty)
+          GridView.builder(
+            shrinkWrap: true,
+            padding: EdgeInsets.zero,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: (data.benefits ?? []).length > 5
+                ? 5
+                : data.benefits?.length ?? 0,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              crossAxisSpacing: 2,
+              mainAxisSpacing: 5,
+              childAspectRatio: 5,
+            ),
+            itemBuilder: (context, index) {
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: Color(0xFF1FAF38),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      data.benefits![index],
+                      style: const TextStyle(
+                        fontFamily: AppConstants.ptSansFont,
+                        fontSize: 11,
+                        color: Colors.black,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+      ],
+    );
   }
 }
 
