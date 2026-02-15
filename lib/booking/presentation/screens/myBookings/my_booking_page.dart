@@ -32,7 +32,7 @@ class MyBookingPage extends StatelessWidget {
           child: Scaffold(
             // Use cream background color from design
             backgroundColor: Colors.white,
-            body: Expanded(child: BlocBuilder<ManageBookingBloc, ManageState>(
+            body: BlocBuilder<ManageBookingBloc, ManageState>(
                 builder: (context, state) {
               if (state is ManageLoading) {
                 return const Center(child: CircularProgressIndicator());
@@ -44,7 +44,7 @@ class MyBookingPage extends StatelessWidget {
                 return _BookingList(bookings: state.bookings);
               }
               return const SizedBox.shrink();
-            })),
+            }),
           )),
     );
   }
@@ -428,7 +428,7 @@ class _BookingListState extends State<_BookingList>
               builder: (_) => MakeBookingFullScreen(initialBooking: b)));
         } else if (val == 'delete') {
           ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('Deleted (mock)')));
+              .showSnackBar(const SnackBar(content: Text('Deleted (mock)'),backgroundColor: Colors.green,));
         }
       },
       itemBuilder: (_) => [

@@ -408,7 +408,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get failed_to_verify_otp => 'Failed to verify OTP. Please try again.';
 
   @override
-  String get otp_resent => 'OTP code resent to your WhatsApp number';
+  String get otp_resent => 'OTP code resent successfully to your mobile number';
 
   @override
   String get failed_to_resend_otp => 'Failed to resend OTP. Please try again.';

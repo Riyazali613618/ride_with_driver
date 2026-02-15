@@ -174,6 +174,12 @@ class CommonUtils {
     );
   }
 
+  static void showErrorSnackBar(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(msg,style: TextStyle(color: Colors.white,fontSize: 12,fontWeight: FontWeight.w400),),backgroundColor: Colors.red,),
+    );
+  }
+
 
 }
 

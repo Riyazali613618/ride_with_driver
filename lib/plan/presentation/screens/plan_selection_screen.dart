@@ -564,13 +564,11 @@ class _NumberOfVehiclesPopupState extends State<NumberOfVehiclesPopup> {
                     if (count < 10) {
                       setState(() => count++);
                     } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        content: Text(
-                          "Maximum ${widget.plan.maxVehicles} vehicles allowed for this plan",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        backgroundColor: Colors.red,
-                      ));
+
+                      CommonUtils.showErrorSnackBar(context,
+                        "Maximum ${widget.plan.maxVehicles} vehicles allowed for this plan",
+                      );
+
                     } /* if (count < widget.plan.maxVehicles) {
                       setState(() => count++);
                     }else{

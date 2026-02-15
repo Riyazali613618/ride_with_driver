@@ -83,11 +83,13 @@ class _SupportPageState extends State<SupportPage>
         if (data != null && data is Map<String, dynamic>) {
           if (data['success'] == true && data['data'] != null) {
             if (true) {
+              var content = data['data'] as List;
+             emails = content.map((item) => EmailSupport.fromJson(item)).toList();
+
               setState(() {
-                emails = data['data']
-                    .map<EmailSupport>((data) => EmailSupport.fromJson(data))
-                    .toList();
-                contact = ContactInfo.fromJson(data['data'][0]);
+                if(content.isNotEmpty) {
+                  contact = ContactInfo.fromJson(content[0]);
+                }
                 isLoading = false;
               });
             }

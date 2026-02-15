@@ -189,15 +189,14 @@ class _MessagingScreenState extends State<MessagingScreen>
           }
           break;
         case 'translate_message':
-          String msgId=data['data']['messageId'];
-          String translatedText=data['data']['translatedText'];
-          for(final msg in _messages){
-            if(msg.messageId==msgId){
-              msg.translatedText=translatedText;
+          String msgId = data['data']['messageId'];
+          String translatedText = data['data']['translatedText'];
+          for (final msg in _messages) {
+            if (msg.messageId == msgId) {
+              msg.translatedText = translatedText;
             }
           }
-          setState(() {
-          });
+          setState(() {});
           break;
         case 'user_typing_stop':
           if (data['data']['userId'] == widget.otherPersonUserId) {
@@ -522,7 +521,9 @@ class _MessagingScreenState extends State<MessagingScreen>
 
     switch (status) {
       case 'sending':
+/*
         return const Icon(Icons.access_time, size: 12, color: Colors.grey);
+*/
       case 'sent':
         return const Icon(Icons.done, size: 12, color: Colors.grey);
       case 'delivered':
@@ -565,11 +566,12 @@ class _MessagingScreenState extends State<MessagingScreen>
                   itemCount: _messages.length,
                   itemBuilder: (context, index) {
                     final message = _messages[index];
-                 /*   if (index == 0 || index == 1) {
+                    /*   if (index == 0 || index == 1) {
                       message.isSent = false;
                     }
                     if (index == _messages.length - 1) message.isSent = false;
-                   */ return _buildMessageBubble(message);
+                   */
+                    return _buildMessageBubble(message);
                   },
                 ),
               ),
@@ -841,7 +843,8 @@ class _MessagingScreenState extends State<MessagingScreen>
                             ),
                           ),
                         ),
-                        if (!message.isSent) ...[
+                        if (!message.isSent &&
+                            message.messageType.toLowerCase() != "image") ...[
                           const SizedBox(
                             width: 5,
                           ),
@@ -860,7 +863,7 @@ class _MessagingScreenState extends State<MessagingScreen>
                                     updateState();
                                     String msg =
                                         await getTranslatedMsg(message);
-                                   /* message.isTranslating = false;
+                                    /* message.isTranslating = false;
                                     message.translatedText = msg;*/
                                     updateState();
                                   },
@@ -1204,14 +1207,14 @@ class _MessagingScreenState extends State<MessagingScreen>
   }
 
   Widget _buildDefaultAvatar(String name) {
-    String displayChar ="Name";
-    if(name.isNotEmpty)
-    displayChar= name
-        .split(" ")
-        .map(
-          (e) => e.split('')[0],
-        )
-        .join('');
+    String displayChar = "Name";
+    if (name.isNotEmpty)
+      displayChar = name
+          .split(" ")
+          .map(
+            (e) => e.split('')[0],
+          )
+          .join('');
 
     return Container(
       width: 48,
@@ -1292,14 +1295,14 @@ class _MessagingScreenState extends State<MessagingScreen>
   Future<String> getTranslatedMsg(ChatMessage message) async {
     _channel?.sink.add(json.encode({
       "type": "translate_message",
-      "chatId":widget.chatId,
+      "chatId": widget.chatId,
       "messageId": message.messageId,
       "targetLanguage": "en"
     }));
     setState(() {
       message.isTranslating = false;
     });
-   /* final translated = await ChatService.translate(
+    /* final translated = await ChatService.translate(
         chatId: widget.chatId,qs
         targetLang: 'es',
         messageId: message.messageId // app: Hindi

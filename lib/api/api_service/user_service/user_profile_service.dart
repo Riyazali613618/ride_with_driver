@@ -128,11 +128,13 @@ class UserProfileService {
     }
   }
 
-  Future<String> uploadProfilePhoto(String filePath) async {
+  Future<String> uploadProfilePhoto(String filePath,{String accessToken=""}) async {
     try {
-      final token = await TokenManager.getToken();
-      if (token == null) {
+      String token = await TokenManager.getToken()??"";
+      if (token.isEmpty && accessToken.isEmpty) {
         throw Exception('Authentication token not found');
+      }else if(token.isEmpty){
+        token=accessToken;
       }
       print("filepath:${filePath}");
       var headers = {'Authorization': 'Bearer ${token}'};

@@ -633,7 +633,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
           _selectedImage = File(image.path);
         });
         _profileService
-            .uploadProfilePhoto(_selectedImage!.absolute.path)
+            .uploadProfilePhoto(_selectedImage!.absolute.path,accessToken:widget.token)
             .then((value) {
           print("value uploaded:${value}");
           setState(() {
@@ -671,7 +671,7 @@ class _FirstTimeUserScreenState extends State<FirstTimeUserScreen> {
           _selectedImage = File(image.path);
         });
         _profileService
-            .uploadProfilePhoto(_selectedImage!.absolute.path)
+            .uploadProfilePhoto(_selectedImage!.absolute.path,accessToken: widget.token)
             .then((value) {
           print("profile photo uploaded:${value}");
           setState(() {

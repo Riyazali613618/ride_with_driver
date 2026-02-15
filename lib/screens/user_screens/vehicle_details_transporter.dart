@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:rwd/api/api_model/vehicle/search_vehicles.dart';
 import 'package:rwd/constants/color_constants.dart';
 import 'package:rwd/screens/user_screens/transporter_details_screen.dart';
+import 'package:rwd/screens/user_screens/user_home_new.dart';
 import 'package:rwd/utils/color.dart';
 import 'package:video_player/video_player.dart';
 
@@ -28,7 +29,7 @@ class VehicleDetailScreenTransPorter extends StatefulWidget {
 
   const VehicleDetailScreenTransPorter({
     super.key,
-    this.partnerId="",
+    this.partnerId = "",
     required this.owner,
     required this.vehicle,
     required this.type,
@@ -73,7 +74,8 @@ class _VehicleDetailScreenTransPorterState
 
     _controller = VideoPlayerController.network(
       'https://app.com/your-video.mp4',
-    )..initialize().then((_) {
+    )
+      ..initialize().then((_) {
         setState(() {});
       });
 
@@ -83,7 +85,7 @@ class _VehicleDetailScreenTransPorterState
   Future<void> _verifyReview(String reviewDone, bool status) async {
     try {
       final profileProvider =
-          Provider.of<ProfileProvider>(context, listen: false);
+      Provider.of<ProfileProvider>(context, listen: false);
       final userId = profileProvider.profileData?.userId?.id ?? "";
       final token = await TokenManager.getToken();
 
@@ -134,11 +136,12 @@ class _VehicleDetailScreenTransPorterState
   void _showFullScreenMedia(int index) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => _FullScreenMediaViewer(
-          mediaList: _allMedia,
-          initialIndex: index,
-          isVideo: (url) => widget.vehicle.videos.contains(url),
-        ),
+        builder: (context) =>
+            _FullScreenMediaViewer(
+              mediaList: _allMedia,
+              initialIndex: index,
+              isVideo: (url) => widget.vehicle.videos.contains(url),
+            ),
       ),
     );
   }
@@ -228,7 +231,10 @@ class _VehicleDetailScreenTransPorterState
   Widget _buildMediaSection() {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-      width: MediaQuery.of(context).size.width,
+      width: MediaQuery
+          .of(context)
+          .size
+          .width,
       height: 180,
       decoration: BoxDecoration(boxShadow: [
         BoxShadow(
@@ -265,47 +271,41 @@ class _VehicleDetailScreenTransPorterState
                   child: mediaUrl == 'placeholder'
                       ? _buildPlaceholderImage()
                       : Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: Image.network(
-                                mediaUrl,
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildPlaceholderImage(),
-                                loadingBuilder:
-                                    (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 3,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        ColorConstants.primaryColor,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            if (isVideo)
-                              Center(
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black54,
-                                    borderRadius: BorderRadius.circular(50),
-                                  ),
-                                  child: const Icon(
-                                    Icons.play_arrow,
-                                    color: Colors.white,
-                                    size: 40,
+                    children: [
+                      if(isVideo)
+                        VideoThumbnailView(videoUrl: mediaUrl, onTap: () {
+                          Navigator.of(context).push(
+                              MaterialPageRoute(builder: (context) {
+                                return FullScreenVideoPlayer(
+                                    videoUrl: mediaUrl);
+                              },));
+                        },) else
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8.0),
+                          child: Image.network(
+                            mediaUrl,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            errorBuilder: (context, error, stackTrace) =>
+                                _buildPlaceholderImage(),
+                            loadingBuilder:
+                                (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    ColorConstants.primaryColor,
                                   ),
                                 ),
-                              ),
-                          ],
+                              );
+                            },
+                          ),
                         ),
+
+                    ],
+                  ),
                 ),
               );
             },
@@ -416,7 +416,8 @@ class _VehicleDetailScreenTransPorterState
                 icon: AssetsConstant.chatSVG,
                 type: 'CHAT',
                 phone: widget.owner.businessMobileNumber,
-                userName: ("${widget.owner.firstName} ${widget.owner.lastName}").trim(),
+                userName: ("${widget.owner.firstName} ${widget.owner.lastName}")
+                    .trim(),
                 activityType: ActivityType.CHAT,
                 userType: getMyType(widget.owner.vehicles.length > 1
                     ? "Transporter"
@@ -442,7 +443,8 @@ class _VehicleDetailScreenTransPorterState
                 userId: widget.owner.userId,
                 icon: AssetsConstant.callPhoneSVG,
                 type: 'PHONE',
-                userName: ("${widget.owner.firstName} ${widget.owner.lastName}").trim(),
+                userName: ("${widget.owner.firstName} ${widget.owner.lastName}")
+                    .trim(),
                 phone: widget.owner.businessMobileNumber,
                 activityType: ActivityType.PHONE,
                 userType: getMyType(widget.owner.vehicles.length > 1
@@ -635,7 +637,7 @@ class _VehicleDetailScreenTransPorterState
                       Spacer(),
                       Container(
                         padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: gradientSecond,
                           borderRadius: BorderRadius.circular(20),
@@ -646,7 +648,7 @@ class _VehicleDetailScreenTransPorterState
                         ),
                         child: Text(
                           (widget.vehicle.isPriceNegotiable == true ||
-                                  widget.owner.negotiable)
+                              widget.owner.negotiable)
                               ? localizations.negotiable
                               : localizations.fixedPrice,
                           maxLines: 1,
@@ -741,7 +743,8 @@ class _VehicleDetailScreenTransPorterState
                         Row(
                           children: [
                             Text(
-                              "${widget.owner.firstName} ${widget.owner.lastName}",
+                              "${widget.owner.firstName} ${widget.owner
+                                  .lastName}",
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -822,9 +825,12 @@ class _VehicleDetailScreenTransPorterState
                         Navigator.push(
                           context,
                           CupertinoPageRoute(
-                            builder: (context) => TransporterDetailsScreen(
-                              transporterId: widget.partnerId.isNotEmpty?widget.partnerId:widget.owner.userId,
-                            ),
+                            builder: (context) =>
+                                TransporterDetailsScreen(
+                                  transporterId: widget.partnerId.isNotEmpty
+                                      ? widget.partnerId
+                                      : widget.owner.userId,
+                                ),
                           ),
                         );
                       },
@@ -1041,11 +1047,12 @@ class _FullScreenMediaViewerState extends State<_FullScreenMediaViewer> {
                 child: Image.network(
                   mediaUrl,
                   fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => Icon(
-                    Icons.broken_image,
-                    size: 100,
-                    color: Colors.grey[600],
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      Icon(
+                        Icons.broken_image,
+                        size: 100,
+                        color: Colors.grey[600],
+                      ),
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
                     return Center(

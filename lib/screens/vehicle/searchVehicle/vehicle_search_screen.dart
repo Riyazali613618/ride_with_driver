@@ -121,6 +121,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen2> {
         // Create fresh owner with empty vehicles
         ownerMap[ownerId] = VehicleOwner(
           id: owner.id,
+          isFavourite: owner.isFavourite,
           userId: owner.userId,
           userType: owner.userType,
           firstName: owner.firstName,

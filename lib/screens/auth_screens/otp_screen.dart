@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 import 'package:rwd/screens/auth_screens/not_allowed.dart';
 import 'package:rwd/screens/auth_screens/select_language_screen.dart';
@@ -9,6 +12,9 @@ import 'package:rwd/screens/layout.dart';
 
 import '../../api/api_service/countryStateProviderService.dart';
 import '../../api/api_service/verify_otp_service.dart';
+import '../../bloc/auth/auth_bloc.dart';
+import '../../bloc/auth/auth_event.dart';
+import '../../bloc/auth/auth_state.dart';
 import '../../components/app_appbar.dart';
 import '../../components/app_button.dart';
 import '../../components/app_snackbar.dart';
@@ -23,9 +29,11 @@ import 'first_time_user.dart';
 class OtpVerificationScreen extends StatefulWidget {
   final String phoneNumber;
   final String countryId;
+  final String phoneNumberWithouCode;
 
   const OtpVerificationScreen({
     super.key,
+    required this.phoneNumberWithouCode,
     required this.phoneNumber,
     required this.countryId,
   });
@@ -52,15 +60,37 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
   @override
   void initState() {
     super.initState();
+    _startTimer();
+
     if (kDebugMode) {
       print(
           "OTP Verification Screen initialized for number: ${widget.phoneNumber}");
     }
     LocationProvider().setCountry(widget.countryId);
   }
+  void _startTimer() {
+    _secondsRemaining = 60;
+    _canResend = false;
+
+    _timer?.cancel();
+
+    _timer = Timer.periodic(const Duration(seconds: 60), (timer) {
+      if (_secondsRemaining > 0) {
+        setState(() {
+          _secondsRemaining--;
+        });
+      } else {
+        setState(() {
+          _canResend = true;
+        });
+        timer.cancel();
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _timer?.cancel();
     for (var controller in _otpControllers) {
       controller.dispose();
     }
@@ -224,8 +254,14 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
     }
     _focusNodes[0].requestFocus();
   }
-
+  int _secondsRemaining = 60;
+  Timer? _timer;
+  bool _canResend = false;
   void _resendCode() async {
+    if (!_canResend) return;
+    context.read<AuthBloc>().add(SendOtpEvent(phoneNumber:widget.phoneNumberWithouCode));
+    _startTimer(); // Restart timer after resend
+    return;
     if (kDebugMode) {
       print("Resending OTP code...");
     }
@@ -360,37 +396,65 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      // Resend code button
-                      SizedBox(
-                        height: 44,
-                        child: OutlinedButton(
-                          onPressed: _resendLoading ? null : _resendCode,
-                          style: OutlinedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(22),
+                      BlocListener<AuthBloc, AuthState>(
+                        listener: (context, state) {
+                          if (state is AuthLoading) {
+                            setState(() {
+                              _resendLoading = true;
+                            });
+                          } else {
+                            setState(() {
+                              _resendLoading = false;
+                            });
+                          }
+
+                          if (state is OtpSentSuccess) {
+                            CustomSnackBar.showCustomSnackBar(
+                              context: context,
+                              message: "OTP resend successfully",
+                              success: true,
+                            );
+                          } else if (state is AuthError) {
+                            CustomSnackBar.showCustomSnackBar(
+                              context: context,
+                              message: state.message,
+                              success: false,
+                            );
+                          }
+                        },
+                        child:SizedBox(
+                          height: 44,
+                          child: OutlinedButton(
+                            onPressed: (_canResend && !_resendLoading) ? _resendCode : null,
+                            style: OutlinedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(22),
+                              ),
+                              side: BorderSide(color: Colors.black54, width: 2),
                             ),
-                            side: BorderSide(color: Colors.black54, width: 2),
+                            child: _resendLoading
+                                ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.grey),
+                              ),
+                            )
+                                : Text(
+                              _canResend
+                                  ? localizations.resend_code
+                                  : "Resend in ${_secondsRemaining}s",
+                              style: TextStyle(
+                                color: _canResend ? Colors.black87 : Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           ),
-                          child: _resendLoading
-                              ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.grey),
-                                  ),
-                                )
-                              : Text(
-                                  localizations.resend_code,
-                                  // 'Resend Code',
-                                  style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
                         ),
                       ),
+                      // Resend code button
+
                       const SizedBox(height: 30),
                       Padding(
                         padding: const EdgeInsets.symmetric(
@@ -419,7 +483,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                                   )
                                 : CustomButton(
                                     // text: 'Verify',
-                                    text: localizations.log_in,
+                                    text: "Login",
                                     onPressed: _handleOtpSubmission,
                                     backgroundColor: gradientFirst,
                                     isFullWidth: true,

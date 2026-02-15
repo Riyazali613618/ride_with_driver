@@ -15,6 +15,8 @@ import 'package:rwd/api/api_model/stateModel.dart' as sm;
 
 import '../../../api/api_service/countryStateProviderService.dart';
 import '../../../l10n/app_localizations.dart' show AppLocalizations;
+import '../../auth_screens/select_language_screen.dart';
+import '../../block/language/language_provider.dart';
 import '../../block/provider/profile_provider.dart';
 import '../../../api/api_service/media_service.dart';
 import '../../commonWidgets/city_dropdown_widget.dart';
@@ -170,6 +172,7 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
             : '';
         _profileImageUrl = provider.profilePhoto;
         _originalData = data.toJson();
+        _originalData!['number']=provider.phoneNumber;
         _hasChanges = false;
         _isEditing = false;
       });
@@ -219,8 +222,8 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
       'number': _phoneController.text.trim(),
       // 'language': _languageController.text.trim(),
       'profilePhoto': _profileImageUrl ?? '',
-      "state":_selectedState,
-      "city":_selectedCity,
+      "state": _selectedState,
+      "city": _selectedCity,
     };
     jsonEncode(profileData);
 
@@ -447,11 +450,24 @@ class _ProfileUpdateScreenState extends State<ProfileUpdateScreen>
               },
             ),
             SizedBox(height: 16),
-            _buildAnimatedTextField(
-              label: "Language",
-              controller: _languageController,
-              icon: Icons.language_outlined,
-              enabled: false,
+            GestureDetector(
+              onTap: () async {
+                final lang = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const LanguageSelectionScreen()),
+                );
+                final languageProvider =
+                Provider.of<LanguageProvider>(context, listen: false);
+
+                _languageController.text=languageProvider.currentLanguage?.name??"English";
+              },
+              child: _buildAnimatedTextField(
+                label: "Language",
+                controller: _languageController,
+                icon: Icons.language_outlined,
+                enabled: false,
+              ),
             ),
           ],
         ),

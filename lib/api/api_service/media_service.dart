@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
+import 'package:rwd/utils/common_utils.dart';
 import '../../utils/photo_editing_utils.dart';
 
 import '../../components/app_snackbar.dart';
@@ -119,12 +120,7 @@ class MediaService {
         return result.url;
       } else {
         if(context!=null && context.mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(result.errorMessage??"Failed to upload File"),
-            backgroundColor: Colors.red,
-          ),
-        );
+        CommonUtils.showErrorSnackBar(context, result.errorMessage??"Failed to upload File");
         developer.log(
           'Direct file upload failed: ${result.errorMessage}',
           name: _logTag,

@@ -47,6 +47,7 @@ class VehicleOwner {
   final String profilePhoto;
   final String email;
   final String message;
+   bool isFavourite;
   final bool isVerifiedByAdmin;
   final double rating;
   final String gstin;
@@ -85,6 +86,7 @@ class VehicleOwner {
     required this.id,
     required this.userId,
     required this.userType,
+    required this.isFavourite,
     required this.firstName,
     required this.lastName,
     required this.profilePhoto,
@@ -130,6 +132,7 @@ class VehicleOwner {
       id: json['id'] ?? '',
       userId: json['userId'] ?? '',
       userType: json['userType'] ?? '',
+      isFavourite: json['isFavourite'] ?? false,
       firstName: json['firstName'] ?? '',
       lastName: json['lastName'] ?? '',
       profilePhoto: json['profilePhoto'] ?? '',
@@ -330,6 +333,7 @@ class Vehicle {
   final Location serviceLocation;
   final int minimumChargePerHour;
   final bool isPriceNegotiable;
+   bool isFavourite;
   final List<String> images;
   final List<String> videos;
   final String rcBookFrontPhoto;
@@ -351,6 +355,7 @@ class Vehicle {
     required this.vehicleSpecifications,
     required this.serviceLocation,
     required this.minimumChargePerHour,
+    required this.isFavourite,
     required this.isPriceNegotiable,
     required this.images,
     required this.videos,
@@ -377,6 +382,7 @@ class Vehicle {
           [],
       serviceLocation: Location.fromJson(json['serviceLocation'] ?? {}),
       minimumChargePerHour: json['minimumChargePerHour'] ?? 0,
+      isFavourite: json['isFavourite'] ?? false,
       isPriceNegotiable: json['isPriceNegotiable'] ?? false,
       images: (json['images'] as List<dynamic>?)?.cast<String>() ?? [],
       videos: (json['videos'] as List<dynamic>?)?.cast<String>() ?? [],

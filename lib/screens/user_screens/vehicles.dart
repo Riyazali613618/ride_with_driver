@@ -111,7 +111,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     } else {
       getFavourites();
     }
-    print("_selectedCategory==========${widget.selectedCategory}");
   }
 
   Future<void> getFavourites() async {
@@ -520,7 +519,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       if (_selectedVehicleType == "ALLVEHICLES") {
         _selectedVehicleType = "ALL_VEHICLES";
       }
-      print("_selectedVehicleType===$_selectedVehicleType");
+      print("_selectedVehicleType===$_selectedVehicleType======");
       final nextPage = _currentPage + 1;
       final response = await _vehicleService.searchVehicles(
         pincode: widget.selectedLocation?.pinCode ?? '',
@@ -546,29 +545,29 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       setState(() {
         _isLoadingMore = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(localizations.failed_to_load_more_vehicles(e))),
-      );
+      CommonUtils.showErrorSnackBar(
+          context, localizations.failed_to_load_more_vehicles(e));
     }
   }
 
-  bool favAdded = false;
-  bool deletFav = false;
+  Map<String, bool> favLoading = {};
 
   Future<void> addToFav(String partnerId, String vehicleId) async {
     setState(() {
-      favAdded = true;
+      favLoading[vehicleId] = true;
     });
     try {
       final res =
           await _vehicleService.addToFavourites(partnerId, vehicleId).then((_) {
         setState(() {
-          favAdded = false;
+          favoriteStates[vehicleId] = true;
+          favLoading[vehicleId] = false;
         });
       });
+      getFavourites();
     } catch (e) {
       setState(() {
-        favAdded = false;
+        favLoading[vehicleId] = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('failed to add favourites')),
@@ -577,22 +576,32 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   }
 
   Future<void> deleteFavourires(String vehicleId) async {
+    String favId = "";
+    for (var element in favouritesData) {
+      if (element.vehicleId == vehicleId) {
+        favId = element.favoriteId ?? "";
+        break;
+      }
+    }
+    print("vehicleId===$vehicleId");
+    print("FavouriteId===$favId");
     setState(() {
-      deletFav = false;
+      favLoading[vehicleId] = true;
     });
     try {
-      final res = await _vehicleService.deleteFavourites(vehicleId).then((_) {
+      final res = await _vehicleService.deleteFavourites(favId).then((_) {
         setState(() {
-          deletFav = true;
+          favoriteStates[vehicleId] = false;
+          favLoading[vehicleId] = false;
         });
       });
     } catch (e) {
       setState(() {
-        deletFav = false;
+        favLoading[vehicleId] = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      /* ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('failed to delete from favourites')),
-      );
+      );*/
     }
   }
 
@@ -602,23 +611,8 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
   Future<void> _searchVehicles({bool reset = true}) async {
     final localizations = AppLocalizations.of(context)!;
-    print("==============================");
-    print(widget.filterData);
-    print("==============================");
-    print(_activeFilters);
-    print("==============================");
-
-    developer.log('=== Starting Vehicle Search ===');
-    developer
-        .log('Selected Location: ${widget.selectedLocation?.formattedAddress}');
-    developer.log('Pincode: ${widget.selectedLocation?.pinCode}');
-    developer.log('Lat: ${widget.selectedLocation?.latitude}');
-    developer.log('Lng: ${widget.selectedLocation?.longitude}');
-    developer.log('Vehicle Type: $_selectedVehicleType');
-    developer.log('Reset: $reset');
 
     if (widget.selectedLocation == null) {
-      developer.log('ERROR: No location selected');
       setState(() {
         _errorMessage = localizations.selectLocationFirst;
         _isLoading = false;
@@ -639,9 +633,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
     });
 
     try {
-      developer.log(
-          'Making API call... ${convertVehicleType(_selectedVehicleType)}');
-      print("_selectedVehicleType===$_selectedVehicleType");
       final response = await _vehicleService.searchVehicles(
         pincode: widget.selectedLocation?.pinCode ?? '',
         lat: widget.selectedLocation?.latitude ?? 0.0,
@@ -652,26 +643,40 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         filters: widget.filterData ?? {},
       );
 
-      developer.log('API call completed successfully');
-      developer.log('Total vehicles found: ${response.data.results.length}');
+      if (!mounted) return;
 
-      if (mounted) {
-        setState(() {
-          vehicleOwners = List.from(response.data.results);
-          vehicleOwners = mergeVehicleOwners(vehicleOwners);
-          _isLoading = false;
-          _currentVehicleIndex.clear();
-          for (var owner in vehicleOwners) {
-            _currentVehicleIndex[owner.id] = 0;
-            developer.log(
-                'Owner: ${owner.firstName}, ID: ${owner.id}, Vehicle Count: ${owner.vehicles.length}');
-          }
+// 1️⃣ First assign vehicles
+      List<VehicleOwner> fetchedOwners =
+          mergeVehicleOwners(List.from(response.data.results));
 
-          _hasMoreItems = response.data.pagination.hasNext;
-        });
+// 2️⃣ Ensure favourites loaded
+      if (favouritesData.isEmpty) {
+        await getFavourites();
       }
+
+// 3️⃣ Create favourite id set (FASTER lookup)
+      final favouriteIds =
+          favouritesData.map((e) => e.vehicle?.id ?? "").toSet();
+
+// 4️⃣ Apply favourite flag
+      for (var owner in fetchedOwners) {
+        for (var vehicle in owner.vehicles) {
+          vehicle.isFavourite = favouriteIds.contains(vehicle.id);
+          favoriteStates[vehicle.id] = vehicle.isFavourite;
+        }
+      }
+
+// 5️⃣ Update state ONCE
+      setState(() {
+        vehicleOwners = fetchedOwners;
+        _isLoading = false;
+        _currentVehicleIndex.clear();
+        for (var owner in vehicleOwners) {
+          _currentVehicleIndex[owner.id] = 0;
+        }
+        _hasMoreItems = response.data.pagination.hasNext;
+      });
     } catch (e) {
-      developer.log('Error searching vehicles: $e');
       if (mounted) {
         setState(() {
           _errorMessage = e.toString().replaceAll('Exception: ', '');
@@ -691,6 +696,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
         // Create fresh owner with empty vehicles
         ownerMap[ownerId] = VehicleOwner(
           id: owner.id,
+          isFavourite: owner.isFavourite,
           userId: owner.userId,
           userType: owner.userType,
           firstName: owner.firstName,
@@ -744,17 +750,12 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
   }
 
   Future<void> _refreshVehicles() async {
-    developer.log('=== REFRESH TRIGGERED ===');
     try {
       await _searchVehicles(reset: true);
-      developer.log('=== REFRESH COMPLETED ===');
-    } catch (e) {
-      developer.log('=== REFRESH FAILED: $e ===');
-    }
+    } catch (e) {}
   }
 
   void _navigateToVehicleDetail(VehicleOwner owner) async {
-    print("tappeddddddd");
     bool success = await logUserActivity(
       id: owner.userId,
       activity: ActivityType.CLICK,
@@ -813,15 +814,13 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
   Map<String, bool> favoriteStates = {};
 
-  updateFavState(Vehicle? vehicle) {
-    print("favouritesData:${favouritesData}");
+/*  updateFavState(Vehicle? vehicle) {
     for (var fav in favouritesData) {
       if (fav.vehicle?.id == vehicle?.id) {
         favoriteStates[vehicle!.id] = true;
       }
     }
-    // setState(() {});
-  }
+  }*/
 
 // 2. UPDATE _buildVehicleCard METHOD:
   Widget _buildVehicleCard(VehicleOwner owner) {
@@ -832,7 +831,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
             ? owner.vehicles[currentIndex]
             : null;
     final localizations = AppLocalizations.of(context)!;
-    updateFavState(vehicle);
     if (owner.userType == UserType.DRIVER.name) {
       return InkWell(onTap: () {}, child: _buildDriverSearchContent(owner));
     } else {
@@ -1045,28 +1043,36 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                         Spacer(),
                         GestureDetector(
                           onTap: () async {
-                            if (favoriteStates.containsKey(vehicle!.id)) {
-                              await deleteFavourires(vehicle!.id);
-                              setState(() {
-                                favoriteStates[vehicle.id] = false;
-                              });
+                            final isFav = favoriteStates[vehicle!.id] ?? false;
+
+                            setState(() {
+                              favLoading[vehicle.id] = true;
+                            });
+
+                            if (isFav) {
+                              await deleteFavourires(vehicle.id);
                             } else {
-                              await addToFav(vehicle!.userId, vehicle.id);
-                              setState(() {
-                                favoriteStates[vehicle.id] =
-                                    !(favoriteStates[vehicle.id] ?? false);
-                              });
+                              await addToFav(vehicle.userId, vehicle.id);
                             }
+
+                            setState(() {
+                              favoriteStates[vehicle.id] = !isFav;
+                              vehicle.isFavourite = !isFav;
+                              favLoading[vehicle.id] = false;
+                            });
                           },
-                          child: (favAdded || deletFav)
-                              ? Center(
-                                  child: CircularProgressIndicator(),
+                          child: (favLoading[vehicle?.id] ?? false)
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : Icon(
-                                  (favoriteStates[vehicle?.id] ?? false)
+                                  vehicle?.isFavourite ?? false
                                       ? Icons.favorite
                                       : Icons.favorite_border,
-                                  color: (favoriteStates[vehicle?.id] ?? false)
+                                  color: (vehicle?.isFavourite ?? false)
                                       ? Colors.red
                                       : Colors.grey[400],
                                   size: 22,
@@ -1101,14 +1107,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                               child: Container(
                             padding: EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
-                            /* decoration: BoxDecoration(
-                                color: gradientSecond,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: AppColors.blue,
-                                  width: 0.5,
-                                ),
-                              ),*/
                             child: Text(
                               (vehicle?.isPriceNegotiable == true ||
                                       owner.negotiable)
@@ -1123,10 +1121,9 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                             ),
                           )),
                         const SizedBox(width: 10),
+
                       ],
                     ),
-                    // Action Buttons and Favorite Icon Row
-
                     Container(
                       color: Colors.transparent,
                       child: Row(
@@ -1183,9 +1180,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: InkWell(
-                              onTap: () {
-                                // _navigateToVehicleDetail(owner);
-                              },
+                              onTap: () {},
                               child: Container(
                                 padding: EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
@@ -1586,7 +1581,6 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context)!;
     _searchFocusNode.unfocus();
     return Scaffold(
       backgroundColor: Colors.white,
@@ -1722,7 +1716,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
 
   String getVehicleName(String name) {
     if (name.length > 20) {
-      return name.substring(0, 20) + "..";
+      return "${name.substring(0, 20)}..";
     } else {
       return name;
     }
@@ -1744,7 +1738,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
       },
       child: Container(
         margin: EdgeInsets.only(left: 16, right: 16, bottom: 10),
-        padding: EdgeInsets.only(left: 16,right: 16, top: 10),
+        padding: EdgeInsets.only(left: 16, right: 16, top: 10),
         decoration: BoxDecoration(
             color: Color(0x90FFFFFF),
             borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -1755,9 +1749,7 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                   spreadRadius: 1,
                   blurStyle: BlurStyle.outer)
             ]),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1913,6 +1905,46 @@ class _VehicleSearchScreenState extends State<VehicleSearchScreen> {
                             ),
                           )),
                         const SizedBox(width: 10),
+/*
+                        GestureDetector(
+                          onTap: () async {
+                            final isFav = favoriteStates[owner!.] ?? false;
+
+                            setState(() {
+                              favLoading[vehicle.id] = true;
+                            });
+
+                            if (isFav) {
+                              await deleteFavourires(vehicle.id);
+                            } else {
+                              await addToFav(vehicle.userId, vehicle.id);
+                            }
+
+                            setState(() {
+                              favoriteStates[vehicle.id] = !isFav;
+                              vehicle.isFavourite = !isFav;
+                              favLoading[vehicle.id] = false;
+                            });
+                          },
+                          child: (favLoading[vehicle?.id] ?? false)
+                              ? SizedBox(
+                            height: 20,
+                            width: 20,
+                            child:
+                            CircularProgressIndicator(strokeWidth: 2),
+                          )
+                              : Icon(
+                            vehicle?.isFavourite ?? false
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            color: (vehicle?.isFavourite ?? false)
+                                ? Colors.red
+                                : Colors.grey[400],
+                            size: 22,
+                          ),
+                        ),
+*/
+
                       ],
                     ),
                   ],

@@ -119,7 +119,7 @@
   "failed_to_logout": "Failed to logout. Please try again.",
   "enter_all_4_digits": "Please enter all 4 digits",
   "failed_to_verify_otp": "Failed to verify OTP. Please try again.",
-  "otp_resent": "OTP code resent to your WhatsApp number",
+  "otp_resent": "OTP code resent successfully to your mobile number",
   "failed_to_resend_otp": "Failed to resend OTP. Please try again.",
   "verify_phone_number": "Verify your phone number",
   "did_not_receive_code": "Did not receive the code?",

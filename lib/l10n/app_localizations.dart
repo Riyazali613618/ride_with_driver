@@ -829,7 +829,7 @@ abstract class AppLocalizations {
   /// No description provided for @otp_resent.
   ///
   /// In en, this message translates to:
-  /// **'OTP code resent to your WhatsApp number'**
+  /// **'OTP code resent successfully to your mobile number'**
   String get otp_resent;
 
   /// No description provided for @failed_to_resend_otp.

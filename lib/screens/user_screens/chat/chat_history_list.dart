@@ -270,7 +270,7 @@ class _ChatListScreenState extends State<ChatListScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                 'Are you sure you want to delete the selected chats?',
+                'Are you sure you want to delete the selected chats?',
                 style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 8),
@@ -304,7 +304,7 @@ class _ChatListScreenState extends State<ChatListScreen>
               onPressed: () {
                 Navigator.of(context).pop();
                 _deleteSelectedChats();
-                },
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[600],
                 foregroundColor: Colors.white,
@@ -443,7 +443,7 @@ class _ChatListScreenState extends State<ChatListScreen>
                         },
                       ),
                     ]
-                     /* Icon(
+                    /* Icon(
                         Icons.more_vert,
                         color: Colors.white,
                         size: 24,
@@ -726,19 +726,20 @@ class _ChatListScreenState extends State<ChatListScreen>
                     } else {
                       _onChatTap(chat);
                     }
-                  },onLongPress: () {
-                  setState(() {
-                    _selectionMode = true;
-                    _selectedChatIds.add(chat.chatId);
-                  });
-                },
+                  },
+                  onLongPress: () {
+                    setState(() {
+                      _selectionMode = true;
+                      _selectedChatIds.add(chat.chatId);
+                    });
+                  },
                   borderRadius: BorderRadius.circular(16),
                   /*   onTap: isDeleting ? null : () => _onChatTap(chat),
                   onLongPress: isDeleting
                       ? null
                       : () => _showDeleteConfirmationDialog(chat),*/
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
                     decoration: BoxDecoration(
                       color: _selectedChatIds.contains(chat.chatId)
                           ? Colors.blue.withOpacity(0.1)
@@ -786,7 +787,9 @@ class _ChatListScreenState extends State<ChatListScreen>
                                 ],
                               ),
                               Text(
-                                chat.lastMessage,
+                                (chat.image ?? "").isNotEmpty
+                                    ? "Image"
+                                    : chat.lastMessage,
                                 maxLines: 1,
                                 style: TextStyle(
                                   fontFamily: AppConstants.ptSansFont,
@@ -981,7 +984,8 @@ class _ChatListScreenState extends State<ChatListScreen>
 
   void _filterList(String value) {
     if (value.isEmpty) {
-      chatListDisplay = chatList;
+      chatListDisplay.clear();
+      chatListDisplay.addAll(chatList);
       updateState();
       return;
     }

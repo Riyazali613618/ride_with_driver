@@ -411,7 +411,7 @@ class AppLocalizationsHi extends AppLocalizations {
       'OTP सत्यापित करने में विफल। कृपया पुनः प्रयास करें।';
 
   @override
-  String get otp_resent => 'OTP कोड आपके व्हाट्सएप नंबर पर पुनः भेजा गया';
+  String get otp_resent => 'OTP कोड आपके नंबर पर पुनः भेजा गया';
 
   @override
   String get failed_to_resend_otp =>

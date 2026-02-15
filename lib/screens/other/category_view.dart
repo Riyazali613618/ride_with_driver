@@ -108,7 +108,7 @@ class _GridViewExampleState extends State<GridViewExample> {
           ),
           'RICKSHAW': VehicleType(
             name: localizations.driver,
-            assetImagePath: AssetsConstant.driverBus,
+            assetImagePath: AssetsConstant.auto,
             color: const Color(0xFF81D4FA),
             color1: const Color(0xFFE1F5FE),
           ),

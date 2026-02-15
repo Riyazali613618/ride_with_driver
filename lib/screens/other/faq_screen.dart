@@ -37,13 +37,13 @@ class FAQItem {
 }
 
 class FAQResponse {
-  final bool status;
+  final bool success;
   final String message;
   final String title;
   final List<FAQItem> faqs;
 
   FAQResponse({
-    required this.status,
+    required this.success,
     required this.message,
     required this.title,
     required this.faqs,
@@ -51,15 +51,15 @@ class FAQResponse {
 
   factory FAQResponse.fromJson(Map<String, dynamic> json) {
     var faqList = <FAQItem>[];
-    if (json['data'] != null && json['data']['content'] != null) {
-      var content = json['data']['content'] as List;
+    if (json['data'] != null && json['data']['faqItems'] != null) {
+      var content = json['data']['faqItems'] as List;
       faqList = content.map((item) => FAQItem.fromJson(item)).toList();
       // Sort by order
       faqList.sort((a, b) => a.order.compareTo(b.order));
     }
 
     return FAQResponse(
-      status: json['status'] ?? false,
+      success: json['success'] ?? false,
       message: json['message'] ?? '',
       title: json['data']?['title'] ?? 'FAQ',
       faqs: faqList,
@@ -78,13 +78,15 @@ class FAQService {
       final language = currentLanguage?.code ?? 'en';
 
       final response = await http.get(
-        Uri.parse('$baseUrl/public/legal/FAQ/${ApiConstants.defaultLanguageCodeEng}'),
+        Uri.parse(
+            '$baseUrl/public/legal/FAQ/${ApiConstants.defaultLanguageCodeEng}'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       ).timeout(const Duration(seconds: 30));
-
+      print(token);
+      print('$baseUrl/public/legal/FAQ/${ApiConstants.defaultLanguageCodeEng}');
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonData = json.decode(response.body);
         return FAQResponse.fromJson(jsonData);
@@ -100,7 +102,6 @@ class FAQService {
       throw Exception('Unexpected error: $e');
     }
   }
-
 }
 
 // FAQ Screen
@@ -149,7 +150,8 @@ class _FAQScreenState extends State<FAQScreen> {
             stops: [0.01, 0.20, 0.31, .34],
           ),
         ),
-        child: SafeArea( // ✅ so it doesn’t overlap with status bar
+        child: SafeArea(
+          // ✅ so it doesn’t overlap with status bar
           child: Column(
             children: [
               // /// AppBar inside body
@@ -159,7 +161,8 @@ class _FAQScreenState extends State<FAQScreen> {
               //   centerTitle: true,
               // ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
                 child: Row(
                   children: [
                     IconButton(
@@ -199,7 +202,7 @@ class _FAQScreenState extends State<FAQScreen> {
                       return _buildErrorWidget(snapshot.error.toString());
                     } else if (snapshot.hasData) {
                       final faqResponse = snapshot.data!;
-                      if (!faqResponse.status || faqResponse.faqs.isEmpty) {
+                      if (!faqResponse.success || faqResponse.faqs.isEmpty) {
                         return _buildEmptyWidget();
                       }
                       return _buildFAQList(faqResponse);
@@ -214,7 +217,6 @@ class _FAQScreenState extends State<FAQScreen> {
         ),
       ),
     );
-
   }
 
   Widget _buildLoadingWidget() {
@@ -352,7 +354,8 @@ class _FAQScreenState extends State<FAQScreen> {
       children: [
         // Header Section
         Padding(
-          padding: const EdgeInsets.only(left: 16,top: 8,right: 16,bottom: 8),
+          padding:
+              const EdgeInsets.only(left: 16, top: 8, right: 16, bottom: 8),
           child: Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),

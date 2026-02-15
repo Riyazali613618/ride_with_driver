@@ -11,7 +11,9 @@ import '../../../api/api_service/countryStateProviderService.dart';
 import '../../../api/api_service/payment_service/payment_service.dart';
 import '../../../bloc/payment/payment_bloc.dart';
 import '../../../constants/api_constants.dart';
+import '../../../constants/token_manager.dart';
 import '../../../screens/driver_screens/payment_bottom_sheet.dart';
+import '../../../utils/common_utils.dart';
 import '../../data/models/plan_model.dart';
 import '../bloc/plan_bloc.dart';
 import '../bloc/plan_event.dart';
@@ -197,8 +199,9 @@ class _RenewTransporterPlanState extends State<RenewTransporterPlan> {
     if (taxRate.isEmpty) {
       taxRate = "18";
     }
-    double price = data.perVehiclePrice * (myProfileData?.vehicleLimit ?? 2);
-    price = price + (price * ((double.parse(taxRate)) / 100));
+    /*  double price = data.perVehiclePrice * (myProfileData?.addOnVehicleLimit ?? 2);
+    price = price + (price * ((double.parse(taxRate)) / 100));*/
+    double price = data.finalPrice;
     final price2 = data.grossPrice;
     final duration = data.durationInMonths;
     return AnimatedContainer(
@@ -299,20 +302,10 @@ class _RenewTransporterPlanState extends State<RenewTransporterPlan> {
                   backgroundColor: Colors.transparent,
                   builder: (context) => BlocProvider.value(
                     value: context.read<PaymentBloc>(),
-                    child: PaymentBottomSheetBlocView(
-                      isAdOns: false,
-                      isRenewal: true,
-                      plan: data,
-                      benefits: data.features,
-                      planName: data.name,
-                      finalPrice: price,
-                      rwdBalance: myProfileData?.rwdBalance ?? 0,
-                      planType: widget.category,
-                      vehicleCount: "2",
-                      currentCategory: "TRANSPORTER",
-                      paymentType: PaymentType.subscriptionRenewal,
-                      category: "TRANSPORTER",
-                    ),
+                    child: RenewPlanPriceDetailsBottomSheet(
+                        myProfileData: myProfileData,
+                        context: context,
+                        plan: data),
                   ),
                 );
               },
@@ -337,5 +330,362 @@ class _RenewTransporterPlanState extends State<RenewTransporterPlan> {
         ],
       ),
     );
+  }
+}
+
+class RenewPlanPriceDetailsBottomSheet extends StatefulWidget {
+  final PlanModel plan;
+  final BuildContext context;
+  final MyProfileData? myProfileData;
+
+  const RenewPlanPriceDetailsBottomSheet(
+      {required this.plan,
+      required this.context,
+      required this.myProfileData,
+      super.key});
+
+  @override
+  State<RenewPlanPriceDetailsBottomSheet> createState() =>
+      _RenewPlanPriceDetailsBottomSheetState();
+}
+
+class _RenewPlanPriceDetailsBottomSheetState
+    extends State<RenewPlanPriceDetailsBottomSheet> {
+  bool showBenefits = false;
+  bool showContact = false;
+  String phoneNumber = "";
+  String email = "";
+  double refundableAmount = 0;
+  double amountToPay = 0;
+
+  //TODO Wallet Amount and rwdBalance both are same, we are just using walletAmount
+  //TODO for calculation so that we can send how much amount used from wallet and
+  //TODO rwdAmount is using to show how much are are there in wallet
+  double rwdBalance = 0;
+  double walletAmount = 0;
+  MyProfileData? myProfileData;
+  String taxRate = "18";
+  double taxAmount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback(
+      (timeStamp) async {
+        myProfileData = widget.myProfileData;
+        phoneNumber = myProfileData?.mobileNumber ?? "";
+        email = myProfileData?.email ?? "";
+        rwdBalance = myProfileData?.rwdBalance ?? 0;
+        walletAmount = myProfileData?.rwdBalance ?? 0;
+        taxRate = widget.plan.taxRate;
+        if (taxRate.isEmpty) {
+          taxRate = "18";
+        }
+        int vLimit=(myProfileData?.addOnVehicleLimit ?? 2);
+        if((myProfileData?.addOnVehicleLimit??0)>0){
+          vLimit=myProfileData!.addOnVehicleLimit!;
+        }
+        double price =
+            widget.plan.perVehiclePrice * vLimit;
+        taxAmount = (price * ((double.parse(taxRate)) / 100));
+        amountToPay = price + taxAmount;
+        if (amountToPay > rwdBalance) {
+          amountToPay = amountToPay - walletAmount;
+          walletAmount = 0;
+        } else {
+          walletAmount = walletAmount - amountToPay;
+          amountToPay = 0;
+        }
+        if (mounted) {
+          setState(() {});
+        }
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int vLimit=(myProfileData?.addOnVehicleLimit ?? 2);
+    if((myProfileData?.addOnVehicleLimit??0)>0){
+      vLimit=myProfileData!.addOnVehicleLimit!;
+    }
+    double totalRenewalAmount =
+        widget.plan.perVehiclePrice * vLimit;
+
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.70,
+      maxChildSize: 0.95,
+      minChildSize: 0.5,
+      builder: (_, controller) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+          ),
+          child: ListView(
+            controller: controller,
+            padding: const EdgeInsets.all(20),
+            children: [
+              // Close line indicator
+              Center(
+                child: Container(
+                  width: 45,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade400,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              Text(
+                widget.plan.name,
+                style: CommonUtils.commonTitleStyle(),
+              ),
+              const SizedBox(height: 20),
+
+              _infoRow("Validity", "${widget.plan.durationInMonths} Months"),
+              const SizedBox(height: 12),
+
+              // Number of Vehicles
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Number of Vehicles",
+                    style: CommonUtils.commonTitleStyle(fontSize: 14),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        (vLimit)
+                            .toString()
+                            .padLeft(2, '0'),
+                        style: CommonUtils.commonTitleStyle(
+                            fontSize: 14, weight: FontWeight.w400),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                  )
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Benefits Section
+              _expansionTile(
+                title: "Benefits",
+                expanded: showBenefits,
+                onTap: () => setState(() => showBenefits = !showBenefits),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: widget.plan.features
+                      .map(
+                        (e) => Text("• $e"),
+                      )
+                      .toList() /*const [
+                    Text("• Unlimited calls"),
+                    Text("• Listing support"),
+                    Text("• Instant booking service"),
+                  ]*/
+                  ,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              // Contact details section
+              _expansionTile(
+                title: "Contact details",
+                expanded: showContact,
+                onTap: () => setState(() => showContact = !showContact),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (email.isNotEmpty) Text("Support Email: $email"),
+                    if (email.isNotEmpty) Text("Phone: $phoneNumber"),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 30),
+
+              // Pricing Summary
+              _priceRow("Renewal Amount-",
+                  "₹ ${totalRenewalAmount.toStringAsFixed(2)}"),
+              _priceRow(
+                  "Discount (${widget.plan.earlyBirdDiscountPercentage}%) -",
+                  "- ₹ ${widget.plan.earlyBirdDiscountPrice}"),
+              /* if (refundableAmount > 0)
+                _priceRow("Refund From Previous Plan -",
+                    "- ₹ ${refundableAmount.toStringAsFixed(2)}"),*/
+              if (rwdBalance > 0)
+                _priceRow("Current RWD Wallet Balance -",
+                    "₹ ${rwdBalance.toStringAsFixed(2)}"),
+              if (walletAmount > 0)
+                _priceRow("Remaining Wallet Balance after payment-",
+                    "₹ ${((walletAmount - rwdBalance).abs()).toStringAsFixed(2)}"),
+              const Divider(),
+              _priceRow(
+                  "Payable Amount after Tax: ", "₹ ${(amountToPay).toStringAsFixed(2)}",
+                  weight: FontWeight.w700),
+              _priceRow("Tax (${widget.plan.taxRate}%)",
+                  "+ ₹ ${taxAmount.toStringAsFixed(2)}"),
+
+              const SizedBox(height: 25),
+
+              // Green Banner
+              Center(
+                child: Text(
+                  "You have got ${widget.plan.earlyBirdDiscountPercentage}% discount",
+                  style: CommonUtils.commonTitleStyle(
+                      weight: FontWeight.w400, fontSize: 12),
+                ),
+              ),
+
+              const SizedBox(height: 5),
+
+              // Payment button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => BlocProvider.value(
+                        value: context.read<PaymentBloc>(),
+                        child: PaymentBottomSheetBlocView(
+                          isAdOns: false,
+                          isRenewal: true,
+                          plan: widget.plan,
+                          benefits: widget.plan.features,
+                          planName: widget.plan.name,
+                          finalPrice: amountToPay,
+                          rwdBalance: myProfileData?.rwdBalance ?? 0,
+                          planType: "TRANSPORTER",
+                          vehicleCount: "0",
+                          currentCategory: "TRANSPORTER",
+                          paymentType: PaymentType.subscriptionRenewal,
+                          category: "TRANSPORTER",
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: Text(
+                    "Make Payment",
+                    style: CommonUtils.commonTitleStyle(
+                        fontSize: 14,
+                        weight: FontWeight.w400,
+                        color: Colors.white),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _infoRow(String title, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: CommonUtils.commonTitleStyle(
+              weight: FontWeight.w700, fontSize: 14),
+        ),
+        Text(
+          value,
+          style: CommonUtils.commonTitleStyle(
+              weight: FontWeight.w400, fontSize: 14),
+        ),
+      ],
+    );
+  }
+
+  Widget _expansionTile({
+    required String title,
+    required bool expanded,
+    required VoidCallback onTap,
+    required Widget child,
+  }) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: onTap,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: CommonUtils.commonTitleStyle(fontSize: 14),
+              ),
+              Icon(
+                expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                size: 24,
+              )
+            ],
+          ),
+        ),
+        if (expanded)
+          Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: child,
+          ),
+      ],
+    );
+  }
+
+  Widget _priceRow(String title, String value, {FontWeight? weight}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: CommonUtils.commonTitleStyle(
+                fontSize: 12, weight: weight ?? FontWeight.w400),
+          ),
+          Text(value,
+              style: CommonUtils.commonTitleStyle(
+                  fontSize: 12, weight: weight ?? FontWeight.w400)),
+        ],
+      ),
+    );
+  }
+
+  String getSubscriptionAmount(PlanModel plan) {
+    return "+ ₹ ${plan.grossPrice.toStringAsFixed(2)}";
+  }
+
+  String getSubscriptionDiscount(PlanModel plan) {
+    return "- ₹ ${plan.earlyBirdDiscountPrice.toStringAsFixed(2)}";
+  }
+
+  String getSubscriptionFinalAmount(PlanModel plan) {
+    return "";
+  }
+
+  double getTaxValue(String taxRate, double finalPrice) {
+    double tax = double.parse(taxRate.isNotEmpty ? taxRate : "18");
+    final finalTaxValue = ((tax * finalPrice) / 100);
+    return finalTaxValue;
   }
 }

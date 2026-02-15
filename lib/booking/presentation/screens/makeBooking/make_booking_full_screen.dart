@@ -85,14 +85,8 @@ class _MakeBookingFullScreenState extends State<MakeBookingFullScreen>
     }
     if (!isValid) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-            errorMag,
-            style: CommonUtils.commonTitleStyle(
-                fontSize: 14, weight: FontWeight.w500, color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-        ));
+        CommonUtils.showErrorSnackBar(context, errorMag);
+
       }
       return;
     }

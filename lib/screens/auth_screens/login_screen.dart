@@ -130,6 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
             CupertinoPageRoute(
               builder: (_) => OtpVerificationScreen(
                 phoneNumber: fullPhoneNumber,
+                phoneNumberWithouCode: _phoneController.text.toString(),
                 countryId: locationProvider.selectedCountry ?? "",
               ),
             ),

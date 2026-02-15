@@ -770,46 +770,6 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
         ],
       ),
     );
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            localizations.contact_information,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildContactRow(
-            Icons.phone_outlined,
-            localizations.phoneNumber,
-            transporter!.businessMobileNumber!,
-          ),
-          const SizedBox(height: 8),
-          _buildContactRow(
-            Icons.location_on_outlined,
-            localizations.address,
-            _formatAddress(transporter.address!),
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildContactRow(IconData icon, String label, String value) {
@@ -968,7 +928,7 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
             itemBuilder: (context, index) {
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
-                child: _buildVehicleCard(vehicles![index]!),
+                child: _buildVehicleCard(vehicles[index], index),
               );
             },
           ),
@@ -987,8 +947,10 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
   }
 
   int currentSlideIndex = 0;
+  final Map<int, PageController> _imageControllers = {};
+  final Map<int, int> _imageIndexes = {};
 
-  Widget _buildVehicleCard(Vehicle vehicle) {
+  Widget _buildVehicleCard(Vehicle vehicle, int index) {
     final localizations = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
@@ -1007,111 +969,97 @@ class _TransporterDetailsScreenState extends State<TransporterDetailsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Vehicle Image
-          if (vehicle.images!.isNotEmpty &&
-              vehicle.images!.any((img) => img.isNotEmpty))
-            Stack(alignment: Alignment.center, children: [
-              ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                  child: SizedBox(
-                    height: 140, // 👈 REQUIRED
-                    child: PageView.builder(
-                      scrollDirection: Axis.horizontal,
-                      onPageChanged: (index) {
-                        setState(() {
-                          currentSlideIndex = index;
-                        });
-                      },
-                      itemCount: vehicle.images?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        return GestureDetector(
-                          onTap: () {},
-                          child: CachedNetworkImage(
-                            imageUrl: vehicle.images![index],
-                            height: 140,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => Container(
-                              color: Colors.grey[200],
-                              child: const Center(
-                                  child: CircularProgressIndicator()),
-                            ),
-                            errorWidget: (context, url, error) => Container(
-                              color: Colors.grey[300],
-                              height: 180,
-                              child: const Icon(Icons.directions_car, size: 60),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  )),
-              if ((vehicle.images ?? []).length > 1)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        if (currentSlideIndex != 0) {
-                          currentSlideIndex--;
-                          setState(() {});
-                        }
-                      },
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        alignment: Alignment.center,
-                        padding: EdgeInsets.only(left: 4),
-                        margin: EdgeInsets.only(left: 4),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(30))),
-                        child: Icon(
-                          Icons.arrow_back_ios,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (currentSlideIndex < vehicle.images!.length - 1) {
-                          currentSlideIndex++;
-                          setState(() {});
-                        }
-                      },
-                      child: Container(
-                        width: 30,
-                        height: 30,
-                        alignment: Alignment.center,
-                        padding: EdgeInsets.only(left: 4),
-                        margin: EdgeInsets.only(right: 4),
-                        decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(30))),
-                        child: Icon(
-                          Icons.arrow_forward_ios,
-                          size: 16,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              Positioned(
-                  top: 0,
-                  right: 10,
-                  child: Text(
-                    "${currentSlideIndex + 1}/${vehicle.images!.length}",
-                    style: CommonUtils.commonTitleStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        weight: FontWeight.w400),
-                  ))
-            ]),
+          if (vehicle.images!.isNotEmpty)
+      Stack(
+      alignment: Alignment.center,
+      children: [
+        ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(16),
+            topRight: Radius.circular(16),
+          ),
+          child: SizedBox(
+            height: 140,
+            child: PageView.builder(
+              controller: _imageControllers.putIfAbsent(
+                index,
+                    () => PageController(),
+              ),
+              onPageChanged: (pageIndex) {
+                setState(() {
+                  _imageIndexes[index] = pageIndex;
+                });
+              },
+              itemCount: vehicle.images!.length,
+              itemBuilder: (context, imgIndex) {
+                return CachedNetworkImage(
+                  imageUrl: vehicle.images![imgIndex],
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) =>
+                  const Center(child: CircularProgressIndicator()),
+                  errorWidget: (_, __, ___) =>
+                  const Icon(Icons.directions_car, size: 60),
+                );
+              },
+            ),
+          ),
+        ),
+
+        /// LEFT ARROW
+        if (vehicle.images!.length > 1)
+          Positioned(
+            left: 8,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_back_ios),
+              color: Colors.white,
+              onPressed: () {
+                final current = _imageIndexes[index] ?? 0;
+                if (current > 0) {
+                  _imageControllers[index]!.animateToPage(
+                    current - 1,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              },
+            ),
+          ),
+
+        /// RIGHT ARROW
+        if (vehicle.images!.length > 1)
+          Positioned(
+            right: 8,
+            child: IconButton(
+              icon: const Icon(Icons.arrow_forward_ios),
+              color: Colors.white,
+              onPressed: () {
+                final current = _imageIndexes[index] ?? 0;
+                if (current < vehicle.images!.length - 1) {
+                  _imageControllers[index]!.animateToPage(
+                    current + 1,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                }
+              },
+            ),
+          ),
+
+        /// PAGE COUNTER
+        Positioned(
+          top: 8,
+          right: 16,
+          child: Text(
+            "${(_imageIndexes[index] ?? 0) + 1}/${vehicle.images!.length}",
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    ),
+
 
           // Vehicle Info
           Padding(

@@ -140,20 +140,15 @@ class _SplashScreenState extends State<SplashScreen>
               Center(
                 child: FadeTransition(
                   opacity: _fadeAnimation,
-                  child:Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SvgPicture.asset(
-                        'assets/svg/logo1.svg',
-                        height: 120,
+                  child:Center(
+                    child: Padding(
+                      padding: EdgeInsetsGeometry.symmetric(horizontal: 40),
+                      child: SvgPicture.asset(
+                        width: MediaQuery.of(context).size.width,
+                        'assets/svg/splash_logo.svg',
                       ),
-                      SvgPicture.asset(
-                        'assets/svg/logo2.svg',
-                        height: 120,
-                      ),
-                    ],
+                    ),
                   )
-
                 ),
               ),
               if (_isCheckingAuth)
